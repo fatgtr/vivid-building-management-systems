@@ -45,6 +45,10 @@ const initialFormState = {
   manager_email: '',
   manager_phone: '',
   status: 'active',
+  strata_plan_number: '',
+  strata_managing_agent_name: '',
+  strata_managing_agent_license: '',
+  strata_lots: '',
 };
 
 export default function Buildings() {
@@ -118,6 +122,10 @@ export default function Buildings() {
       manager_email: building.manager_email || '',
       manager_phone: building.manager_phone || '',
       status: building.status || 'active',
+      strata_plan_number: building.strata_plan_number || '',
+      strata_managing_agent_name: building.strata_managing_agent_name || '',
+      strata_managing_agent_license: building.strata_managing_agent_license || '',
+      strata_lots: building.strata_lots || '',
     });
     setShowDialog(true);
   };
@@ -129,6 +137,7 @@ export default function Buildings() {
       total_units: formData.total_units ? Number(formData.total_units) : null,
       floors: formData.floors ? Number(formData.floors) : null,
       year_built: formData.year_built ? Number(formData.year_built) : null,
+      strata_lots: formData.strata_lots ? Number(formData.strata_lots) : null,
     };
 
     if (editingBuilding) {
@@ -223,6 +232,9 @@ export default function Buildings() {
               </div>
               <CardContent className="p-5">
                 <h3 className="font-semibold text-lg text-slate-900 mb-1">{building.name}</h3>
+                {building.strata_plan_number && (
+                  <p className="text-xs text-blue-600 font-medium mb-2">SP: {building.strata_plan_number}</p>
+                )}
                 <div className="flex items-center text-slate-500 text-sm mb-4">
                   <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
                   <span className="truncate">{building.address}{building.city && `, ${building.city}`}</span>
@@ -405,6 +417,49 @@ export default function Buildings() {
                     value={formData.manager_phone}
                     onChange={(e) => setFormData({ ...formData, manager_phone: e.target.value })}
                     placeholder="Phone number"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              <h4 className="font-medium text-slate-900 mb-4">Strata Information</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="strata_plan_number">Strata Plan Number</Label>
+                  <Input
+                    id="strata_plan_number"
+                    value={formData.strata_plan_number}
+                    onChange={(e) => setFormData({ ...formData, strata_plan_number: e.target.value })}
+                    placeholder="e.g., SP60919"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="strata_lots">Number of Lots</Label>
+                  <Input
+                    id="strata_lots"
+                    type="number"
+                    value={formData.strata_lots}
+                    onChange={(e) => setFormData({ ...formData, strata_lots: e.target.value })}
+                    placeholder="e.g., 71"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="strata_managing_agent_name">Managing Agent Name</Label>
+                  <Input
+                    id="strata_managing_agent_name"
+                    value={formData.strata_managing_agent_name}
+                    onChange={(e) => setFormData({ ...formData, strata_managing_agent_name: e.target.value })}
+                    placeholder="e.g., Premium Strata Pty Ltd"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="strata_managing_agent_license">Agent License Number</Label>
+                  <Input
+                    id="strata_managing_agent_license"
+                    value={formData.strata_managing_agent_license}
+                    onChange={(e) => setFormData({ ...formData, strata_managing_agent_license: e.target.value })}
+                    placeholder="e.g., 1449556"
                   />
                 </div>
               </div>
