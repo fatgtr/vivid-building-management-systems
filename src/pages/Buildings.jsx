@@ -12,7 +12,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
-import { Building2, MapPin, Home, Users, Pencil, Trash2, Search, MoreVertical } from 'lucide-react';
+import { Building2, MapPin, Home, Users, Pencil, Trash2, Search, MoreVertical, Sparkles } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -57,6 +58,7 @@ export default function Buildings() {
   const [formData, setFormData] = useState(initialFormState);
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteBuilding, setDeleteBuilding] = useState(null);
+  const [autoPopulating, setAutoPopulating] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -128,6 +130,40 @@ export default function Buildings() {
       strata_lots: building.strata_lots || '',
     });
     setShowDialog(true);
+  };
+
+  const handleAutoPopulate = async () => {
+    if (!formData.strata_plan_number) {
+      toast.error('Please enter a strata plan number first');
+      return;
+    }
+
+    setAutoPopulating(true);
+    try {
+      const result = await base44.functions.autoPopulateStrata({ 
+        strata_plan_number: formData.strata_plan_number 
+      });
+
+      if (result.success && result.data) {
+        setFormData({
+          ...formData,
+          address: result.data.address || formData.address,
+          city: result.data.city || formData.city,
+          state: result.data.state || formData.state,
+          postal_code: result.data.postal_code || formData.postal_code,
+          strata_lots: result.data.strata_lots || formData.strata_lots,
+          strata_managing_agent_name: result.data.strata_managing_agent_name || formData.strata_managing_agent_name,
+          strata_managing_agent_license: result.data.strata_managing_agent_license || formData.strata_managing_agent_license,
+        });
+        toast.success('Building information auto-populated successfully');
+      } else {
+        toast.error(result.error || 'Failed to fetch strata information');
+      }
+    } catch (error) {
+      toast.error('Failed to auto-populate information');
+    } finally {
+      setAutoPopulating(false);
+    }
   };
 
   const handleSubmit = (e) => {
@@ -423,7 +459,20 @@ export default function Buildings() {
             </div>
 
             <div className="border-t pt-4">
-              <h4 className="font-medium text-slate-900 mb-4">Strata Information</h4>
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-medium text-slate-900">Strata Information</h4>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAutoPopulate}
+                  disabled={!formData.strata_plan_number || autoPopulating}
+                  className="text-blue-600 hover:text-blue-700"
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  {autoPopulating ? 'Fetching...' : 'Auto-Populate'}
+                </Button>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="strata_plan_number">Strata Plan Number</Label>
