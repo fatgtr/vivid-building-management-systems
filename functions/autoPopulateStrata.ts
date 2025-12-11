@@ -16,29 +16,29 @@ Deno.serve(async (req) => {
     }
 
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Search for NSW strata plan ${strata_plan_number} on the NSW government strata search website (https://www.nsw.gov.au/housing-and-construction/strata/strata-search).
-      
-Extract the following information:
-- Full street address (just the street address, not including city/state)
-- City/Suburb
-- State (should be NSW)
-- Postal code
-- Number of lots in the strata scheme
-- Strata managing agent company name
-- Strata managing agent license number
+      prompt: `Search the internet for information about NSW Strata Plan Number ${strata_plan_number}. This is a strata scheme in New South Wales, Australia.
 
-Return the information in the exact JSON format specified. If any field cannot be found, return null for that field.`,
+Find and extract the following information about this strata plan:
+1. The full street address of the property
+2. The suburb/city name
+3. The state (NSW)
+4. The postal code
+5. The total number of lots in the strata scheme
+6. The name of the strata managing agent company
+7. The strata managing agent's license number
+
+Search for official records, government databases, or property information sites that contain details about this strata plan. Return the information in the exact JSON format specified. If any specific field cannot be found with confidence, use null for that field.`,
       add_context_from_internet: true,
       response_json_schema: {
         type: "object",
         properties: {
-          address: { type: "string" },
-          city: { type: "string" },
-          state: { type: "string" },
-          postal_code: { type: "string" },
-          strata_lots: { type: "number" },
-          strata_managing_agent_name: { type: "string" },
-          strata_managing_agent_license: { type: "string" }
+          address: { type: ["string", "null"] },
+          city: { type: ["string", "null"] },
+          state: { type: ["string", "null"] },
+          postal_code: { type: ["string", "null"] },
+          strata_lots: { type: ["number", "null"] },
+          strata_managing_agent_name: { type: ["string", "null"] },
+          strata_managing_agent_license: { type: ["string", "null"] }
         }
       }
     });
