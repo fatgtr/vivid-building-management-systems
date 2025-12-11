@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
+import { useBuildingContext } from '@/components/BuildingContext';
 import { 
   Building2, 
   Home, 
@@ -29,6 +30,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -50,6 +58,7 @@ export default function Layout({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const { selectedBuildingId, setSelectedBuildingId, managedBuildings, isAdmin } = useBuildingContext();
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -137,6 +146,40 @@ export default function Layout({ children, currentPageName }) {
             )}
           </div>
         </div>
+
+        {/* Building Selector */}
+        {managedBuildings.length > 0 && (
+          <div className={cn("p-3 border-b border-slate-200", collapsed && "px-2")}>
+            {!collapsed ? (
+              <div>
+                <label className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2 block">
+                  {isAdmin ? 'All Buildings' : 'Your Building'}
+                </label>
+                <Select value={selectedBuildingId || ''} onValueChange={setSelectedBuildingId}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select building" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {managedBuildings.map((building) => (
+                      <SelectItem key={building.id} value={building.id}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{building.name}</span>
+                          {building.strata_plan_number && (
+                            <span className="text-xs text-slate-500">SP: {building.strata_plan_number}</span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="flex justify-center">
+                <Building2 className="h-5 w-5 text-blue-600" />
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Navigation */}
         <nav className="p-3 space-y-1 overflow-y-auto h-[calc(100vh-8rem)]">
