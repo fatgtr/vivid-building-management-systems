@@ -14,7 +14,7 @@ import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
 import WorkOrderDetail from '@/components/workorders/WorkOrderDetail';
-import { Wrench, Search, Building2, AlertCircle, Clock, CheckCircle2, XCircle, MoreVertical, Pencil, Trash2, Calendar, User, Eye } from 'lucide-react';
+import { Wrench, Search, Building2, AlertCircle, Clock, CheckCircle2, XCircle, MoreVertical, Pencil, Trash2, Calendar, User, Eye, Upload, Image as ImageIcon, Video, X } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -71,6 +71,9 @@ export default function WorkOrders() {
   const [filterPriority, setFilterPriority] = useState('all');
   const [deleteOrder, setDeleteOrder] = useState(null);
   const [viewingOrder, setViewingOrder] = useState(null);
+  const [uploadingFiles, setUploadingFiles] = useState(false);
+  const [selectedPhotos, setSelectedPhotos] = useState([]);
+  const [selectedVideos, setSelectedVideos] = useState([]);
 
   const queryClient = useQueryClient();
 
@@ -122,6 +125,8 @@ export default function WorkOrders() {
     setShowDialog(false);
     setEditingOrder(null);
     setFormData(initialFormState);
+    setSelectedPhotos([]);
+    setSelectedVideos([]);
   };
 
   const handleEdit = (order) => {
@@ -141,21 +146,72 @@ export default function WorkOrders() {
       estimated_cost: order.estimated_cost || '',
       notes: order.notes || '',
     });
+    setSelectedPhotos([]);
+    setSelectedVideos([]);
     setShowDialog(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const data = {
-      ...formData,
-      estimated_cost: formData.estimated_cost ? Number(formData.estimated_cost) : null,
-    };
+    setUploadingFiles(true);
 
-    if (editingOrder) {
-      updateMutation.mutate({ id: editingOrder.id, data });
-    } else {
-      createMutation.mutate(data);
+    try {
+      let photoUrls = [];
+      let videoUrls = [];
+
+      if (selectedPhotos.length > 0) {
+        const photoUploads = await Promise.all(
+          selectedPhotos.map(file => base44.integrations.Core.UploadFile({ file }))
+        );
+        photoUrls = photoUploads.map(r => r.file_url);
+      }
+
+      if (selectedVideos.length > 0) {
+        const videoUploads = await Promise.all(
+          selectedVideos.map(file => base44.integrations.Core.UploadFile({ file }))
+        );
+        videoUrls = videoUploads.map(r => r.file_url);
+      }
+
+      const data = {
+        ...formData,
+        estimated_cost: formData.estimated_cost ? Number(formData.estimated_cost) : null,
+        photos: photoUrls.length > 0 ? photoUrls : undefined,
+        videos: videoUrls.length > 0 ? videoUrls : undefined,
+      };
+
+      if (editingOrder) {
+        updateMutation.mutate({ id: editingOrder.id, data });
+      } else {
+        createMutation.mutate(data);
+      }
+    } catch (error) {
+      console.error('Upload failed:', error);
+    } finally {
+      setUploadingFiles(false);
     }
+  };
+
+  const handlePhotoSelect = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (selectedPhotos.length + files.length > 12) {
+      alert('Maximum 12 photos allowed');
+      return;
+    }
+    setSelectedPhotos([...selectedPhotos, ...files]);
+  };
+
+  const handleVideoSelect = (e) => {
+    const files = Array.from(e.target.files || []);
+    setSelectedVideos([...selectedVideos, ...files]);
+  };
+
+  const removePhoto = (index) => {
+    setSelectedPhotos(selectedPhotos.filter((_, i) => i !== index));
+  };
+
+  const removeVideo = (index) => {
+    setSelectedVideos(selectedVideos.filter((_, i) => i !== index));
   };
 
   const getBuildingName = (buildingId) => buildings.find(b => b.id === buildingId)?.name || 'Unknown';
@@ -475,14 +531,91 @@ export default function WorkOrders() {
                   placeholder="Additional notes"
                 />
               </div>
-            </div>
 
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={handleCloseDialog}>Cancel</Button>
-              <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={createMutation.isPending || updateMutation.isPending}>
-                {createMutation.isPending || updateMutation.isPending ? 'Saving...' : (editingOrder ? 'Update' : 'Create')}
-              </Button>
-            </DialogFooter>
+              {/* Photos Upload */}
+              <div className="md:col-span-2">
+                <Label>Photos (Max 12)</Label>
+                <div className="mt-2">
+                  <Button type="button" variant="outline" className="w-full" asChild>
+                    <label>
+                      <ImageIcon className="h-4 w-4 mr-2" />
+                      Upload Photos ({selectedPhotos.length}/12)
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handlePhotoSelect}
+                        disabled={selectedPhotos.length >= 12}
+                      />
+                    </label>
+                  </Button>
+                  {selectedPhotos.length > 0 && (
+                    <div className="grid grid-cols-4 gap-2 mt-2">
+                      {selectedPhotos.map((file, idx) => (
+                        <div key={idx} className="relative group">
+                          <img 
+                            src={URL.createObjectURL(file)} 
+                            alt="" 
+                            className="w-full h-20 object-cover rounded"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removePhoto(idx)}
+                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Videos Upload */}
+              <div className="md:col-span-2">
+                <Label>Videos</Label>
+                <div className="mt-2">
+                  <Button type="button" variant="outline" className="w-full" asChild>
+                    <label>
+                      <Video className="h-4 w-4 mr-2" />
+                      Upload Videos ({selectedVideos.length})
+                      <input
+                        type="file"
+                        multiple
+                        accept="video/*"
+                        className="hidden"
+                        onChange={handleVideoSelect}
+                      />
+                    </label>
+                  </Button>
+                  {selectedVideos.length > 0 && (
+                    <div className="space-y-2 mt-2">
+                      {selectedVideos.map((file, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded">
+                          <span className="text-sm truncate">{file.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeVideo(idx)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              </div>
+
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={handleCloseDialog}>Cancel</Button>
+                <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={createMutation.isPending || updateMutation.isPending || uploadingFiles}>
+                  {uploadingFiles ? 'Uploading...' : (createMutation.isPending || updateMutation.isPending ? 'Saving...' : (editingOrder ? 'Update' : 'Create'))}
+                </Button>
+              </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
