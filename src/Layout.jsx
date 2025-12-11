@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
-import { useBuildingContext } from '@/components/BuildingContext';
+import { BuildingProvider } from '@/components/BuildingContext';
 import { 
   Building2, 
   Home, 
@@ -54,20 +54,7 @@ const navItems = [
   { name: 'Contractors', icon: HardHat, page: 'Contractors' },
 ];
 
-export default function Layout({ children, currentPageName }) {
-  const [user, setUser] = useState(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
-  const { selectedBuildingId, setSelectedBuildingId, managedBuildings, isAdmin } = useBuildingContext();
-
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
-
-  const handleLogout = () => {
-    base44.auth.logout();
-  };
-
+function LayoutContent({ children, currentPageName, user, sidebarOpen, setSidebarOpen, collapsed, setCollapsed, selectedBuildingId, setSelectedBuildingId, managedBuildings, isAdmin, handleLogout }) {
   return (
     <div className="min-h-screen bg-slate-50">
       <style>{`
@@ -267,5 +254,50 @@ export default function Layout({ children, currentPageName }) {
         </div>
       </main>
     </div>
-  );
-}
+    );
+    }
+    </div>
+    );
+    }
+
+    export default function Layout({ children, currentPageName }) {
+    return (
+    <BuildingProvider>
+    <LayoutInner children={children} currentPageName={currentPageName} />
+    </BuildingProvider>
+    );
+    }
+
+    function LayoutInner({ children, currentPageName }) {
+    const [user, setUser] = useState(null);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [collapsed, setCollapsed] = useState(false);
+
+    useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+    }, []);
+
+    const handleLogout = () => {
+    base44.auth.logout();
+    };
+
+    // Import the hook here after we're inside the provider
+    const { useBuildingContext } = require('@/components/BuildingContext');
+    const { selectedBuildingId, setSelectedBuildingId, managedBuildings, isAdmin } = useBuildingContext();
+
+    return (
+    <LayoutContent 
+    children={children}
+    currentPageName={currentPageName}
+    user={user}
+    sidebarOpen={sidebarOpen}
+    setSidebarOpen={setSidebarOpen}
+    collapsed={collapsed}
+    setCollapsed={setCollapsed}
+    selectedBuildingId={selectedBuildingId}
+    setSelectedBuildingId={setSelectedBuildingId}
+    managedBuildings={managedBuildings}
+    isAdmin={isAdmin}
+    handleLogout={handleLogout}
+    />
+    );
