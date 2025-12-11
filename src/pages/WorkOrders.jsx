@@ -114,7 +114,33 @@ export default function WorkOrders() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.WorkOrder.update(id, data),
+    mutationFn: async ({ id, data, previousData }) => {
+      const result = await base44.entities.WorkOrder.update(id, data);
+      
+      // Send notifications for contractor assignment or status change
+      if (previousData) {
+        const contractorChanged = data.assigned_contractor_id && 
+                                  data.assigned_contractor_id !== previousData.assigned_contractor_id;
+        const statusChanged = data.status !== previousData.status;
+
+        if (contractorChanged) {
+          await base44.functions.invoke('notifyWorkOrderAssignment', {
+            workOrderId: id,
+            contractorId: data.assigned_contractor_id,
+            action: 'assigned'
+          });
+        }
+        
+        if (statusChanged) {
+          await base44.functions.invoke('notifyWorkOrderAssignment', {
+            workOrderId: id,
+            action: 'status_changed'
+          });
+        }
+      }
+      
+      return result;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workOrders'] });
       handleCloseDialog();
@@ -167,7 +193,7 @@ export default function WorkOrders() {
     if (newStatus === 'completed' && !order.completed_date) {
       updateData.completed_date = new Date().toISOString().split('T')[0];
     }
-    updateMutation.mutate({ id: order.id, data: updateData });
+    updateMutation.mutate({ id: order.id, data: updateData, previousData: order });
   };
 
   const handleRatingSubmit = (orderId, ratingData) => {
@@ -205,7 +231,15 @@ export default function WorkOrders() {
       };
 
       if (editingOrder) {
-        const updatedOrder = await base44.entities.WorkOrder.update(editingOrder.id, data);
+        // Check for contractor assignment change
+        const contractorChanged = data.assigned_contractor_id && 
+                                  data.assigned_contractor_id !== editingOrder.assigned_contractor_id;
+        
+        await updateMutation.mutateAsync({ 
+          id: editingOrder.id, 
+          data,
+          previousData: editingOrder 
+        });
         
         // Handle maintenance schedule for recurring work orders
         if (data.is_recurring) {
@@ -220,6 +254,15 @@ export default function WorkOrders() {
         handleCloseDialog();
       } else {
         const createdOrder = await base44.entities.WorkOrder.create(data);
+        
+        // Send notification if contractor assigned on creation
+        if (data.assigned_contractor_id && createdOrder.id) {
+          await base44.functions.invoke('notifyWorkOrderAssignment', {
+            workOrderId: createdOrder.id,
+            contractorId: data.assigned_contractor_id,
+            action: 'assigned'
+          });
+        }
         
         // Create maintenance schedule if recurring
         if (data.is_recurring && createdOrder.id) {
@@ -486,10 +529,18 @@ export default function WorkOrders() {
                     </div>
                   )}
                   {order.assigned_to && (
-                    <div className="flex items-center gap-2 text-slate-600">
-                      <User className="h-4 w-4 text-slate-400" />
-                      <span>{order.assigned_to}</span>
-                    </div>
+                   <div className="flex items-center gap-2 text-slate-600">
+                     <User className="h-4 w-4 text-slate-400" />
+                     <span>{order.assigned_to}</span>
+                   </div>
+                  )}
+                  {order.assigned_contractor_id && (
+                   <div className="flex items-center gap-2 text-slate-600">
+                     <Wrench className="h-4 w-4 text-blue-500" />
+                     <span className="text-blue-600 font-medium">
+                       {contractors.find(c => c.id === order.assigned_contractor_id)?.company_name || 'Contractor'}
+                     </span>
+                   </div>
                   )}
                 </div>
 
@@ -629,17 +680,26 @@ export default function WorkOrders() {
                 />
               </div>
               <div>
-                <Label htmlFor="assigned_contractor_id">Contractor</Label>
-                <Select value={formData.assigned_contractor_id} onValueChange={(v) => setFormData({ ...formData, assigned_contractor_id: v })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select contractor (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {contractors.map(c => (
-                      <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+               <Label htmlFor="assigned_contractor_id">Assign Contractor</Label>
+               <Select value={formData.assigned_contractor_id} onValueChange={(v) => setFormData({ ...formData, assigned_contractor_id: v })}>
+                 <SelectTrigger>
+                   <SelectValue placeholder="Select contractor (optional)" />
+                 </SelectTrigger>
+                 <SelectContent>
+                   <SelectItem value={null}>No contractor</SelectItem>
+                   {contractors.map(c => (
+                     <SelectItem key={c.id} value={c.id}>
+                       <div className="flex flex-col">
+                         <span>{c.company_name}</span>
+                         <span className="text-xs text-slate-500">{c.contact_name} • {c.email}</span>
+                       </div>
+                     </SelectItem>
+                   ))}
+                 </SelectContent>
+               </Select>
+               {formData.assigned_contractor_id && (
+                 <p className="text-xs text-blue-600 mt-1">✓ Contractor will be notified via email</p>
+               )}
               </div>
               <div>
                 <Label htmlFor="estimated_cost">Estimated Cost</Label>
