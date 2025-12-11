@@ -130,12 +130,25 @@ export default function Residents() {
       phone: resident.phone || '',
       resident_type: resident.resident_type || 'tenant',
       move_in_date: resident.move_in_date || '',
+      move_out_date: resident.move_out_date || '',
       emergency_contact_name: resident.emergency_contact_name || '',
       emergency_contact_phone: resident.emergency_contact_phone || '',
       vehicle_info: resident.vehicle_info || '',
       parking_spot: resident.parking_spot || '',
       status: resident.status || 'active',
       notes: resident.notes || '',
+      investor_name: resident.investor_name || '',
+      investor_home_phone: resident.investor_home_phone || '',
+      investor_mobile: resident.investor_mobile || '',
+      investor_second_phone: resident.investor_second_phone || '',
+      investor_email: resident.investor_email || '',
+      investor_strata_committee_member: resident.investor_strata_committee_member || false,
+      investor_address: resident.investor_address || '',
+      managing_agent_company: resident.managing_agent_company || '',
+      managing_agent_contact_name: resident.managing_agent_contact_name || '',
+      managing_agent_phone: resident.managing_agent_phone || '',
+      managing_agent_email: resident.managing_agent_email || '',
+      managing_agent_address: resident.managing_agent_address || '',
     });
     setShowDialog(true);
   };
@@ -424,6 +437,15 @@ export default function Residents() {
                 />
               </div>
               <div>
+                <Label htmlFor="move_out_date">Move Out Date</Label>
+                <Input
+                  id="move_out_date"
+                  type="date"
+                  value={formData.move_out_date}
+                  onChange={(e) => setFormData({ ...formData, move_out_date: e.target.value })}
+                />
+              </div>
+              <div>
                 <Label htmlFor="parking_spot">Parking Spot</Label>
                 <Input
                   id="parking_spot"
@@ -472,6 +494,120 @@ export default function Residents() {
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 rows={3}
               />
+            </div>
+
+            <div className="border-t pt-4">
+              <h4 className="font-medium text-slate-900 mb-4">Investor Information</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <Label htmlFor="investor_name">Name</Label>
+                  <Input
+                    id="investor_name"
+                    value={formData.investor_name}
+                    onChange={(e) => setFormData({ ...formData, investor_name: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="investor_home_phone">Home Phone</Label>
+                  <Input
+                    id="investor_home_phone"
+                    value={formData.investor_home_phone}
+                    onChange={(e) => setFormData({ ...formData, investor_home_phone: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="investor_mobile">Mobile</Label>
+                  <Input
+                    id="investor_mobile"
+                    value={formData.investor_mobile}
+                    onChange={(e) => setFormData({ ...formData, investor_mobile: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="investor_second_phone">Second Phone</Label>
+                  <Input
+                    id="investor_second_phone"
+                    value={formData.investor_second_phone}
+                    onChange={(e) => setFormData({ ...formData, investor_second_phone: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="investor_email">Email</Label>
+                  <Input
+                    id="investor_email"
+                    type="email"
+                    value={formData.investor_email}
+                    onChange={(e) => setFormData({ ...formData, investor_email: e.target.value })}
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <Label htmlFor="investor_address">Address</Label>
+                  <Textarea
+                    id="investor_address"
+                    value={formData.investor_address}
+                    onChange={(e) => setFormData({ ...formData, investor_address: e.target.value })}
+                    rows={2}
+                  />
+                </div>
+                <div className="md:col-span-2 flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="strata_committee"
+                    checked={formData.investor_strata_committee_member}
+                    onChange={(e) => setFormData({ ...formData, investor_strata_committee_member: e.target.checked })}
+                    className="rounded"
+                  />
+                  <Label htmlFor="strata_committee" className="cursor-pointer">Strata Committee Member</Label>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              <h4 className="font-medium text-slate-900 mb-4">Managing Agent</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <Label htmlFor="managing_agent_company">Company</Label>
+                  <Input
+                    id="managing_agent_company"
+                    value={formData.managing_agent_company}
+                    onChange={(e) => setFormData({ ...formData, managing_agent_company: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="managing_agent_contact_name">Contact Name</Label>
+                  <Input
+                    id="managing_agent_contact_name"
+                    value={formData.managing_agent_contact_name}
+                    onChange={(e) => setFormData({ ...formData, managing_agent_contact_name: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="managing_agent_phone">Phone</Label>
+                  <Input
+                    id="managing_agent_phone"
+                    value={formData.managing_agent_phone}
+                    onChange={(e) => setFormData({ ...formData, managing_agent_phone: e.target.value })}
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <Label htmlFor="managing_agent_email">Email</Label>
+                  <Input
+                    id="managing_agent_email"
+                    type="email"
+                    value={formData.managing_agent_email}
+                    onChange={(e) => setFormData({ ...formData, managing_agent_email: e.target.value })}
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <Label htmlFor="managing_agent_address">Address</Label>
+                  <Textarea
+                    id="managing_agent_address"
+                    value={formData.managing_agent_address}
+                    onChange={(e) => setFormData({ ...formData, managing_agent_address: e.target.value })}
+                    rows={2}
+                  />
+                </div>
+              </div>
             </div>
 
             <DialogFooter>
