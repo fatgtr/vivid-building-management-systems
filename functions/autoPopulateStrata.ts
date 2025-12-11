@@ -1,5 +1,4 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
-import { DOMParser } from "jsr:@b-fuze/deno-dom";
 
 Deno.serve(async (req) => {
   try {
@@ -16,86 +15,53 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Strata plan number is required' });
     }
 
-    // Make request to NSW strata search
-    const searchUrl = 'https://www.nsw.gov.au/housing-and-construction/strata/strata-search';
-    const formData = new URLSearchParams();
-    formData.append('strataPlanNumber', strata_plan_number);
-    formData.append('searchType', 'strata');
+    // Use LLM to search and extract the information from the web
+    const result = await base44.integrations.Core.InvokeLLM({
+      prompt: `I need you to find information about NSW Strata Plan ${strata_plan_number}.
 
-    const response = await fetch(searchUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: formData,
-    });
+Go to the NSW government strata search website and search for this strata plan number.
 
-    if (!response.ok) {
-      return Response.json({ success: false, error: 'Failed to fetch strata information from NSW website' }, { status: 500 });
-    }
+From the search results, extract EXACTLY these fields:
+1. The full address (street address including building name if present)
+2. The suburb/city name
+3. The state (should be NSW)
+4. The postal code (4-digit number)
+5. The total number of lots (just the number)
+6. The strata managing agent company name
+7. The strata managing agent license number
 
-    const html = await response.text();
-    const doc = new DOMParser().parseFromString(html, 'text/html');
+IMPORTANT: 
+- For the address, include the full street address but NOT the suburb/state/postcode in this field
+- The city should be just the suburb name (e.g., "LEICHHARDT" not "LEICHHARDT NSW")
+- Return actual data only, not placeholder text
+- If you cannot find a specific field, use null for that field
 
-    // Extract data from the HTML
-    let address = null;
-    let city = null;
-    let state = null;
-    let postal_code = null;
-    let strata_lots = null;
-    let strata_managing_agent_name = null;
-    let strata_managing_agent_license = null;
-
-    // Parse the address (format: "THE ITALIAN FORUM 23 NORTON ST, LEICHHARDT NSW 2040")
-    const addressElement = doc.querySelector('.strata-result-address, .address, h2');
-    if (addressElement) {
-      const fullAddress = addressElement.textContent.trim();
-      const addressParts = fullAddress.split(',');
-      if (addressParts.length > 0) {
-        address = addressParts[0].trim();
-      }
-      if (addressParts.length > 1) {
-        const cityStateZip = addressParts[1].trim().split(' ');
-        if (cityStateZip.length >= 3) {
-          postal_code = cityStateZip[cityStateZip.length - 1];
-          state = cityStateZip[cityStateZip.length - 2];
-          city = cityStateZip.slice(0, -2).join(' ');
+Example format from the screenshot provided:
+- Address: "THE ITALIAN FORUM 23 NORTON ST"
+- City: "LEICHHARDT"  
+- State: "NSW"
+- Postal Code: "2040"
+- Strata Lots: 71
+- Managing Agent Name: "Premium Strata Pty Ltd"
+- License: "1449656"`,
+      add_context_from_internet: true,
+      response_json_schema: {
+        type: "object",
+        properties: {
+          address: { type: ["string", "null"] },
+          city: { type: ["string", "null"] },
+          state: { type: ["string", "null"] },
+          postal_code: { type: ["string", "null"] },
+          strata_lots: { type: ["number", "null"] },
+          strata_managing_agent_name: { type: ["string", "null"] },
+          strata_managing_agent_license: { type: ["string", "null"] }
         }
       }
-    }
-
-    // Try to find managing agent section
-    const allText = html;
-    
-    // Extract managing agent name (look for "Name:" followed by the name)
-    const nameMatch = allText.match(/Name:\s*([^\n<]+)/i);
-    if (nameMatch) {
-      strata_managing_agent_name = nameMatch[1].trim();
-    }
-
-    // Extract license number (look for "Licence:" or "License:" followed by the number)
-    const licenseMatch = allText.match(/Licen[cs]e:\s*([^\n<]+)/i);
-    if (licenseMatch) {
-      strata_managing_agent_license = licenseMatch[1].trim();
-    }
-
-    // Extract number of lots (look for number followed by "Lot" or "Lots")
-    const lotsMatch = allText.match(/(\d+)\s*Lots?/i);
-    if (lotsMatch) {
-      strata_lots = parseInt(lotsMatch[1], 10);
-    }
+    });
 
     return Response.json({
       success: true,
-      data: {
-        address,
-        city,
-        state,
-        postal_code,
-        strata_lots,
-        strata_managing_agent_name,
-        strata_managing_agent_license
-      }
+      data: result
     });
   } catch (error) {
     return Response.json({ success: false, error: error.message || 'Failed to fetch strata information' }, { status: 500 });
