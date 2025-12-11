@@ -6,6 +6,10 @@ import WorkOrders from './pages/WorkOrders';
 import Amenities from './pages/Amenities';
 import Visitors from './pages/Visitors';
 import Announcements from './pages/Announcements';
+import Documents from './pages/Documents';
+import Inspections from './pages/Inspections';
+import Contractors from './pages/Contractors';
+import Settings from './pages/Settings';
 import __Layout from './Layout.jsx';
 
 
@@ -18,6 +22,10 @@ export const PAGES = {
     "Amenities": Amenities,
     "Visitors": Visitors,
     "Announcements": Announcements,
+    "Documents": Documents,
+    "Inspections": Inspections,
+    "Contractors": Contractors,
+    "Settings": Settings,
 }
 
 export const pagesConfig = {
