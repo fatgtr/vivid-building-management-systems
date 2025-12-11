@@ -53,14 +53,53 @@ export default function CalendarWidget({ workOrders = [], maintenanceSchedules =
   const getMaintenanceForDate = (date) => {
     return maintenanceSchedules.filter(ms => {
       try {
-        if (ms.event_start) {
-          const startDate = new Date(ms.event_start);
-          if (isSameDay(startDate, date)) return true;
+        if (!ms.event_start) return false;
+        
+        const startDate = new Date(ms.event_start);
+        const endDate = ms.event_end ? new Date(ms.event_end) : null;
+        
+        // Check if date is before start date
+        if (date < startDate) return false;
+        
+        // Check if date is after end date (if exists and not never_expire)
+        if (!ms.never_expire && endDate && date > endDate) return false;
+        
+        // Check if exact match with start or end date
+        if (isSameDay(startDate, date)) return true;
+        if (endDate && isSameDay(endDate, date)) return true;
+        
+        // Handle recurring events
+        if (ms.recurrence === 'one_time') return false;
+        
+        const dayOfMonth = startDate.getDate();
+        const currentDay = date.getDate();
+        
+        // Monthly - same day every month
+        if (ms.recurrence === 'monthly') {
+          return currentDay === dayOfMonth;
         }
         
-        if (ms.event_end) {
-          const endDate = new Date(ms.event_end);
-          if (isSameDay(endDate, date)) return true;
+        // Bi-Monthly - every 2 months
+        if (ms.recurrence === 'bi_monthly') {
+          const monthsDiff = (date.getFullYear() - startDate.getFullYear()) * 12 + (date.getMonth() - startDate.getMonth());
+          return currentDay === dayOfMonth && monthsDiff % 2 === 0;
+        }
+        
+        // Quarterly - every 3 months
+        if (ms.recurrence === 'quarterly') {
+          const monthsDiff = (date.getFullYear() - startDate.getFullYear()) * 12 + (date.getMonth() - startDate.getMonth());
+          return currentDay === dayOfMonth && monthsDiff % 3 === 0;
+        }
+        
+        // Half Yearly - every 6 months
+        if (ms.recurrence === 'half_yearly') {
+          const monthsDiff = (date.getFullYear() - startDate.getFullYear()) * 12 + (date.getMonth() - startDate.getMonth());
+          return currentDay === dayOfMonth && monthsDiff % 6 === 0;
+        }
+        
+        // Yearly - same date every year
+        if (ms.recurrence === 'yearly') {
+          return currentDay === dayOfMonth && date.getMonth() === startDate.getMonth();
         }
       } catch (e) {
         // Invalid date format
