@@ -205,14 +205,90 @@ export default function WorkOrders() {
       };
 
       if (editingOrder) {
-        updateMutation.mutate({ id: editingOrder.id, data });
+        const updatedOrder = await base44.entities.WorkOrder.update(editingOrder.id, data);
+        
+        // Handle maintenance schedule for recurring work orders
+        if (data.is_recurring) {
+          await handleMaintenanceScheduleSync(editingOrder.id, data);
+        } else {
+          // If changed from recurring to non-recurring, remove linked maintenance schedule
+          await removeMaintenanceSchedule(editingOrder.id);
+        }
+        
+        queryClient.invalidateQueries({ queryKey: ['workOrders'] });
+        queryClient.invalidateQueries({ queryKey: ['maintenanceSchedules'] });
+        handleCloseDialog();
       } else {
-        createMutation.mutate(data);
+        const createdOrder = await base44.entities.WorkOrder.create(data);
+        
+        // Create maintenance schedule if recurring
+        if (data.is_recurring && createdOrder.id) {
+          await handleMaintenanceScheduleSync(createdOrder.id, data);
+        }
+        
+        queryClient.invalidateQueries({ queryKey: ['workOrders'] });
+        queryClient.invalidateQueries({ queryKey: ['maintenanceSchedules'] });
+        handleCloseDialog();
       }
     } catch (error) {
-      console.error('Upload failed:', error);
+      console.error('Operation failed:', error);
     } finally {
       setUploadingFiles(false);
+    }
+  };
+
+  const handleMaintenanceScheduleSync = async (workOrderId, workOrderData) => {
+    try {
+      // Check if maintenance schedule already exists for this work order
+      const existingSchedules = await base44.entities.MaintenanceSchedule.filter({ 
+        work_order_id: workOrderId 
+      });
+
+      const recurrenceMap = {
+        daily: 'one_time',
+        weekly: 'one_time',
+        monthly: 'monthly',
+        quarterly: 'quarterly',
+        yearly: 'yearly'
+      };
+
+      const scheduleData = {
+        building_id: workOrderData.building_id,
+        subject: workOrderData.title,
+        description: workOrderData.description || '',
+        event_start: workOrderData.due_date || new Date().toISOString().split('T')[0],
+        event_end: workOrderData.recurrence_end_date || null,
+        recurrence: recurrenceMap[workOrderData.recurrence_pattern] || 'monthly',
+        contractor_id: workOrderData.assigned_contractor_id || null,
+        assigned_to: workOrderData.assigned_to || null,
+        never_expire: !workOrderData.recurrence_end_date,
+        status: 'active',
+        work_order_id: workOrderId
+      };
+
+      if (existingSchedules && existingSchedules.length > 0) {
+        // Update existing schedule
+        await base44.entities.MaintenanceSchedule.update(existingSchedules[0].id, scheduleData);
+      } else {
+        // Create new schedule
+        await base44.entities.MaintenanceSchedule.create(scheduleData);
+      }
+    } catch (error) {
+      console.error('Failed to sync maintenance schedule:', error);
+    }
+  };
+
+  const removeMaintenanceSchedule = async (workOrderId) => {
+    try {
+      const existingSchedules = await base44.entities.MaintenanceSchedule.filter({ 
+        work_order_id: workOrderId 
+      });
+      
+      if (existingSchedules && existingSchedules.length > 0) {
+        await base44.entities.MaintenanceSchedule.delete(existingSchedules[0].id);
+      }
+    } catch (error) {
+      console.error('Failed to remove maintenance schedule:', error);
     }
   };
 
