@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, startOfWeek, endOfWeek, isSameDay, parseISO } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, startOfWeek, endOfWeek, isSameDay } from 'date-fns';
 
 export default function CalendarWidget({ workOrders = [] }) {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -25,11 +25,24 @@ export default function CalendarWidget({ workOrders = [] }) {
 
   const getWorkOrdersForDate = (date) => {
     return workOrders.filter(wo => {
-      const startDate = wo.start_date || wo.created_date;
-      const dueDate = wo.due_date;
-      
-      if (startDate && isSameDay(parseISO(startDate), date)) return true;
-      if (dueDate && isSameDay(parseISO(dueDate), date)) return true;
+      try {
+        if (wo.created_date) {
+          const createdDate = new Date(wo.created_date);
+          if (isSameDay(createdDate, date)) return true;
+        }
+        
+        if (wo.start_date) {
+          const startDate = new Date(wo.start_date);
+          if (isSameDay(startDate, date)) return true;
+        }
+        
+        if (wo.due_date) {
+          const dueDate = new Date(wo.due_date);
+          if (isSameDay(dueDate, date)) return true;
+        }
+      } catch (e) {
+        // Invalid date format
+      }
       
       return false;
     });
