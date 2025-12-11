@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, startOfWeek, endOfWeek } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, startOfWeek, endOfWeek, isSameDay, parseISO } from 'date-fns';
 
-export default function CalendarWidget() {
+export default function CalendarWidget({ workOrders = [] }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   
   const monthStart = startOfMonth(currentDate);
@@ -21,6 +21,18 @@ export default function CalendarWidget() {
 
   const nextMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
+  };
+
+  const getWorkOrdersForDate = (date) => {
+    return workOrders.filter(wo => {
+      const startDate = wo.start_date || wo.created_date;
+      const dueDate = wo.due_date;
+      
+      if (startDate && isSameDay(parseISO(startDate), date)) return true;
+      if (dueDate && isSameDay(parseISO(dueDate), date)) return true;
+      
+      return false;
+    });
   };
 
   return (
@@ -45,18 +57,30 @@ export default function CalendarWidget() {
               {day}
             </div>
           ))}
-          {days.map((day, idx) => (
-            <div
-              key={idx}
-              className={`
-                text-center text-sm py-2 rounded cursor-pointer transition-colors
-                ${!isSameMonth(day, currentDate) ? 'text-slate-300' : 'text-slate-700'}
-                ${isToday(day) ? 'bg-blue-600 text-white font-semibold' : 'hover:bg-slate-100'}
-              `}
-            >
-              {format(day, 'd')}
-            </div>
-          ))}
+          {days.map((day, idx) => {
+            const dayWorkOrders = getWorkOrdersForDate(day);
+            const hasWorkOrders = dayWorkOrders.length > 0;
+            
+            return (
+              <div
+                key={idx}
+                className={`
+                  text-center text-sm py-2 rounded cursor-pointer transition-colors relative
+                  ${!isSameMonth(day, currentDate) ? 'text-slate-300' : 'text-slate-700'}
+                  ${isToday(day) ? 'bg-blue-600 text-white font-semibold' : 'hover:bg-slate-100'}
+                `}
+              >
+                {format(day, 'd')}
+                {hasWorkOrders && !isToday(day) && (
+                  <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 flex gap-0.5">
+                    {dayWorkOrders.slice(0, 3).map((_, i) => (
+                      <div key={i} className="w-1 h-1 rounded-full bg-orange-500" />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </CardContent>
     </Card>
