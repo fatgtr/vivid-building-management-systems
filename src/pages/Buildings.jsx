@@ -140,9 +140,11 @@ export default function Buildings() {
 
     setAutoPopulating(true);
     try {
-      const result = await base44.functions.autoPopulateStrata({ 
+      const response = await base44.functions.invoke('autoPopulateStrata', { 
         strata_plan_number: formData.strata_plan_number 
       });
+
+      const result = response.data;
 
       if (result.success && result.data) {
         setFormData({

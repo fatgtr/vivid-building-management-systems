@@ -1,11 +1,20 @@
-import { base44 } from '@base44/sdk';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
-export default async function autoPopulateStrata({ strata_plan_number }) {
-  if (!strata_plan_number) {
-    return { success: false, error: 'Strata plan number is required' };
-  }
-
+Deno.serve(async (req) => {
   try {
+    const base44 = createClientFromRequest(req);
+    
+    const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { strata_plan_number } = await req.json();
+
+    if (!strata_plan_number) {
+      return Response.json({ success: false, error: 'Strata plan number is required' });
+    }
+
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: `Search for NSW strata plan ${strata_plan_number} on the NSW government strata search website (https://www.nsw.gov.au/housing-and-construction/strata/strata-search).
       
@@ -34,8 +43,8 @@ Return the information in the exact JSON format specified. If any field cannot b
       }
     });
 
-    return { success: true, data: result };
+    return Response.json({ success: true, data: result });
   } catch (error) {
-    return { success: false, error: error.message || 'Failed to fetch strata information' };
+    return Response.json({ success: false, error: error.message || 'Failed to fetch strata information' }, { status: 500 });
   }
-}
+});
