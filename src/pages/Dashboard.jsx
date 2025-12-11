@@ -67,6 +67,11 @@ export default function Dashboard() {
     queryFn: () => base44.entities.Document.list(),
   });
 
+  const { data: maintenanceSchedules = [] } = useQuery({
+    queryKey: ['maintenanceSchedules'],
+    queryFn: () => base44.entities.MaintenanceSchedule.list(),
+  });
+
   const isLoading = loadingBuildings || loadingUnits || loadingResidents || loadingWorkOrders;
 
   const activeCases = workOrders.filter(wo => wo.status !== 'completed' && wo.status !== 'cancelled').length;
@@ -111,7 +116,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column */}
         <div className="space-y-6">
-          <CalendarWidget workOrders={workOrders} />
+          <CalendarWidget workOrders={workOrders} maintenanceSchedules={maintenanceSchedules} />
           <CasesChart workOrders={workOrders} />
         </div>
 

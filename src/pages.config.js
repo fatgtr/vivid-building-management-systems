@@ -10,6 +10,7 @@ import Documents from './pages/Documents';
 import Inspections from './pages/Inspections';
 import Contractors from './pages/Contractors';
 import Settings from './pages/Settings';
+import MaintenanceSchedule from './pages/MaintenanceSchedule';
 import __Layout from './Layout.jsx';
 
 
@@ -26,6 +27,7 @@ export const PAGES = {
     "Inspections": Inspections,
     "Contractors": Contractors,
     "Settings": Settings,
+    "MaintenanceSchedule": MaintenanceSchedule,
 }
 
 export const pagesConfig = {
