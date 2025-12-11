@@ -10,11 +10,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
 import WorkOrderDetail from '@/components/workorders/WorkOrderDetail';
-import { Wrench, Search, Building2, AlertCircle, Clock, CheckCircle2, XCircle, MoreVertical, Pencil, Trash2, Calendar, User, Eye, Upload, Image as ImageIcon, Video, X } from 'lucide-react';
+import KanbanBoard from '@/components/workorders/KanbanBoard';
+import RatingDialog from '@/components/workorders/RatingDialog';
+import { Wrench, Search, Building2, AlertCircle, Clock, CheckCircle2, XCircle, MoreVertical, Pencil, Trash2, Calendar, User, Eye, Upload, Image as ImageIcon, Video, X, LayoutGrid, List, Star } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,6 +63,9 @@ const initialFormState = {
   due_date: '',
   estimated_cost: '',
   notes: '',
+  is_recurring: false,
+  recurrence_pattern: 'monthly',
+  recurrence_end_date: '',
 };
 
 export default function WorkOrders() {
@@ -74,6 +80,8 @@ export default function WorkOrders() {
   const [uploadingFiles, setUploadingFiles] = useState(false);
   const [selectedPhotos, setSelectedPhotos] = useState([]);
   const [selectedVideos, setSelectedVideos] = useState([]);
+  const [viewMode, setViewMode] = useState('grid');
+  const [ratingOrder, setRatingOrder] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -145,10 +153,26 @@ export default function WorkOrders() {
       due_date: order.due_date || '',
       estimated_cost: order.estimated_cost || '',
       notes: order.notes || '',
+      is_recurring: order.is_recurring || false,
+      recurrence_pattern: order.recurrence_pattern || 'monthly',
+      recurrence_end_date: order.recurrence_end_date || '',
     });
     setSelectedPhotos([]);
     setSelectedVideos([]);
     setShowDialog(true);
+  };
+
+  const handleStatusChange = (order, newStatus) => {
+    const updateData = { ...order, status: newStatus };
+    if (newStatus === 'completed' && !order.completed_date) {
+      updateData.completed_date = new Date().toISOString().split('T')[0];
+    }
+    updateMutation.mutate({ id: order.id, data: updateData });
+  };
+
+  const handleRatingSubmit = (orderId, ratingData) => {
+    const order = workOrders.find(o => o.id === orderId);
+    updateMutation.mutate({ id: orderId, data: { ...order, ...ratingData } });
   };
 
   const handleSubmit = async (e) => {
@@ -256,7 +280,26 @@ export default function WorkOrders() {
         subtitle={`${statusCounts.open} open, ${statusCounts.in_progress} in progress`}
         action={() => setShowDialog(true)}
         actionLabel="Create Work Order"
-      />
+      >
+        <div className="flex items-center gap-2 bg-slate-100 rounded-lg p-1">
+          <Button
+            variant={viewMode === 'grid' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('grid')}
+            className="h-8"
+          >
+            <LayoutGrid className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewMode === 'kanban' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('kanban')}
+            className="h-8"
+          >
+            <List className="h-4 w-4" />
+          </Button>
+        </div>
+      </PageHeader>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4">
@@ -304,6 +347,14 @@ export default function WorkOrders() {
           action={() => setShowDialog(true)}
           actionLabel="Create Work Order"
         />
+      ) : viewMode === 'kanban' ? (
+        <KanbanBoard
+          workOrders={filteredOrders}
+          buildings={buildings}
+          units={units}
+          onViewDetails={setViewingOrder}
+          onStatusChange={handleStatusChange}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredOrders.map((order) => (
@@ -324,6 +375,11 @@ export default function WorkOrders() {
                       <DropdownMenuItem onClick={() => setViewingOrder(order)}>
                         <Eye className="mr-2 h-4 w-4" /> View Details
                       </DropdownMenuItem>
+                      {order.status === 'completed' && (
+                        <DropdownMenuItem onClick={() => setRatingOrder(order)}>
+                          <Star className="mr-2 h-4 w-4" /> Rate Work
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem onClick={() => handleEdit(order)}>
                         <Pencil className="mr-2 h-4 w-4" /> Edit
                       </DropdownMenuItem>
@@ -365,9 +421,17 @@ export default function WorkOrders() {
                   <span className="text-xs text-slate-500">
                     {order.created_date && format(new Date(order.created_date), 'MMM d, yyyy')}
                   </span>
-                  {order.estimated_cost && (
-                    <span className="text-sm font-medium text-slate-700">${order.estimated_cost.toLocaleString()}</span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {order.rating && (
+                      <div className="flex items-center gap-1 text-yellow-500">
+                        <Star className="h-3 w-3 fill-yellow-500" />
+                        <span className="text-xs font-medium">{order.rating}</span>
+                      </div>
+                    )}
+                    {order.estimated_cost && (
+                      <span className="text-sm font-medium text-slate-700">${order.estimated_cost.toLocaleString()}</span>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -532,6 +596,46 @@ export default function WorkOrders() {
                 />
               </div>
 
+              <div className="md:col-span-2 border-t pt-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Checkbox
+                    id="is_recurring"
+                    checked={formData.is_recurring}
+                    onCheckedChange={(checked) => setFormData({ ...formData, is_recurring: checked })}
+                  />
+                  <Label htmlFor="is_recurring" className="cursor-pointer">Make this a recurring work order</Label>
+                </div>
+
+                {formData.is_recurring && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-6">
+                    <div>
+                      <Label htmlFor="recurrence_pattern">Recurrence Pattern</Label>
+                      <Select value={formData.recurrence_pattern} onValueChange={(v) => setFormData({ ...formData, recurrence_pattern: v })}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="daily">Daily</SelectItem>
+                          <SelectItem value="weekly">Weekly</SelectItem>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                          <SelectItem value="quarterly">Quarterly</SelectItem>
+                          <SelectItem value="yearly">Yearly</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="recurrence_end_date">End Date (Optional)</Label>
+                      <Input
+                        id="recurrence_end_date"
+                        type="date"
+                        value={formData.recurrence_end_date}
+                        onChange={(e) => setFormData({ ...formData, recurrence_end_date: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Photos Upload */}
               <div className="md:col-span-2">
                 <Label>Photos (Max 12)</Label>
@@ -646,6 +750,16 @@ export default function WorkOrders() {
           buildings={buildings}
           units={units}
           contractors={contractors}
+        />
+      )}
+
+      {/* Rating Dialog */}
+      {ratingOrder && (
+        <RatingDialog
+          workOrder={ratingOrder}
+          open={!!ratingOrder}
+          onClose={() => setRatingOrder(null)}
+          onSubmit={handleRatingSubmit}
         />
       )}
       </div>
