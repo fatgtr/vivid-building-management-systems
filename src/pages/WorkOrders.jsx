@@ -612,7 +612,7 @@ export default function WorkOrders() {
                       <Label htmlFor="recurrence_pattern">Recurrence Pattern</Label>
                       <Select value={formData.recurrence_pattern} onValueChange={(v) => setFormData({ ...formData, recurrence_pattern: v })}>
                         <SelectTrigger>
-                          <SelectValue />
+                          <SelectValue placeholder="Select pattern" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="daily">Daily</SelectItem>
@@ -628,7 +628,7 @@ export default function WorkOrders() {
                       <Input
                         id="recurrence_end_date"
                         type="date"
-                        value={formData.recurrence_end_date}
+                        value={formData.recurrence_end_date || ''}
                         onChange={(e) => setFormData({ ...formData, recurrence_end_date: e.target.value })}
                       />
                     </div>
