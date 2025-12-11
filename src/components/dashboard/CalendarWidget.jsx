@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ChevronLeft, ChevronRight, Clock, Calendar as CalendarIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, Calendar as CalendarIcon, UserPlus, UserMinus } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, startOfWeek, endOfWeek, isSameDay } from 'date-fns';
 import StatusBadge from '@/components/common/StatusBadge';
 
-export default function CalendarWidget({ workOrders = [], maintenanceSchedules = [] }) {
+export default function CalendarWidget({ workOrders = [], maintenanceSchedules = [], residents = [] }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   
   const monthStart = startOfMonth(currentDate);
@@ -109,6 +109,26 @@ export default function CalendarWidget({ workOrders = [], maintenanceSchedules =
     });
   };
 
+  const getResidentsForDate = (date) => {
+    const moveIns = [];
+    const moveOuts = [];
+    
+    residents.forEach(resident => {
+      try {
+        if (resident.move_in_date && isSameDay(new Date(resident.move_in_date), date)) {
+          moveIns.push({ ...resident, eventType: 'move_in' });
+        }
+        if (resident.move_out_date && isSameDay(new Date(resident.move_out_date), date)) {
+          moveOuts.push({ ...resident, eventType: 'move_out' });
+        }
+      } catch (e) {
+        // Invalid date format
+      }
+    });
+    
+    return [...moveIns, ...moveOuts];
+  };
+
   return (
     <Card className="border-0 shadow-sm">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -134,7 +154,8 @@ export default function CalendarWidget({ workOrders = [], maintenanceSchedules =
           {days.map((day, idx) => {
             const dayWorkOrders = getWorkOrdersForDate(day);
             const dayMaintenance = getMaintenanceForDate(day);
-            const hasEvents = dayWorkOrders.length > 0 || dayMaintenance.length > 0;
+            const dayResidents = getResidentsForDate(day);
+            const hasEvents = dayWorkOrders.length > 0 || dayMaintenance.length > 0 || dayResidents.length > 0;
             
             const dayContent = (
               <div
@@ -147,7 +168,7 @@ export default function CalendarWidget({ workOrders = [], maintenanceSchedules =
                 {format(day, 'd')}
                 {hasEvents && !isToday(day) && (
                   <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 flex gap-0.5">
-                    {[...Array(Math.min(3, dayWorkOrders.length + dayMaintenance.length))].map((_, i) => (
+                    {[...Array(Math.min(3, dayWorkOrders.length + dayMaintenance.length + dayResidents.length))].map((_, i) => (
                       <div key={i} className="w-1 h-1 rounded-full bg-orange-500" />
                     ))}
                   </div>
@@ -222,6 +243,48 @@ export default function CalendarWidget({ workOrders = [], maintenanceSchedules =
                                   <span>{ms.asset}</span>
                                 )}
                               </div>
+                            </div>
+                          ))}
+                        </>
+                      )}
+
+                      {dayResidents.length > 0 && (
+                        <>
+                          <p className="text-xs font-semibold text-slate-500 uppercase mt-3">Resident Activity</p>
+                          {dayResidents.map((resident, idx) => (
+                            <div key={`${resident.id}-${idx}`} className={`p-2 rounded border ${
+                              resident.eventType === 'move_in' 
+                                ? 'bg-green-50 border-green-200' 
+                                : 'bg-red-50 border-red-200'
+                            }`}>
+                              <div className="flex items-start gap-2 mb-1">
+                                {resident.eventType === 'move_in' ? (
+                                  <UserPlus className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                ) : (
+                                  <UserMinus className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                                )}
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium text-slate-900">
+                                    {resident.first_name} {resident.last_name}
+                                  </p>
+                                  <p className="text-xs text-slate-600">
+                                    {resident.eventType === 'move_in' ? 'Moving In' : 'Moving Out'}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
+                                {resident.email && (
+                                  <span className="truncate">{resident.email}</span>
+                                )}
+                                {resident.phone && (
+                                  <span>{resident.phone}</span>
+                                )}
+                              </div>
+                              {resident.resident_type && (
+                                <span className="inline-block mt-1 text-xs text-slate-600 capitalize">
+                                  {resident.resident_type.replace(/_/g, ' ')}
+                                </span>
+                              )}
                             </div>
                           ))}
                         </>
