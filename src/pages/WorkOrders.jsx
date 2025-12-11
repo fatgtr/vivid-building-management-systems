@@ -17,7 +17,7 @@ import StatusBadge from '@/components/common/StatusBadge';
 import WorkOrderDetail from '@/components/workorders/WorkOrderDetail';
 import KanbanBoard from '@/components/workorders/KanbanBoard';
 import RatingDialog from '@/components/workorders/RatingDialog';
-import { Wrench, Search, Building2, AlertCircle, Clock, CheckCircle2, XCircle, MoreVertical, Pencil, Trash2, Calendar, User, Eye, Upload, Image as ImageIcon, Video, X, LayoutGrid, List, Star } from 'lucide-react';
+import { Wrench, Search, Building2, AlertCircle, Clock, CheckCircle2, XCircle, MoreVertical, Pencil, Trash2, Calendar, User, Eye, Upload, Image as ImageIcon, Video, X, LayoutGrid, List, Star, Repeat } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Clock, Building2, Eye, Star } from 'lucide-react';
+import { AlertCircle, Clock, Building2, Eye, Star, User, Repeat } from 'lucide-react';
 import { format } from 'date-fns';
 import StatusBadge from '@/components/common/StatusBadge';
 import { cn } from "@/lib/utils";
@@ -98,10 +98,27 @@ export default function KanbanBoard({ workOrders, buildings, units, onViewDetail
                           {order.unit_id && ` • Unit ${getUnitNumber(order.unit_id)}`}
                         </span>
                       </div>
+                      {order.category && (
+                        <div className="flex items-center gap-1">
+                          <Badge variant="outline" className="h-4 px-1.5 text-[10px] capitalize">{order.category.replace(/_/g, ' ')}</Badge>
+                        </div>
+                      )}
+                      {order.assigned_to && (
+                        <div className="flex items-center gap-1">
+                          <User className="h-3 w-3 text-slate-400" />
+                          <span className="truncate">{order.assigned_to}</span>
+                        </div>
+                      )}
                       {order.due_date && (
                         <div className="flex items-center gap-1">
                           <Clock className="h-3 w-3 text-slate-400" />
                           <span>Due: {format(new Date(order.due_date), 'MMM d')}</span>
+                        </div>
+                      )}
+                      {order.is_recurring && (
+                        <div className="flex items-center gap-1">
+                          <Repeat className="h-3 w-3 text-slate-400" />
+                          <span className="capitalize">{order.recurrence_pattern}</span>
                         </div>
                       )}
                     </div>
