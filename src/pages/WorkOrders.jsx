@@ -13,7 +13,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
-import { Wrench, Search, Building2, AlertCircle, Clock, CheckCircle2, XCircle, MoreVertical, Pencil, Trash2, Calendar, User } from 'lucide-react';
+import WorkOrderDetail from '@/components/workorders/WorkOrderDetail';
+import { Wrench, Search, Building2, AlertCircle, Clock, CheckCircle2, XCircle, MoreVertical, Pencil, Trash2, Calendar, User, Eye } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -69,6 +70,7 @@ export default function WorkOrders() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
   const [deleteOrder, setDeleteOrder] = useState(null);
+  const [viewingOrder, setViewingOrder] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -263,6 +265,9 @@ export default function WorkOrders() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setViewingOrder(order)}>
+                        <Eye className="mr-2 h-4 w-4" /> View Details
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleEdit(order)}>
                         <Pencil className="mr-2 h-4 w-4" /> Edit
                       </DropdownMenuItem>
@@ -499,6 +504,17 @@ export default function WorkOrders() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
-  );
-}
+
+      {/* Work Order Detail Modal */}
+      {viewingOrder && (
+        <WorkOrderDetail
+          order={viewingOrder}
+          onClose={() => setViewingOrder(null)}
+          buildings={buildings}
+          units={units}
+          contractors={contractors}
+        />
+      )}
+      </div>
+      );
+      }
