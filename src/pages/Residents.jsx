@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
-import { Users, Search, Pencil, Trash2, Building2, Home, Phone, Mail, MoreVertical, Calendar } from 'lucide-react';
+import { Users, Search, Pencil, Trash2, Building2, Home, Phone, Mail, MoreVertical, Calendar, Upload, FileText, X } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,6 +61,11 @@ const initialFormState = {
   managing_agent_phone: '',
   managing_agent_email: '',
   managing_agent_address: '',
+  has_pet: false,
+  documents: [],
+  hot_water_meter_number: '',
+  electrical_meter_number: '',
+  gas_meter_number: '',
 };
 
 export default function Residents() {
@@ -71,6 +76,7 @@ export default function Residents() {
   const [filterBuilding, setFilterBuilding] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [deleteResident, setDeleteResident] = useState(null);
+  const [uploadingFiles, setUploadingFiles] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -149,6 +155,11 @@ export default function Residents() {
       managing_agent_phone: resident.managing_agent_phone || '',
       managing_agent_email: resident.managing_agent_email || '',
       managing_agent_address: resident.managing_agent_address || '',
+      has_pet: resident.has_pet || false,
+      documents: resident.documents || [],
+      hot_water_meter_number: resident.hot_water_meter_number || '',
+      electrical_meter_number: resident.electrical_meter_number || '',
+      gas_meter_number: resident.gas_meter_number || '',
     });
     setShowDialog(true);
   };
@@ -165,6 +176,31 @@ export default function Residents() {
   const getBuildingName = (buildingId) => buildings.find(b => b.id === buildingId)?.name || 'Unknown';
   const getUnitNumber = (unitId) => units.find(u => u.id === unitId)?.unit_number || 'Unknown';
   const getFilteredUnits = () => units.filter(u => u.building_id === formData.building_id);
+
+  const handleFileSelect = async (e) => {
+    setUploadingFiles(true);
+    const files = Array.from(e.target.files);
+    const uploadedUrls = [];
+
+    for (const file of files) {
+      try {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        uploadedUrls.push(file_url);
+      } catch (error) {
+        console.error("Error uploading file:", error);
+      }
+    }
+
+    setFormData(prev => ({ ...prev, documents: [...prev.documents, ...uploadedUrls] }));
+    setUploadingFiles(false);
+  };
+
+  const removeFile = (indexToRemove) => {
+    setFormData(prev => ({
+      ...prev,
+      documents: prev.documents.filter((_, index) => index !== indexToRemove)
+    }));
+  };
 
   const filteredResidents = residents.filter(r => {
     const fullName = `${r.first_name} ${r.last_name}`.toLowerCase();
@@ -494,6 +530,74 @@ export default function Residents() {
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 rows={3}
               />
+            </div>
+
+            <div className="border-t pt-4">
+              <h4 className="font-medium text-slate-900 mb-4">Other Information</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2 flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="has_pet"
+                    checked={formData.has_pet}
+                    onChange={(e) => setFormData({ ...formData, has_pet: e.target.checked })}
+                    className="rounded"
+                  />
+                  <Label htmlFor="has_pet" className="cursor-pointer">Has Pet</Label>
+                </div>
+                <div>
+                  <Label htmlFor="hot_water_meter_number">Hot Water Meter Number</Label>
+                  <Input
+                    id="hot_water_meter_number"
+                    value={formData.hot_water_meter_number}
+                    onChange={(e) => setFormData({ ...formData, hot_water_meter_number: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="electrical_meter_number">Electrical Meter Number</Label>
+                  <Input
+                    id="electrical_meter_number"
+                    value={formData.electrical_meter_number}
+                    onChange={(e) => setFormData({ ...formData, electrical_meter_number: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="gas_meter_number">Gas Meter Number</Label>
+                  <Input
+                    id="gas_meter_number"
+                    value={formData.gas_meter_number}
+                    onChange={(e) => setFormData({ ...formData, gas_meter_number: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              <h4 className="font-medium text-slate-900 mb-4">Documents</h4>
+              <div className="space-y-2">
+                <Button type="button" variant="outline" className="w-full" asChild disabled={uploadingFiles}>
+                  <label>
+                    <Upload className="h-4 w-4 mr-2" />
+                    {uploadingFiles ? "Uploading..." : "Upload Documents"}
+                    <input type="file" multiple className="hidden" onChange={handleFileSelect} />
+                  </label>
+                </Button>
+                {formData.documents.length > 0 && (
+                  <div className="space-y-2">
+                    {formData.documents.map((docUrl, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-slate-50 rounded-md">
+                        <a href={docUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-blue-600 hover:underline truncate">
+                          <FileText className="h-4 w-4 flex-shrink-0" />
+                          <span className="truncate">Document {index + 1}</span>
+                        </a>
+                        <Button type="button" variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={() => removeFile(index)}>
+                          <X className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="border-t pt-4">
