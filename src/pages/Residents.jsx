@@ -14,7 +14,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
-import { Users, Search, Pencil, Trash2, Building2, Home, Phone, Mail, MoreVertical, Calendar, Upload, FileText, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from './utils';
+import { Users, Search, Pencil, Trash2, Building2, Home, Phone, Mail, MoreVertical, Calendar, Upload, FileText, X, ExternalLink } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -227,7 +229,14 @@ export default function Residents() {
         subtitle={`${residents.filter(r => r.status === 'active').length} active residents`}
         action={() => setShowDialog(true)}
         actionLabel="Add Resident"
-      />
+      >
+        <Link to={createPageUrl('ResidentPortal')}>
+          <Button variant="outline">
+            <ExternalLink className="h-4 w-4 mr-2" />
+            Resident Portal
+          </Button>
+        </Link>
+      </PageHeader>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4">
