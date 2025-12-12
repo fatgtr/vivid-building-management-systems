@@ -246,6 +246,7 @@ export default function Contractors() {
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="inactive">Inactive</SelectItem>
             <SelectItem value="pending_approval">Pending</SelectItem>
+            <SelectItem value="pending_compliance_review">Compliance Review</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -524,6 +525,7 @@ export default function Contractors() {
                     <SelectItem value="active">Active</SelectItem>
                     <SelectItem value="inactive">Inactive</SelectItem>
                     <SelectItem value="pending_approval">Pending Approval</SelectItem>
+                    <SelectItem value="pending_compliance_review">Pending Compliance Review</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
