@@ -47,6 +47,8 @@ const specialties = [
 
 const initialFormState = {
   company_name: '',
+  abn: '',
+  acn: '',
   contact_name: '',
   email: '',
   phone: '',
@@ -117,6 +119,8 @@ export default function Contractors() {
     setEditingContractor(contractor);
     setFormData({
       company_name: contractor.company_name || '',
+      abn: contractor.abn || '',
+      acn: contractor.acn || '',
       contact_name: contractor.contact_name || '',
       email: contractor.email || '',
       phone: contractor.phone || '',
@@ -381,6 +385,24 @@ export default function Contractors() {
                   value={formData.contact_name}
                   onChange={(e) => setFormData({ ...formData, contact_name: e.target.value })}
                   required
+                />
+              </div>
+              <div>
+                <Label htmlFor="abn">ABN (Australian Business Number)</Label>
+                <Input
+                  id="abn"
+                  value={formData.abn}
+                  onChange={(e) => setFormData({ ...formData, abn: e.target.value })}
+                  placeholder="XX XXX XXX XXX"
+                />
+              </div>
+              <div>
+                <Label htmlFor="acn">ACN (Australian Company Number)</Label>
+                <Input
+                  id="acn"
+                  value={formData.acn}
+                  onChange={(e) => setFormData({ ...formData, acn: e.target.value })}
+                  placeholder="XXX XXX XXX"
                 />
               </div>
               <div>
