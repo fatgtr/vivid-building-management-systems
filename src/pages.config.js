@@ -11,6 +11,7 @@ import Inspections from './pages/Inspections';
 import Contractors from './pages/Contractors';
 import Settings from './pages/Settings';
 import MaintenanceSchedule from './pages/MaintenanceSchedule';
+import ResidentPortal from './pages/ResidentPortal';
 import __Layout from './Layout.jsx';
 
 
@@ -28,6 +29,7 @@ export const PAGES = {
     "Contractors": Contractors,
     "Settings": Settings,
     "MaintenanceSchedule": MaintenanceSchedule,
+    "ResidentPortal": ResidentPortal,
 }
 
 export const pagesConfig = {
