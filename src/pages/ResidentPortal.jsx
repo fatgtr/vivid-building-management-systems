@@ -14,6 +14,7 @@ import StatusBadge from '@/components/common/StatusBadge';
 import FaultReportingWizard from '@/components/resident/FaultReportingWizard';
 import NotificationBell from '@/components/resident/NotificationBell';
 import NotificationSettings from '@/components/resident/NotificationSettings';
+import WorkOrderAIAssistant from '@/components/resident/WorkOrderAIAssistant';
 import { 
   Home, 
   Wrench, 
@@ -57,6 +58,8 @@ export default function ResidentPortal() {
   const [showRequestDialog, setShowRequestDialog] = useState(false);
   const [showWizard, setShowWizard] = useState(true);
   const [wizardData, setWizardData] = useState(null);
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
+  const [aiData, setAiData] = useState(null);
   const [selectedWorkOrder, setSelectedWorkOrder] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
@@ -167,8 +170,9 @@ export default function ResidentPortal() {
   const handleProceedFromWizard = (data) => {
     setWizardData(data);
     setShowWizard(false);
+    setShowAIAssistant(true);
     
-    // Pre-populate form with wizard data
+    // Pre-populate form with wizard data if available
     if (data.type && data.item) {
       setFormData({
         ...formData,
@@ -178,6 +182,29 @@ export default function ResidentPortal() {
           : `Issue: ${data.item}`,
       });
     }
+  };
+
+  const handleAIComplete = (data) => {
+    if (!data) {
+      // User resolved the issue themselves
+      setShowRequestDialog(false);
+      setShowWizard(true);
+      setShowAIAssistant(false);
+      setWizardData(null);
+      setAiData(null);
+      return;
+    }
+
+    setAiData(data);
+    setShowAIAssistant(false);
+    
+    // Pre-populate form with AI-analyzed data
+    setFormData({
+      title: data.title,
+      description: data.description,
+      category: data.category,
+      priority: data.priority,
+    });
   };
 
   const handleSubmitRequest = async (e) => {
@@ -540,7 +567,9 @@ export default function ResidentPortal() {
         setShowRequestDialog(open);
         if (!open) {
           setShowWizard(true);
+          setShowAIAssistant(false);
           setWizardData(null);
+          setAiData(null);
           setFormData({ title: '', description: '', category: 'other', priority: 'medium' });
           setSelectedPhotos([]);
         }
@@ -552,6 +581,8 @@ export default function ResidentPortal() {
           
           {showWizard ? (
             <FaultReportingWizard onProceedToReport={handleProceedFromWizard} />
+          ) : showAIAssistant ? (
+            <WorkOrderAIAssistant onComplete={handleAIComplete} />
           ) : (
             <form onSubmit={handleSubmitRequest} className="space-y-4">
             <div>
@@ -653,9 +684,17 @@ export default function ResidentPortal() {
               </p>
             </div>
 
+              {aiData && (
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    <strong>AI Analysis:</strong> This has been categorized as <strong>{aiData.category.replace(/_/g, ' ')}</strong> with <strong>{aiData.priority}</strong> priority based on your description.
+                  </p>
+                </div>
+              )}
+
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setShowWizard(true)}>
-                  Back to Responsibility Check
+                <Button type="button" variant="outline" onClick={() => setShowAIAssistant(true)}>
+                  Back to AI Assistant
                 </Button>
                 <Button type="button" variant="outline" onClick={() => setShowRequestDialog(false)}>
                   Cancel
