@@ -44,6 +44,9 @@ const amenityTypes = [
   { value: 'tennis_court', label: 'Tennis Court', icon: '🎾' },
   { value: 'parking', label: 'Parking', icon: '🅿️' },
   { value: 'storage', label: 'Storage', icon: '📦' },
+  { value: 'move_in_lift', label: 'Move-in Lift', icon: '⬆️' },
+  { value: 'move_out_lift', label: 'Move-out Lift', icon: '⬇️' },
+  { value: 'loading_dock', label: 'Loading Dock', icon: '🚚' },
   { value: 'other', label: 'Other', icon: '✨' },
 ];
 
@@ -192,13 +195,30 @@ export default function Amenities() {
     }
   };
 
-  const handleBookingSubmit = (e) => {
+  const handleBookingSubmit = async (e) => {
     e.preventDefault();
     const data = {
       ...bookingForm,
       guests: bookingForm.guests ? Number(bookingForm.guests) : null,
     };
-    createBookingMutation.mutate(data);
+    
+    try {
+      await createBookingMutation.mutateAsync(data);
+
+      // Send bylaws for move-related amenities
+      const amenity = amenities.find(a => a.id === data.amenity_id);
+      const resident = residents.find(r => r.id === data.resident_id);
+
+      if (resident && amenity && ['move_in_lift', 'move_out_lift', 'loading_dock'].includes(amenity.amenity_type)) {
+        await base44.functions.invoke('sendBylawsOnBooking', {
+          residentEmail: resident.email,
+          documentType: amenity.name,
+          buildingId: amenity.building_id
+        });
+      }
+    } catch (error) {
+      console.error('Booking error:', error);
+    }
   };
 
   const handleBookingStatusChange = (booking, newStatus) => {
