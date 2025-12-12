@@ -78,10 +78,29 @@ export default function Buildings() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Building.create(data),
+    mutationFn: async (data) => {
+      const building = await base44.entities.Building.create(data);
+      
+      // Auto-generate units if total_units is specified
+      if (data.total_units && data.total_units > 0) {
+        const unitsToCreate = [];
+        for (let i = 1; i <= data.total_units; i++) {
+          unitsToCreate.push({
+            building_id: building.id,
+            unit_number: String(i),
+            status: 'vacant',
+          });
+        }
+        await base44.entities.Unit.bulkCreate(unitsToCreate);
+      }
+      
+      return building;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['buildings'] });
+      queryClient.invalidateQueries({ queryKey: ['units'] });
       handleCloseDialog();
+      toast.success('Building and units created successfully');
     },
   });
 
