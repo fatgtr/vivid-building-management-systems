@@ -50,6 +50,10 @@ const initialFormState = {
   strata_plan_number: '',
   strata_managing_agent_name: '',
   strata_managing_agent_license: '',
+  strata_managing_agent_email: '',
+  strata_managing_agent_phone: '',
+  strata_managing_agent_invoicing_email: '',
+  building_compliance_email: '',
   strata_lots: '',
 };
 
@@ -154,6 +158,10 @@ export default function Buildings() {
       strata_plan_number: building.strata_plan_number || '',
       strata_managing_agent_name: building.strata_managing_agent_name || '',
       strata_managing_agent_license: building.strata_managing_agent_license || '',
+      strata_managing_agent_email: building.strata_managing_agent_email || '',
+      strata_managing_agent_phone: building.strata_managing_agent_phone || '',
+      strata_managing_agent_invoicing_email: building.strata_managing_agent_invoicing_email || '',
+      building_compliance_email: building.building_compliance_email || '',
       strata_lots: building.strata_lots || '',
     });
     setShowDialog(true);
@@ -550,6 +558,45 @@ export default function Buildings() {
                     value={formData.strata_managing_agent_license}
                     onChange={(e) => setFormData({ ...formData, strata_managing_agent_license: e.target.value })}
                     placeholder="e.g., 1449556"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="strata_managing_agent_email">Managing Agent Email</Label>
+                  <Input
+                    id="strata_managing_agent_email"
+                    type="email"
+                    value={formData.strata_managing_agent_email}
+                    onChange={(e) => setFormData({ ...formData, strata_managing_agent_email: e.target.value })}
+                    placeholder="agent@strataco.com.au"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="strata_managing_agent_phone">Managing Agent Phone</Label>
+                  <Input
+                    id="strata_managing_agent_phone"
+                    value={formData.strata_managing_agent_phone}
+                    onChange={(e) => setFormData({ ...formData, strata_managing_agent_phone: e.target.value })}
+                    placeholder="(02) 1234 5678"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="strata_managing_agent_invoicing_email">Invoicing Email</Label>
+                  <Input
+                    id="strata_managing_agent_invoicing_email"
+                    type="email"
+                    value={formData.strata_managing_agent_invoicing_email}
+                    onChange={(e) => setFormData({ ...formData, strata_managing_agent_invoicing_email: e.target.value })}
+                    placeholder="invoices@strataco.com.au"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="building_compliance_email">Building Compliance Email</Label>
+                  <Input
+                    id="building_compliance_email"
+                    type="email"
+                    value={formData.building_compliance_email}
+                    onChange={(e) => setFormData({ ...formData, building_compliance_email: e.target.value })}
+                    placeholder="building.compliance@example.com"
                   />
                 </div>
               </div>
