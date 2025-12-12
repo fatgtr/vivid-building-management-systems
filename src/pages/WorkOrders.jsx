@@ -17,7 +17,8 @@ import StatusBadge from '@/components/common/StatusBadge';
 import WorkOrderDetail from '@/components/workorders/WorkOrderDetail';
 import KanbanBoard from '@/components/workorders/KanbanBoard';
 import RatingDialog from '@/components/workorders/RatingDialog';
-import { Wrench, Search, Building2, AlertCircle, Clock, CheckCircle2, XCircle, MoreVertical, Pencil, Trash2, Calendar, User, Eye, Upload, Image as ImageIcon, Video, X, LayoutGrid, List, Star, Repeat } from 'lucide-react';
+import AISchedulingAssistant from '@/components/workorders/AISchedulingAssistant';
+import { Wrench, Search, Building2, AlertCircle, Clock, CheckCircle2, XCircle, MoreVertical, Pencil, Trash2, Calendar, User, Eye, Upload, Image as ImageIcon, Video, X, LayoutGrid, List, Star, Repeat, Sparkles } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -82,6 +83,7 @@ export default function WorkOrders() {
   const [selectedVideos, setSelectedVideos] = useState([]);
   const [viewMode, setViewMode] = useState('grid');
   const [ratingOrder, setRatingOrder] = useState(null);
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -494,6 +496,9 @@ export default function WorkOrders() {
                       <DropdownMenuItem onClick={() => setViewingOrder(order)}>
                         <Eye className="mr-2 h-4 w-4" /> View Details
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setViewingOrder(order); setShowAIAssistant(true); }}>
+                        <Sparkles className="mr-2 h-4 w-4" /> AI Insights
+                      </DropdownMenuItem>
                       {order.status === 'completed' && (
                         <DropdownMenuItem onClick={() => setRatingOrder(order)}>
                           <Star className="mr-2 h-4 w-4" /> Rate Work
@@ -879,7 +884,7 @@ export default function WorkOrders() {
       </AlertDialog>
 
       {/* Work Order Detail Modal */}
-      {viewingOrder && (
+      {viewingOrder && !showAIAssistant && (
         <WorkOrderDetail
           order={viewingOrder}
           onClose={() => setViewingOrder(null)}
@@ -887,6 +892,24 @@ export default function WorkOrders() {
           units={units}
           contractors={contractors}
         />
+      )}
+
+      {/* AI Scheduling Assistant Modal */}
+      {viewingOrder && showAIAssistant && (
+        <Dialog open={true} onOpenChange={() => { setViewingOrder(null); setShowAIAssistant(false); }}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-blue-600" />
+                AI Analysis: {viewingOrder.title}
+              </DialogTitle>
+            </DialogHeader>
+            <AISchedulingAssistant 
+              workOrder={viewingOrder} 
+              buildingId={viewingOrder.building_id}
+            />
+          </DialogContent>
+        </Dialog>
       )}
 
       {/* Rating Dialog */}
