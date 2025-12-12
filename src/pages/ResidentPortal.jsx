@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import StatusBadge from '@/components/common/StatusBadge';
+import FaultReportingWizard from '@/components/resident/FaultReportingWizard';
 import { 
   Home, 
   Wrench, 
@@ -51,6 +52,8 @@ export default function ResidentPortal() {
   const [user, setUser] = useState(null);
   const [resident, setResident] = useState(null);
   const [showRequestDialog, setShowRequestDialog] = useState(false);
+  const [showWizard, setShowWizard] = useState(true);
+  const [wizardData, setWizardData] = useState(null);
   const [selectedWorkOrder, setSelectedWorkOrder] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
@@ -156,6 +159,22 @@ export default function ResidentPortal() {
 
   const removePhoto = (index) => {
     setSelectedPhotos(selectedPhotos.filter((_, i) => i !== index));
+  };
+
+  const handleProceedFromWizard = (data) => {
+    setWizardData(data);
+    setShowWizard(false);
+    
+    // Pre-populate form with wizard data
+    if (data.type && data.item) {
+      setFormData({
+        ...formData,
+        title: `${data.type} - ${data.item}`,
+        description: data.requiresAssessment 
+          ? `Issue: ${data.item}\n\nNote: This requires assessment to determine responsibility.` 
+          : `Issue: ${data.item}`,
+      });
+    }
   };
 
   const handleSubmitRequest = async (e) => {
@@ -499,12 +518,24 @@ export default function ResidentPortal() {
       </Tabs>
 
       {/* Submit Request Dialog */}
-      <Dialog open={showRequestDialog} onOpenChange={setShowRequestDialog}>
+      <Dialog open={showRequestDialog} onOpenChange={(open) => {
+        setShowRequestDialog(open);
+        if (!open) {
+          setShowWizard(true);
+          setWizardData(null);
+          setFormData({ title: '', description: '', category: 'other', priority: 'medium' });
+          setSelectedPhotos([]);
+        }
+      }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Submit Maintenance Request</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmitRequest} className="space-y-4">
+          
+          {showWizard ? (
+            <FaultReportingWizard onProceedToReport={handleProceedFromWizard} />
+          ) : (
+            <form onSubmit={handleSubmitRequest} className="space-y-4">
             <div>
               <Label htmlFor="title">Issue Title *</Label>
               <Input
@@ -604,19 +635,23 @@ export default function ResidentPortal() {
               </p>
             </div>
 
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setShowRequestDialog(false)}>
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                className="bg-blue-600 hover:bg-blue-700"
-                disabled={createWorkOrderMutation.isPending || uploadingFiles}
-              >
-                {uploadingFiles ? 'Uploading...' : createWorkOrderMutation.isPending ? 'Submitting...' : 'Submit Request'}
-              </Button>
-            </DialogFooter>
-          </form>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setShowWizard(true)}>
+                  Back to Responsibility Check
+                </Button>
+                <Button type="button" variant="outline" onClick={() => setShowRequestDialog(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="bg-blue-600 hover:bg-blue-700"
+                  disabled={createWorkOrderMutation.isPending || uploadingFiles}
+                >
+                  {uploadingFiles ? 'Uploading...' : createWorkOrderMutation.isPending ? 'Submitting...' : 'Submit Request'}
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
         </DialogContent>
       </Dialog>
 
