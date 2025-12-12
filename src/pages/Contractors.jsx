@@ -53,7 +53,13 @@ const initialFormState = {
   address: '',
   specialty: [],
   license_number: '',
+  license_expiry_date: '',
+  insurance_details: '',
   insurance_expiry: '',
+  work_cover_details: '',
+  work_cover_expiry_date: '',
+  public_liability_details: '',
+  public_liability_expiry_date: '',
   hourly_rate: '',
   status: 'active',
   notes: '',
@@ -115,7 +121,13 @@ export default function Contractors() {
       address: contractor.address || '',
       specialty: contractor.specialty || [],
       license_number: contractor.license_number || '',
+      license_expiry_date: contractor.license_expiry_date || '',
+      insurance_details: contractor.insurance_details || '',
       insurance_expiry: contractor.insurance_expiry || '',
+      work_cover_details: contractor.work_cover_details || '',
+      work_cover_expiry_date: contractor.work_cover_expiry_date || '',
+      public_liability_details: contractor.public_liability_details || '',
+      public_liability_expiry_date: contractor.public_liability_expiry_date || '',
       hourly_rate: contractor.hourly_rate || '',
       status: contractor.status || 'active',
       notes: contractor.notes || '',
@@ -267,12 +279,20 @@ export default function Contractors() {
                     </div>
                   )}
                   {contractor.license_number && (
-                    <div className="flex items-center gap-2 text-slate-600">
-                      <Shield className="h-4 w-4 text-slate-400" />
-                      <span>License: {contractor.license_number}</span>
-                    </div>
+                   <div className="flex items-center gap-2 text-slate-600">
+                     <Shield className="h-4 w-4 text-slate-400" />
+                     <span>License: {contractor.license_number}</span>
+                   </div>
                   )}
-                </div>
+                  {contractor.insurance_expiry && (
+                   <div className="flex items-center gap-2 text-slate-600">
+                     <Shield className="h-4 w-4 text-slate-400" />
+                     <span className={new Date(contractor.insurance_expiry) < new Date() ? 'text-red-600 font-medium' : ''}>
+                       Insurance: {format(new Date(contractor.insurance_expiry), 'MMM d, yyyy')}
+                     </span>
+                   </div>
+                  )}
+                  </div>
 
                 {contractor.specialty?.length > 0 && (
                   <div className="flex flex-wrap gap-1 mb-3">
@@ -356,6 +376,9 @@ export default function Contractors() {
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 />
               </div>
+              <div className="md:col-span-2">
+                <h4 className="font-medium text-slate-900 mb-3 mt-2">Compliance Information</h4>
+              </div>
               <div>
                 <Label htmlFor="license_number">License Number</Label>
                 <Input
@@ -365,12 +388,66 @@ export default function Contractors() {
                 />
               </div>
               <div>
-                <Label htmlFor="insurance_expiry">Insurance Expiry</Label>
+                <Label htmlFor="license_expiry_date">License Expiry Date</Label>
+                <Input
+                  id="license_expiry_date"
+                  type="date"
+                  value={formData.license_expiry_date}
+                  onChange={(e) => setFormData({ ...formData, license_expiry_date: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="insurance_details">Insurance Policy Details</Label>
+                <Input
+                  id="insurance_details"
+                  value={formData.insurance_details}
+                  onChange={(e) => setFormData({ ...formData, insurance_details: e.target.value })}
+                  placeholder="Policy number, provider"
+                />
+              </div>
+              <div>
+                <Label htmlFor="insurance_expiry">Insurance Expiry Date</Label>
                 <Input
                   id="insurance_expiry"
                   type="date"
                   value={formData.insurance_expiry}
                   onChange={(e) => setFormData({ ...formData, insurance_expiry: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="work_cover_details">Work Cover Details</Label>
+                <Input
+                  id="work_cover_details"
+                  value={formData.work_cover_details}
+                  onChange={(e) => setFormData({ ...formData, work_cover_details: e.target.value })}
+                  placeholder="Policy number, provider"
+                />
+              </div>
+              <div>
+                <Label htmlFor="work_cover_expiry_date">Work Cover Expiry Date</Label>
+                <Input
+                  id="work_cover_expiry_date"
+                  type="date"
+                  value={formData.work_cover_expiry_date}
+                  onChange={(e) => setFormData({ ...formData, work_cover_expiry_date: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="public_liability_details">Public Liability Details</Label>
+                <Input
+                  id="public_liability_details"
+                  value={formData.public_liability_details}
+                  onChange={(e) => setFormData({ ...formData, public_liability_details: e.target.value })}
+                  placeholder="Policy number, provider"
+                />
+              </div>
+              <div>
+                <Label htmlFor="public_liability_expiry_date">Public Liability Expiry Date</Label>
+                <Input
+                  id="public_liability_expiry_date"
+                  type="date"
+                  value={formData.public_liability_expiry_date}
+                  onChange={(e) => setFormData({ ...formData, public_liability_expiry_date: e.target.value })}
                 />
               </div>
               <div>
