@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Upload, FileText, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function StrataRollUploader({ buildingId, onUnitsCreated }) {
+export default function StrataRollUploader({ buildingId, onUnitsCreated, onSkip }) {
     const [open, setOpen] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [processing, setProcessing] = useState(false);
@@ -58,20 +58,52 @@ export default function StrataRollUploader({ buildingId, onUnitsCreated }) {
 
         setProcessing(true);
         try {
-            const unitsToCreate = extractedData.units.map(unit => ({
-                building_id: buildingId,
-                unit_number: unit.unit_number,
-                lot_number: unit.lot_number,
-                unit_entitlement: unit.unit_entitlement,
-                owner_name: unit.owner_name || '',
-                owner_email: unit.owner_email || '',
-                owner_address: unit.owner_address || '',
-                status: 'vacant'
-            }));
+            // Create units with owner information
+            const createdUnits = [];
+            for (const unit of extractedData.units) {
+                const unitData = {
+                    building_id: buildingId,
+                    unit_number: unit.unit_number,
+                    lot_number: unit.lot_number,
+                    unit_entitlement: unit.unit_entitlement,
+                    owner_name: unit.owner_name || '',
+                    owner_email: unit.owner_email || '',
+                    owner_address: unit.owner_address || '',
+                    status: 'vacant'
+                };
+                const createdUnit = await base44.entities.Unit.create(unitData);
+                createdUnits.push({ ...createdUnit, ownerData: unit });
+            }
 
-            await base44.entities.Unit.bulkCreate(unitsToCreate);
+            // Create residents (owners) from the extracted data
+            const residentsToCreate = [];
+            for (const unit of createdUnits) {
+                if (unit.ownerData.owner_name) {
+                    // Split owner name into first and last name
+                    const nameParts = unit.ownerData.owner_name.split(' ');
+                    const firstName = nameParts[0] || '';
+                    const lastName = nameParts.slice(1).join(' ') || '';
+
+                    residentsToCreate.push({
+                        building_id: buildingId,
+                        unit_id: unit.id,
+                        first_name: firstName,
+                        last_name: lastName,
+                        email: unit.ownerData.owner_email || '',
+                        resident_type: 'owner',
+                        status: 'active',
+                        investor_name: unit.ownerData.owner_name,
+                        investor_email: unit.ownerData.owner_email || '',
+                        investor_address: unit.ownerData.owner_address || ''
+                    });
+                }
+            }
+
+            if (residentsToCreate.length > 0) {
+                await base44.entities.Resident.bulkCreate(residentsToCreate);
+            }
             
-            toast.success(`Created ${unitsToCreate.length} units successfully`);
+            toast.success(`Created ${createdUnits.length} units and ${residentsToCreate.length} residents successfully`);
             setOpen(false);
             setExtractedData(null);
             setSelectedFile(null);
@@ -80,7 +112,7 @@ export default function StrataRollUploader({ buildingId, onUnitsCreated }) {
                 onUnitsCreated();
             }
         } catch (error) {
-            toast.error('Failed to create units');
+            toast.error('Failed to create units and residents');
         } finally {
             setProcessing(false);
         }
@@ -108,6 +140,12 @@ export default function StrataRollUploader({ buildingId, onUnitsCreated }) {
                         <DialogTitle>Upload Strata Roll Document</DialogTitle>
                     </DialogHeader>
 
+                    {onSkip && !extractedData && (
+                        <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm text-slate-600">
+                            You can skip this step and manually add units later, or upload a Strata Roll to auto-populate everything.
+                        </div>
+                    )}
+
                     {!extractedData ? (
                         <div className="space-y-4">
                             <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center">
@@ -134,17 +172,29 @@ export default function StrataRollUploader({ buildingId, onUnitsCreated }) {
                                 )}
                             </div>
 
-                            {selectedFile && (
-                                <Button 
-                                    onClick={handleUploadAndExtract}
-                                    disabled={uploading || processing}
-                                    className="w-full bg-blue-600 hover:bg-blue-700"
-                                >
-                                    {uploading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                                    {processing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                                    {uploading ? 'Uploading...' : processing ? 'Extracting Data...' : 'Process Document'}
-                                </Button>
-                            )}
+                            <div className="flex gap-3">
+                                {selectedFile && (
+                                    <Button 
+                                        onClick={handleUploadAndExtract}
+                                        disabled={uploading || processing}
+                                        className="flex-1 bg-blue-600 hover:bg-blue-700"
+                                    >
+                                        {uploading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                                        {processing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                                        {uploading ? 'Uploading...' : processing ? 'Extracting Data...' : 'Process Document'}
+                                    </Button>
+                                )}
+                                {onSkip && (
+                                    <Button 
+                                        variant="outline"
+                                        onClick={onSkip}
+                                        disabled={uploading || processing}
+                                        className={selectedFile ? 'flex-1' : 'w-full'}
+                                    >
+                                        Skip for Now
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                     ) : (
                         <div className="space-y-4">
@@ -219,7 +269,7 @@ export default function StrataRollUploader({ buildingId, onUnitsCreated }) {
                                     className="flex-1 bg-blue-600 hover:bg-blue-700"
                                 >
                                     {processing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                                    Create All Units
+                                    Create Units & Residents
                                 </Button>
                             </div>
                         </div>

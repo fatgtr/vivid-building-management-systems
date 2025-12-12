@@ -60,6 +60,8 @@ export default function Buildings() {
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteBuilding, setDeleteBuilding] = useState(null);
   const [autoPopulating, setAutoPopulating] = useState(false);
+  const [dialogStep, setDialogStep] = useState('form');
+  const [newlyCreatedBuilding, setNewlyCreatedBuilding] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -81,27 +83,13 @@ export default function Buildings() {
   const createMutation = useMutation({
     mutationFn: async (data) => {
       const building = await base44.entities.Building.create(data);
-      
-      // Auto-generate units if total_units is specified
-      if (data.total_units && data.total_units > 0) {
-        const unitsToCreate = [];
-        for (let i = 1; i <= data.total_units; i++) {
-          unitsToCreate.push({
-            building_id: building.id,
-            unit_number: String(i),
-            status: 'vacant',
-          });
-        }
-        await base44.entities.Unit.bulkCreate(unitsToCreate);
-      }
-      
       return building;
     },
-    onSuccess: () => {
+    onSuccess: (building) => {
       queryClient.invalidateQueries({ queryKey: ['buildings'] });
-      queryClient.invalidateQueries({ queryKey: ['units'] });
-      handleCloseDialog();
-      toast.success('Building and units created successfully');
+      setNewlyCreatedBuilding(building);
+      setDialogStep('uploadStrataRoll');
+      toast.success('Building created. Now upload Strata Roll to populate units and residents.');
     },
   });
 
@@ -125,6 +113,12 @@ export default function Buildings() {
     setShowDialog(false);
     setEditingBuilding(null);
     setFormData(initialFormState);
+    setDialogStep('form');
+    setNewlyCreatedBuilding(null);
+  };
+
+  const handleSkipStrataRoll = () => {
+    handleCloseDialog();
   };
 
   const handleEdit = (building) => {
@@ -334,9 +328,13 @@ export default function Buildings() {
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingBuilding ? 'Edit Building' : 'Add New Building'}</DialogTitle>
+            <DialogTitle>
+              {editingBuilding ? 'Edit Building' : (dialogStep === 'form' ? 'Add New Building - Step 1' : 'Add New Building - Step 2: Upload Strata Roll')}
+            </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          
+          {dialogStep === 'form' && (
+            <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
                 <Label htmlFor="name">Building Name *</Label>
@@ -553,10 +551,35 @@ export default function Buildings() {
                 className="bg-blue-600 hover:bg-blue-700"
                 disabled={createMutation.isPending || updateMutation.isPending}
               >
-                {createMutation.isPending || updateMutation.isPending ? 'Saving...' : (editingBuilding ? 'Update' : 'Create')}
+                {createMutation.isPending || updateMutation.isPending ? 'Saving...' : (editingBuilding ? 'Update' : 'Next: Upload Strata Roll')}
               </Button>
             </DialogFooter>
           </form>
+          )}
+
+          {dialogStep === 'uploadStrataRoll' && newlyCreatedBuilding && (
+            <div className="space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-blue-900">
+                  <strong>{newlyCreatedBuilding.name}</strong> has been created successfully.
+                </p>
+                <p className="text-sm text-blue-700 mt-1">
+                  Upload the Strata Roll PDF to automatically create all units and populate resident/owner information.
+                </p>
+              </div>
+              
+              <StrataRollUploader
+                buildingId={newlyCreatedBuilding.id}
+                onUnitsCreated={() => {
+                  queryClient.invalidateQueries({ queryKey: ['units'] });
+                  queryClient.invalidateQueries({ queryKey: ['residents'] });
+                  queryClient.invalidateQueries({ queryKey: ['buildings'] });
+                  handleCloseDialog();
+                }}
+                onSkip={handleSkipStrataRoll}
+              />
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
