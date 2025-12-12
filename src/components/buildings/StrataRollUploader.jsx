@@ -43,10 +43,13 @@ export default function StrataRollUploader({ buildingId, onUnitsCreated, onSkip 
                 setExtractedData(result.data);
                 toast.success(`Extracted ${result.data.units?.length || 0} units from Strata Roll`);
             } else {
-                toast.error(result.error || 'Failed to extract data from PDF');
+                const errorMsg = result.error || 'Failed to extract data from PDF';
+                toast.error(errorMsg);
+                console.error('Strata Roll extraction error:', result);
             }
-        } catch (error) {
-            toast.error('Failed to process Strata Roll');
+            } catch (error) {
+            toast.error(`Failed to process Strata Roll: ${error.message}`);
+            console.error('Strata Roll processing error:', error);
         } finally {
             setUploading(false);
             setProcessing(false);

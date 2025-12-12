@@ -75,11 +75,11 @@ Deno.serve(async (req) => {
             }
         });
 
-        if (result.status === 'error') {
+        if (result.status === 'error' || !result.output) {
             return Response.json({ 
                 success: false, 
-                error: result.details || 'Failed to extract data from PDF' 
-            });
+                error: result.details || 'Could not extract data from the provided PDF. Please ensure it is a valid Strata Roll document.' 
+            }, { status: 400 });
         }
 
         return Response.json({ 
