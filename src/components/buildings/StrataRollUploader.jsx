@@ -58,8 +58,13 @@ export default function StrataRollUploader({ buildingId, onUnitsCreated, onSkip 
 
         setProcessing(true);
         try {
-            // Create units with owner information
-            const createdUnits = [];
+            // Fetch all existing units for this building
+            const existingUnits = await base44.entities.Unit.filter({ building_id: buildingId });
+            
+            let createdCount = 0;
+            let updatedCount = 0;
+            const processedUnits = [];
+
             for (const unit of extractedData.units) {
                 const unitData = {
                     building_id: buildingId,
@@ -68,23 +73,45 @@ export default function StrataRollUploader({ buildingId, onUnitsCreated, onSkip 
                     unit_entitlement: unit.unit_entitlement,
                     owner_name: unit.owner_name || '',
                     owner_email: unit.owner_email || '',
-                    owner_address: unit.owner_address || '',
-                    status: 'vacant'
+                    owner_address: unit.owner_address || ''
                 };
-                const createdUnit = await base44.entities.Unit.create(unitData);
-                createdUnits.push({ ...createdUnit, ownerData: unit });
+
+                // Find existing unit by lot_number (or unit_number if lot_number doesn't match)
+                const existingUnit = existingUnits.find(
+                    u => u.lot_number === unit.lot_number || u.unit_number === unit.unit_number
+                );
+
+                let processedUnit;
+                if (existingUnit) {
+                    // Update existing unit
+                    processedUnit = await base44.entities.Unit.update(existingUnit.id, unitData);
+                    updatedCount++;
+                } else {
+                    // Create new unit with vacant status
+                    processedUnit = await base44.entities.Unit.create({ ...unitData, status: 'vacant' });
+                    createdCount++;
+                }
+                
+                processedUnits.push({ ...processedUnit, ownerData: unit });
             }
 
-            // Create residents (owners) from the extracted data
-            const residentsToCreate = [];
-            for (const unit of createdUnits) {
+            // Handle residents (owners)
+            let residentsCreated = 0;
+            let residentsUpdated = 0;
+
+            for (const unit of processedUnits) {
                 if (unit.ownerData.owner_name) {
-                    // Split owner name into first and last name
+                    // Check if owner resident already exists for this unit
+                    const existingOwners = await base44.entities.Resident.filter({
+                        unit_id: unit.id,
+                        resident_type: 'owner'
+                    });
+
                     const nameParts = unit.ownerData.owner_name.split(' ');
                     const firstName = nameParts[0] || '';
                     const lastName = nameParts.slice(1).join(' ') || '';
 
-                    residentsToCreate.push({
+                    const residentData = {
                         building_id: buildingId,
                         unit_id: unit.id,
                         first_name: firstName,
@@ -95,15 +122,28 @@ export default function StrataRollUploader({ buildingId, onUnitsCreated, onSkip 
                         investor_name: unit.ownerData.owner_name,
                         investor_email: unit.ownerData.owner_email || '',
                         investor_address: unit.ownerData.owner_address || ''
-                    });
+                    };
+
+                    if (existingOwners.length > 0) {
+                        // Update the first owner resident found
+                        await base44.entities.Resident.update(existingOwners[0].id, residentData);
+                        residentsUpdated++;
+                    } else {
+                        // Create new owner resident
+                        await base44.entities.Resident.create(residentData);
+                        residentsCreated++;
+                    }
                 }
             }
 
-            if (residentsToCreate.length > 0) {
-                await base44.entities.Resident.bulkCreate(residentsToCreate);
-            }
+            // Update building's last strata roll upload date
+            await base44.entities.Building.update(buildingId, {
+                last_strata_roll_upload_date: new Date().toISOString().split('T')[0]
+            });
             
-            toast.success(`Created ${createdUnits.length} units and ${residentsToCreate.length} residents successfully`);
+            toast.success(
+                `Units: ${createdCount} created, ${updatedCount} updated. Residents: ${residentsCreated} created, ${residentsUpdated} updated.`
+            );
             setOpen(false);
             setExtractedData(null);
             setSelectedFile(null);
@@ -112,7 +152,7 @@ export default function StrataRollUploader({ buildingId, onUnitsCreated, onSkip 
                 onUnitsCreated();
             }
         } catch (error) {
-            toast.error('Failed to create units and residents');
+            toast.error('Failed to process units and residents');
         } finally {
             setProcessing(false);
         }
