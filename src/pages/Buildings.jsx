@@ -12,7 +12,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
-import { Building2, MapPin, Home, Users, Pencil, Trash2, Search, MoreVertical, Sparkles } from 'lucide-react';
+import { Building2, MapPin, Home, Users, Pencil, Trash2, Search, MoreVertical, Sparkles, Upload } from 'lucide-react';
+import StrataRollUploader from '@/components/buildings/StrataRollUploader';
 import { toast } from 'sonner';
 import {
   DropdownMenu,
@@ -234,14 +235,16 @@ export default function Buildings() {
         action={() => setShowDialog(true)}
         actionLabel="Add Building"
       >
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input
-            placeholder="Search buildings..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 w-64"
-          />
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder="Search buildings..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 w-64"
+            />
+          </div>
         </div>
       </PageHeader>
 
@@ -296,17 +299,23 @@ export default function Buildings() {
                   <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
                   <span className="truncate">{building.address}{building.city && `, ${building.city}`}</span>
                 </div>
-                <div className="flex items-center gap-4 text-sm">
-                  <div className="flex items-center gap-1.5">
-                    <Home className="h-4 w-4 text-blue-500" />
-                    <span className="font-medium text-slate-700">{getUnitCount(building.id)}</span>
-                    <span className="text-slate-500">units</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Users className="h-4 w-4 text-emerald-500" />
-                    <span className="font-medium text-slate-700">{getResidentCount(building.id)}</span>
-                    <span className="text-slate-500">residents</span>
-                  </div>
+                <div className="space-y-3">
+                 <div className="flex items-center gap-4 text-sm">
+                   <div className="flex items-center gap-1.5">
+                     <Home className="h-4 w-4 text-blue-500" />
+                     <span className="font-medium text-slate-700">{getUnitCount(building.id)}</span>
+                     <span className="text-slate-500">units</span>
+                   </div>
+                   <div className="flex items-center gap-1.5">
+                     <Users className="h-4 w-4 text-emerald-500" />
+                     <span className="font-medium text-slate-700">{getResidentCount(building.id)}</span>
+                     <span className="text-slate-500">residents</span>
+                   </div>
+                 </div>
+                 <StrataRollUploader 
+                   buildingId={building.id}
+                   onUnitsCreated={() => queryClient.invalidateQueries({ queryKey: ['units'] })}
+                 />
                 </div>
                 {building.building_type && (
                   <div className="mt-3 pt-3 border-t border-slate-100">
