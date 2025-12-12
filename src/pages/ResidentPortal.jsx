@@ -15,6 +15,7 @@ import FaultReportingWizard from '@/components/resident/FaultReportingWizard';
 import NotificationBell from '@/components/resident/NotificationBell';
 import NotificationSettings from '@/components/resident/NotificationSettings';
 import WorkOrderAIAssistant from '@/components/resident/WorkOrderAIAssistant';
+import LeaseAnalyzer from '@/components/resident/LeaseAnalyzer';
 import { 
   Home, 
   Wrench, 
@@ -29,7 +30,8 @@ import {
   Building2,
   Clock,
   CheckCircle2,
-  Settings
+  Settings,
+  Sparkles
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -61,6 +63,7 @@ export default function ResidentPortal() {
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [aiData, setAiData] = useState(null);
   const [selectedWorkOrder, setSelectedWorkOrder] = useState(null);
+  const [selectedDocument, setSelectedDocument] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -530,23 +533,35 @@ export default function ResidentPortal() {
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2">
                       <span className="text-xs text-slate-500">
                         {doc.file_type?.toUpperCase()} • {doc.file_size ? `${(doc.file_size / 1024).toFixed(0)}KB` : 'N/A'}
                       </span>
-                      {doc.file_url && (
-                        <a
-                          href={doc.file_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-700"
-                        >
-                          <Button variant="ghost" size="sm">
-                            <Download className="h-4 w-4 mr-2" />
-                            Download
+                      <div className="flex gap-2">
+                        {doc.title?.toLowerCase().includes('lease') && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => setSelectedDocument(doc)}
+                          >
+                            <Sparkles className="h-4 w-4 mr-2" />
+                            AI Analysis
                           </Button>
-                        </a>
-                      )}
+                        )}
+                        {doc.file_url && (
+                          <a
+                            href={doc.file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            <Button variant="ghost" size="sm">
+                              <Download className="h-4 w-4 mr-2" />
+                              Download
+                            </Button>
+                          </a>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -711,6 +726,21 @@ export default function ResidentPortal() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Lease Analyzer Dialog */}
+      {selectedDocument && (
+        <Dialog open={!!selectedDocument} onOpenChange={() => setSelectedDocument(null)}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-blue-600" />
+                {selectedDocument.title}
+              </DialogTitle>
+            </DialogHeader>
+            <LeaseAnalyzer document={selectedDocument} userEmail={user?.email} />
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Work Order Detail Dialog */}
       {selectedWorkOrder && (
