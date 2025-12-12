@@ -12,6 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import StatusBadge from '@/components/common/StatusBadge';
 import FaultReportingWizard from '@/components/resident/FaultReportingWizard';
+import NotificationBell from '@/components/resident/NotificationBell';
+import NotificationSettings from '@/components/resident/NotificationSettings';
 import { 
   Home, 
   Wrench, 
@@ -25,7 +27,8 @@ import {
   User,
   Building2,
   Clock,
-  CheckCircle2
+  CheckCircle2,
+  Settings
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -272,16 +275,21 @@ export default function ResidentPortal() {
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-8 text-white">
-        <h1 className="text-3xl font-bold mb-2">Welcome, {resident.first_name}!</h1>
-        <div className="flex items-center gap-4 text-blue-100">
-          <div className="flex items-center gap-2">
-            <Building2 className="h-4 w-4" />
-            <span>{getBuildingName(resident.building_id)}</span>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Welcome, {resident.first_name}!</h1>
+            <div className="flex items-center gap-4 text-blue-100">
+              <div className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                <span>{getBuildingName(resident.building_id)}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Home className="h-4 w-4" />
+                <span>Unit {getUnitNumber(resident.unit_id)}</span>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Home className="h-4 w-4" />
-            <span>Unit {getUnitNumber(resident.unit_id)}</span>
-          </div>
+          <NotificationBell userEmail={user?.email} />
         </div>
       </div>
 
@@ -332,7 +340,7 @@ export default function ResidentPortal() {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="requests" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="requests">
             <Wrench className="h-4 w-4 mr-2" />
             My Requests
@@ -344,6 +352,10 @@ export default function ResidentPortal() {
           <TabsTrigger value="documents">
             <FileText className="h-4 w-4 mr-2" />
             Documents
+          </TabsTrigger>
+          <TabsTrigger value="settings">
+            <Settings className="h-4 w-4 mr-2" />
+            Settings
           </TabsTrigger>
         </TabsList>
 
@@ -514,6 +526,12 @@ export default function ResidentPortal() {
               ))}
             </div>
           )}
+        </TabsContent>
+
+        {/* Notification Settings Tab */}
+        <TabsContent value="settings" className="space-y-4">
+          <h2 className="text-xl font-semibold">Notification Settings</h2>
+          <NotificationSettings userEmail={user?.email} />
         </TabsContent>
       </Tabs>
 
