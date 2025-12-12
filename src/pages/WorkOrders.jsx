@@ -53,6 +53,7 @@ const categories = [
 const initialFormState = {
   building_id: '',
   unit_id: '',
+  is_common_area: false,
   title: '',
   description: '',
   category: 'other',
@@ -63,6 +64,7 @@ const initialFormState = {
   assigned_contractor_id: '',
   due_date: '',
   estimated_cost: '',
+  actual_cost: '',
   notes: '',
   is_recurring: false,
   recurrence_pattern: 'monthly',
@@ -84,6 +86,8 @@ export default function WorkOrders() {
   const [viewMode, setViewMode] = useState('grid');
   const [ratingOrder, setRatingOrder] = useState(null);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
+  const [selectedQuotes, setSelectedQuotes] = useState([]);
+  const [selectedInvoices, setSelectedInvoices] = useState([]);
 
   const queryClient = useQueryClient();
 
@@ -163,6 +167,8 @@ export default function WorkOrders() {
     setFormData(initialFormState);
     setSelectedPhotos([]);
     setSelectedVideos([]);
+    setSelectedQuotes([]);
+    setSelectedInvoices([]);
   };
 
   const handleEdit = (order) => {
@@ -180,13 +186,17 @@ export default function WorkOrders() {
       assigned_contractor_id: order.assigned_contractor_id || '',
       due_date: order.due_date || '',
       estimated_cost: order.estimated_cost || '',
+      actual_cost: order.actual_cost || '',
       notes: order.notes || '',
+      is_common_area: order.is_common_area || false,
       is_recurring: order.is_recurring || false,
       recurrence_pattern: order.recurrence_pattern || 'monthly',
       recurrence_end_date: order.recurrence_end_date || '',
     });
     setSelectedPhotos([]);
     setSelectedVideos([]);
+    setSelectedQuotes([]);
+    setSelectedInvoices([]);
     setShowDialog(true);
   };
 
@@ -210,6 +220,8 @@ export default function WorkOrders() {
     try {
       let photoUrls = [];
       let videoUrls = [];
+      let quoteUrls = [];
+      let invoiceUrls = [];
 
       if (selectedPhotos.length > 0) {
         const photoUploads = await Promise.all(
@@ -225,11 +237,28 @@ export default function WorkOrders() {
         videoUrls = videoUploads.map(r => r.file_url);
       }
 
+      if (selectedQuotes.length > 0) {
+        const quoteUploads = await Promise.all(
+          selectedQuotes.map(file => base44.integrations.Core.UploadFile({ file }))
+        );
+        quoteUrls = quoteUploads.map(r => r.file_url);
+      }
+
+      if (selectedInvoices.length > 0) {
+        const invoiceUploads = await Promise.all(
+          selectedInvoices.map(file => base44.integrations.Core.UploadFile({ file }))
+        );
+        invoiceUrls = invoiceUploads.map(r => r.file_url);
+      }
+
       const data = {
         ...formData,
         estimated_cost: formData.estimated_cost ? Number(formData.estimated_cost) : null,
-        photos: photoUrls.length > 0 ? photoUrls : undefined,
-        videos: videoUrls.length > 0 ? videoUrls : undefined,
+        actual_cost: formData.actual_cost ? Number(formData.actual_cost) : null,
+        photos: photoUrls.length > 0 ? photoUrls : editingOrder?.photos || undefined,
+        videos: videoUrls.length > 0 ? videoUrls : editingOrder?.videos || undefined,
+        quotes: quoteUrls.length > 0 ? quoteUrls : editingOrder?.quotes || undefined,
+        invoices: invoiceUrls.length > 0 ? invoiceUrls : editingOrder?.invoices || undefined,
       };
 
       if (editingOrder) {
@@ -256,6 +285,46 @@ export default function WorkOrders() {
         handleCloseDialog();
       } else {
         const createdOrder = await base44.entities.WorkOrder.create(data);
+        
+        // Process quotes if any
+        if (quoteUrls.length > 0 && createdOrder.id) {
+          for (const quoteUrl of quoteUrls) {
+            try {
+              const { data: quoteSummary } = await base44.functions.invoke('summarizeQuote', { file_url: quoteUrl });
+              if (quoteSummary?.summary) {
+                await base44.entities.WorkOrder.update(createdOrder.id, { 
+                  description: `${createdOrder.description || ''}\n\nQuote Summary:\n${quoteSummary.summary}` 
+                });
+              }
+            } catch (err) {
+              console.error('Failed to summarize quote:', err);
+            }
+          }
+        }
+
+        // Process invoices if any
+        if (invoiceUrls.length > 0 && createdOrder.id && createdOrder.building_id) {
+          for (const invoiceUrl of invoiceUrls) {
+            try {
+              const { data: invoiceData } = await base44.functions.invoke('processInvoice', { file_url: invoiceUrl });
+              if (invoiceData?.extracted_data) {
+                const extracted = invoiceData.extracted_data;
+                await base44.entities.WorkOrder.update(createdOrder.id, {
+                  actual_cost: extracted.total_amount || createdOrder.actual_cost
+                });
+                await base44.functions.invoke('sendInvoiceToStrata', {
+                  buildingId: createdOrder.building_id,
+                  invoiceFileUrl: invoiceUrl,
+                  workOrderTitle: createdOrder.title,
+                  invoiceNumber: extracted.invoice_number,
+                  totalAmount: extracted.total_amount,
+                });
+              }
+            } catch (err) {
+              console.error('Failed to process invoice:', err);
+            }
+          }
+        }
         
         // Send notification if contractor assigned on creation
         if (data.assigned_contractor_id && createdOrder.id) {
@@ -357,6 +426,24 @@ export default function WorkOrders() {
 
   const removeVideo = (index) => {
     setSelectedVideos(selectedVideos.filter((_, i) => i !== index));
+  };
+
+  const handleQuoteSelect = (e) => {
+    const files = Array.from(e.target.files || []);
+    setSelectedQuotes([...selectedQuotes, ...files]);
+  };
+
+  const removeQuote = (index) => {
+    setSelectedQuotes(selectedQuotes.filter((_, i) => i !== index));
+  };
+
+  const handleInvoiceSelect = (e) => {
+    const files = Array.from(e.target.files || []);
+    setSelectedInvoices([...selectedInvoices, ...files]);
+  };
+
+  const removeInvoice = (index) => {
+    setSelectedInvoices(selectedInvoices.filter((_, i) => i !== index));
   };
 
   const getBuildingName = (buildingId) => buildings.find(b => b.id === buildingId)?.name || 'Unknown';
@@ -591,7 +678,7 @@ export default function WorkOrders() {
               </div>
               <div>
                 <Label htmlFor="building_id">Building *</Label>
-                <Select value={formData.building_id} onValueChange={(v) => setFormData({ ...formData, building_id: v, unit_id: '' })}>
+                <Select value={formData.building_id} onValueChange={(v) => setFormData({ ...formData, building_id: v, unit_id: '', is_common_area: false })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select building" />
                   </SelectTrigger>
@@ -603,17 +690,30 @@ export default function WorkOrders() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="unit_id">Unit</Label>
-                <Select value={formData.unit_id} onValueChange={(v) => setFormData({ ...formData, unit_id: v })} disabled={!formData.building_id}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select unit (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getFilteredUnits().map(u => (
-                      <SelectItem key={u.id} value={u.id}>Unit {u.unit_number}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center space-x-2 mb-2">
+                  <Checkbox
+                    id="is_common_area"
+                    checked={formData.is_common_area}
+                    onCheckedChange={(checked) => setFormData({ ...formData, is_common_area: checked, unit_id: '' })}
+                    disabled={!formData.building_id}
+                  />
+                  <Label htmlFor="is_common_area" className="cursor-pointer text-sm font-medium">Common Area</Label>
+                </div>
+                {!formData.is_common_area && (
+                  <>
+                    <Label htmlFor="unit_id">Unit</Label>
+                    <Select value={formData.unit_id} onValueChange={(v) => setFormData({ ...formData, unit_id: v })} disabled={!formData.building_id}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select unit (optional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getFilteredUnits().map(u => (
+                          <SelectItem key={u.id} value={u.id}>Unit {u.unit_number}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </>
+                )}
               </div>
               <div>
                 <Label htmlFor="category">Category *</Label>
@@ -713,6 +813,16 @@ export default function WorkOrders() {
                   type="number"
                   value={formData.estimated_cost}
                   onChange={(e) => setFormData({ ...formData, estimated_cost: e.target.value })}
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
+                <Label htmlFor="actual_cost">Actual Cost</Label>
+                <Input
+                  id="actual_cost"
+                  type="number"
+                  value={formData.actual_cost}
+                  onChange={(e) => setFormData({ ...formData, actual_cost: e.target.value })}
                   placeholder="0.00"
                 />
               </div>
@@ -853,7 +963,79 @@ export default function WorkOrders() {
                   )}
                 </div>
               </div>
+
+              {/* Quotes Upload */}
+              <div className="md:col-span-2">
+                <Label>Quotes (AI will summarize)</Label>
+                <div className="mt-2">
+                  <Button type="button" variant="outline" className="w-full" asChild>
+                    <label>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload Quotes ({selectedQuotes.length})
+                      <input
+                        type="file"
+                        multiple
+                        accept=".pdf,.doc,.docx,.jpg,.png"
+                        className="hidden"
+                        onChange={handleQuoteSelect}
+                      />
+                    </label>
+                  </Button>
+                  {selectedQuotes.length > 0 && (
+                    <div className="space-y-2 mt-2">
+                      {selectedQuotes.map((file, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded">
+                          <span className="text-sm truncate">{file.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeQuote(idx)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {/* Invoices Upload */}
+              <div className="md:col-span-2">
+                <Label>Invoices (Auto-send to strata agent)</Label>
+                <div className="mt-2">
+                  <Button type="button" variant="outline" className="w-full" asChild>
+                    <label>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload Invoices ({selectedInvoices.length})
+                      <input
+                        type="file"
+                        multiple
+                        accept=".pdf,.doc,.docx,.jpg,.png"
+                        className="hidden"
+                        onChange={handleInvoiceSelect}
+                      />
+                    </label>
+                  </Button>
+                  {selectedInvoices.length > 0 && (
+                    <div className="space-y-2 mt-2">
+                      {selectedInvoices.map((file, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded">
+                          <span className="text-sm truncate">{file.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeInvoice(idx)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
 
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={handleCloseDialog}>Cancel</Button>
