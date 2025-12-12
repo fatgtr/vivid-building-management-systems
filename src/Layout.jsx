@@ -52,6 +52,7 @@ const navItems = [
   { name: 'Documents', icon: FileText, page: 'Documents' },
   { name: 'Inspections', icon: ClipboardCheck, page: 'Inspections' },
   { name: 'Contractors', icon: HardHat, page: 'Contractors' },
+  { name: 'Smart Devices', icon: Settings, page: 'SmartDevices' },
 ];
 
 function LayoutInner({ children, currentPageName }) {

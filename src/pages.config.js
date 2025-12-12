@@ -12,6 +12,7 @@ import Contractors from './pages/Contractors';
 import Settings from './pages/Settings';
 import MaintenanceSchedule from './pages/MaintenanceSchedule';
 import ResidentPortal from './pages/ResidentPortal';
+import SmartDevices from './pages/SmartDevices';
 import __Layout from './Layout.jsx';
 
 
@@ -30,6 +31,7 @@ export const PAGES = {
     "Settings": Settings,
     "MaintenanceSchedule": MaintenanceSchedule,
     "ResidentPortal": ResidentPortal,
+    "SmartDevices": SmartDevices,
 }
 
 export const pagesConfig = {
