@@ -18,6 +18,7 @@ import WorkOrderDetail from '@/components/workorders/WorkOrderDetail';
 import KanbanBoard from '@/components/workorders/KanbanBoard';
 import RatingDialog from '@/components/workorders/RatingDialog';
 import AISchedulingAssistant from '@/components/workorders/AISchedulingAssistant';
+import DescriptionAIAssistant from '@/components/workorders/DescriptionAIAssistant';
 import { Wrench, Search, Building2, AlertCircle, Clock, CheckCircle2, XCircle, MoreVertical, Pencil, Trash2, Calendar, User, Eye, Upload, Image as ImageIcon, Video, X, LayoutGrid, List, Star, Repeat, Sparkles } from 'lucide-react';
 import {
   DropdownMenu,
@@ -828,12 +829,21 @@ export default function WorkOrders() {
               </div>
               <div className="md:col-span-2">
                 <Label htmlFor="description">Description</Label>
+                <DescriptionAIAssistant
+                  title={formData.title}
+                  category={formData.category}
+                  selectedPhotos={selectedPhotos}
+                  selectedVideos={selectedVideos}
+                  currentDescription={formData.description}
+                  onDescriptionGenerated={(desc) => setFormData({ ...formData, description: desc })}
+                />
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={3}
+                  rows={4}
                   placeholder="Detailed description of the issue"
+                  className="mt-2"
                 />
               </div>
               <div className="md:col-span-2">
