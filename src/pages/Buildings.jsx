@@ -104,6 +104,9 @@ export default function Buildings() {
   const deleteMutation = useMutation({
     mutationFn: async (id) => {
       const response = await base44.functions.invoke('deleteBuildingCascade', { buildingId: id });
+      if (!response.data.success) {
+        throw new Error(response.data.error || 'Failed to delete building');
+      }
       return response.data;
     },
     onSuccess: () => {
@@ -112,6 +115,10 @@ export default function Buildings() {
       queryClient.invalidateQueries({ queryKey: ['residents'] });
       setDeleteBuilding(null);
       toast.success('Building and all associated data deleted successfully');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to delete building');
+      console.error('Delete error:', error);
     },
   });
 
@@ -619,8 +626,9 @@ export default function Buildings() {
             <AlertDialogAction
               onClick={() => deleteMutation.mutate(deleteBuilding.id)}
               className="bg-red-600 hover:bg-red-700"
+              disabled={deleteMutation.isPending}
             >
-              Delete
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
