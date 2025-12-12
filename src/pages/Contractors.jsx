@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
-import { HardHat, Search, MoreVertical, Pencil, Trash2, Phone, Mail, MapPin, Star, DollarSign, Shield } from 'lucide-react';
+import { HardHat, Search, MoreVertical, Pencil, Trash2, Phone, Mail, MapPin, Star, DollarSign, Shield, Upload, FileText, X } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -63,6 +63,7 @@ const initialFormState = {
   hourly_rate: '',
   status: 'active',
   notes: '',
+  documents: [],
 };
 
 export default function Contractors() {
@@ -73,6 +74,7 @@ export default function Contractors() {
   const [filterSpecialty, setFilterSpecialty] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [deleteContractor, setDeleteContractor] = useState(null);
+  const [uploadingDocument, setUploadingDocument] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -131,8 +133,33 @@ export default function Contractors() {
       hourly_rate: contractor.hourly_rate || '',
       status: contractor.status || 'active',
       notes: contractor.notes || '',
+      documents: contractor.documents || [],
     });
     setShowDialog(true);
+  };
+
+  const handleDocumentUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingDocument(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setFormData({
+        ...formData,
+        documents: [...(formData.documents || []), { url: file_url, name: file.name, uploadedAt: new Date().toISOString() }]
+      });
+    } catch (error) {
+      console.error('Document upload failed:', error);
+    } finally {
+      setUploadingDocument(false);
+    }
+  };
+
+  const handleRemoveDocument = (index) => {
+    const updatedDocuments = [...(formData.documents || [])];
+    updatedDocuments.splice(index, 1);
+    setFormData({ ...formData, documents: updatedDocuments });
   };
 
   const handleSubmit = (e) => {
@@ -285,12 +312,18 @@ export default function Contractors() {
                    </div>
                   )}
                   {contractor.insurance_expiry && (
-                   <div className="flex items-center gap-2 text-slate-600">
-                     <Shield className="h-4 w-4 text-slate-400" />
-                     <span className={new Date(contractor.insurance_expiry) < new Date() ? 'text-red-600 font-medium' : ''}>
-                       Insurance: {format(new Date(contractor.insurance_expiry), 'MMM d, yyyy')}
-                     </span>
-                   </div>
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <Shield className="h-4 w-4 text-slate-400" />
+                      <span className={new Date(contractor.insurance_expiry) < new Date() ? 'text-red-600 font-medium' : ''}>
+                        Insurance: {format(new Date(contractor.insurance_expiry), 'MMM d, yyyy')}
+                      </span>
+                    </div>
+                  )}
+                  {contractor.documents?.length > 0 && (
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <FileText className="h-4 w-4 text-slate-400" />
+                      <span>{contractor.documents.length} document{contractor.documents.length !== 1 ? 's' : ''}</span>
+                    </div>
                   )}
                   </div>
 
@@ -495,6 +528,54 @@ export default function Contractors() {
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   rows={2}
                 />
+              </div>
+              <div className="md:col-span-2">
+                <Label>Compliance Documents</Label>
+                <p className="text-xs text-slate-500 mb-2">Upload insurance certificates, licenses, work cover, and public liability documents</p>
+                <div className="space-y-2">
+                  {formData.documents?.map((doc, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 bg-slate-50 rounded-lg border">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-slate-400" />
+                        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
+                          {doc.name || 'Document'}
+                        </a>
+                        <span className="text-xs text-slate-400">
+                          {doc.uploadedAt && format(new Date(doc.uploadedAt), 'MMM d, yyyy')}
+                        </span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => handleRemoveDocument(index)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                  <div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      disabled={uploadingDocument}
+                      asChild
+                    >
+                      <label className="cursor-pointer">
+                        <Upload className="h-4 w-4 mr-2" />
+                        {uploadingDocument ? 'Uploading...' : 'Upload Document'}
+                        <input
+                          type="file"
+                          className="hidden"
+                          onChange={handleDocumentUpload}
+                          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                        />
+                      </label>
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
 
