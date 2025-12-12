@@ -102,10 +102,16 @@ export default function Buildings() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Building.delete(id),
+    mutationFn: async (id) => {
+      const response = await base44.functions.invoke('deleteBuildingCascade', { buildingId: id });
+      return response.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['buildings'] });
+      queryClient.invalidateQueries({ queryKey: ['units'] });
+      queryClient.invalidateQueries({ queryKey: ['residents'] });
       setDeleteBuilding(null);
+      toast.success('Building and all associated data deleted successfully');
     },
   });
 
@@ -587,9 +593,25 @@ export default function Buildings() {
       <AlertDialog open={!!deleteBuilding} onOpenChange={() => setDeleteBuilding(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Building</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete "{deleteBuilding?.name}"? This action cannot be undone.
+            <AlertDialogTitle>Delete Building & All Data</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p className="font-semibold text-red-600">
+                Are you sure you want to delete "{deleteBuilding?.name}"?
+              </p>
+              <p className="text-sm">
+                This will permanently delete:
+              </p>
+              <ul className="text-sm list-disc list-inside space-y-1 text-slate-600">
+                <li>All units in this building</li>
+                <li>All resident information</li>
+                <li>All work orders and maintenance schedules</li>
+                <li>All documents and announcements</li>
+                <li>All inspections and visitor logs</li>
+                <li>All amenities and bookings</li>
+              </ul>
+              <p className="text-sm font-semibold text-red-600 mt-2">
+                This action cannot be undone.
+              </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
