@@ -55,6 +55,8 @@ const initialFormState = {
   strata_managing_agent_invoicing_email: '',
   building_compliance_email: '',
   strata_lots: '',
+  compliance_reminder_intervals: '90, 60, 30',
+  compliance_reminder_recipients: '',
 };
 
 export default function Buildings() {
@@ -163,6 +165,8 @@ export default function Buildings() {
       strata_managing_agent_invoicing_email: building.strata_managing_agent_invoicing_email || '',
       building_compliance_email: building.building_compliance_email || '',
       strata_lots: building.strata_lots || '',
+      compliance_reminder_intervals: building.compliance_reminder_intervals ? building.compliance_reminder_intervals.join(', ') : '90, 60, 30',
+      compliance_reminder_recipients: building.compliance_reminder_recipients ? building.compliance_reminder_recipients.join(', ') : '',
     });
     setShowDialog(true);
   };
@@ -211,6 +215,12 @@ export default function Buildings() {
       floors: formData.floors ? Number(formData.floors) : null,
       year_built: formData.year_built ? Number(formData.year_built) : null,
       strata_lots: formData.strata_lots ? Number(formData.strata_lots) : null,
+      compliance_reminder_intervals: formData.compliance_reminder_intervals 
+        ? formData.compliance_reminder_intervals.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n))
+        : [90, 60, 30],
+      compliance_reminder_recipients: formData.compliance_reminder_recipients 
+        ? formData.compliance_reminder_recipients.split(',').map(s => s.trim()).filter(s => s)
+        : [],
     };
 
     if (editingBuilding) {
@@ -598,6 +608,36 @@ export default function Buildings() {
                     onChange={(e) => setFormData({ ...formData, building_compliance_email: e.target.value })}
                     placeholder="building.compliance@example.com"
                   />
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              <h4 className="font-medium text-slate-900 mb-4">Compliance Reminder Settings</h4>
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <Label htmlFor="compliance_reminder_intervals">Reminder Intervals (days before expiry)</Label>
+                  <Input
+                    id="compliance_reminder_intervals"
+                    value={formData.compliance_reminder_intervals}
+                    onChange={(e) => setFormData({ ...formData, compliance_reminder_intervals: e.target.value })}
+                    placeholder="e.g., 90, 60, 30"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">
+                    Comma-separated days before expiry to send reminders (e.g., 90, 60, 30)
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="compliance_reminder_recipients">Additional Reminder Recipients</Label>
+                  <Input
+                    id="compliance_reminder_recipients"
+                    value={formData.compliance_reminder_recipients}
+                    onChange={(e) => setFormData({ ...formData, compliance_reminder_recipients: e.target.value })}
+                    placeholder="email1@example.com, email2@example.com"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">
+                    Comma-separated email addresses to receive compliance reminders (in addition to admins)
+                  </p>
                 </div>
               </div>
             </div>
