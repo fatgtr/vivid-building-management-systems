@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
-import { HardHat, Search, MoreVertical, Pencil, Trash2, Phone, Mail, MapPin, Star, DollarSign, Shield, Upload, FileText, X } from 'lucide-react';
+import { HardHat, Search, MoreVertical, Pencil, Trash2, Phone, Mail, MapPin, Star, DollarSign, Shield, Upload, FileText, X, Send } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -77,6 +77,7 @@ export default function Contractors() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [deleteContractor, setDeleteContractor] = useState(null);
   const [uploadingDocument, setUploadingDocument] = useState(false);
+  const [sendingToStrata, setSendingToStrata] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -106,6 +107,13 @@ export default function Contractors() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contractors'] });
       setDeleteContractor(null);
+    },
+  });
+
+  const sendToStrataMutation = useMutation({
+    mutationFn: (contractorId) => base44.functions.invoke('sendContractorToStrata', { contractor_id: contractorId }),
+    onSuccess: () => {
+      setSendingToStrata(null);
     },
   });
 
@@ -283,6 +291,12 @@ export default function Contractors() {
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => handleEdit(contractor)}>
                         <Pencil className="mr-2 h-4 w-4" /> Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => {
+                        setSendingToStrata(contractor.id);
+                        sendToStrataMutation.mutate(contractor.id);
+                      }}>
+                        <Send className="mr-2 h-4 w-4" /> Send to Strata
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => setDeleteContractor(contractor)} className="text-red-600">
                         <Trash2 className="mr-2 h-4 w-4" /> Delete
