@@ -9,10 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
-import { Home, Search, Pencil, Trash2, Building2, Bed, Bath, Square, MoreVertical } from 'lucide-react';
+import { Home, Search, Pencil, Trash2, Building2, Bed, Bath, Square, MoreVertical, Edit } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,6 +54,12 @@ export default function Units() {
   const [filterBuilding, setFilterBuilding] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [deleteUnit, setDeleteUnit] = useState(null);
+  const [selectedUnits, setSelectedUnits] = useState([]);
+  const [showBulkEditDialog, setShowBulkEditDialog] = useState(false);
+  const [bulkEditData, setBulkEditData] = useState({
+    unit_type: '',
+    status: '',
+  });
 
   const queryClient = useQueryClient();
 
@@ -90,10 +97,53 @@ export default function Units() {
     },
   });
 
+  const bulkUpdateMutation = useMutation({
+    mutationFn: async (updates) => {
+      const promises = selectedUnits.map(unitId => {
+        const unit = units.find(u => u.id === unitId);
+        return base44.entities.Unit.update(unitId, { ...unit, ...updates });
+      });
+      return Promise.all(promises);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['units'] });
+      setShowBulkEditDialog(false);
+      setSelectedUnits([]);
+      setBulkEditData({ unit_type: '', status: '' });
+    },
+  });
+
   const handleCloseDialog = () => {
     setShowDialog(false);
     setEditingUnit(null);
     setFormData(initialFormState);
+  };
+
+  const toggleSelectUnit = (unitId) => {
+    setSelectedUnits(prev => 
+      prev.includes(unitId) 
+        ? prev.filter(id => id !== unitId)
+        : [...prev, unitId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedUnits.length === filteredUnits.length) {
+      setSelectedUnits([]);
+    } else {
+      setSelectedUnits(filteredUnits.map(u => u.id));
+    }
+  };
+
+  const handleBulkEditSubmit = (e) => {
+    e.preventDefault();
+    const updates = {};
+    if (bulkEditData.unit_type) updates.unit_type = bulkEditData.unit_type;
+    if (bulkEditData.status) updates.status = bulkEditData.status;
+    
+    if (Object.keys(updates).length > 0) {
+      bulkUpdateMutation.mutate(updates);
+    }
   };
 
   const handleEdit = (unit) => {
@@ -164,6 +214,32 @@ export default function Units() {
         actionLabel="Add Unit"
       />
 
+      {/* Bulk Edit Actions */}
+      {selectedUnits.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
+          <span className="text-sm font-medium text-blue-900">
+            {selectedUnits.length} unit{selectedUnits.length > 1 ? 's' : ''} selected
+          </span>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => setShowBulkEditDialog(true)}
+              className="bg-blue-600 hover:bg-blue-700"
+              size="sm"
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              Bulk Edit
+            </Button>
+            <Button
+              onClick={() => setSelectedUnits([])}
+              variant="outline"
+              size="sm"
+            >
+              Clear Selection
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Filters */}
       <div className="flex flex-wrap gap-4">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
@@ -213,6 +289,12 @@ export default function Units() {
           <Table>
             <TableHeader>
               <TableRow className="bg-slate-50">
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={selectedUnits.length === filteredUnits.length && filteredUnits.length > 0}
+                    onCheckedChange={toggleSelectAll}
+                  />
+                </TableHead>
                 <TableHead>Unit</TableHead>
                 <TableHead>Building</TableHead>
                 <TableHead>Type</TableHead>
@@ -225,6 +307,12 @@ export default function Units() {
             <TableBody>
               {filteredUnits.map((unit) => (
                 <TableRow key={unit.id} className="hover:bg-slate-50/50">
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedUnits.includes(unit.id)}
+                      onCheckedChange={() => toggleSelectUnit(unit.id)}
+                    />
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-blue-50 rounded-lg">
@@ -445,6 +533,73 @@ export default function Units() {
               <Button type="button" variant="outline" onClick={handleCloseDialog}>Cancel</Button>
               <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={createMutation.isPending || updateMutation.isPending}>
                 {createMutation.isPending || updateMutation.isPending ? 'Saving...' : (editingUnit ? 'Update' : 'Create')}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Edit Dialog */}
+      <Dialog open={showBulkEditDialog} onOpenChange={setShowBulkEditDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Bulk Edit Units</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleBulkEditSubmit} className="space-y-4">
+            <p className="text-sm text-slate-600">
+              Editing {selectedUnits.length} unit{selectedUnits.length > 1 ? 's' : ''}. 
+              Only fields you change will be updated.
+            </p>
+            <div>
+              <Label htmlFor="bulk_unit_type">Unit Type</Label>
+              <Select 
+                value={bulkEditData.unit_type} 
+                onValueChange={(v) => setBulkEditData({ ...bulkEditData, unit_type: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select to change..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>Don't Change</SelectItem>
+                  <SelectItem value="studio">Studio</SelectItem>
+                  <SelectItem value="apartment">Apartment</SelectItem>
+                  <SelectItem value="penthouse">Penthouse</SelectItem>
+                  <SelectItem value="townhouse">Townhouse</SelectItem>
+                  <SelectItem value="commercial">Commercial</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="bulk_status">Status</Label>
+              <Select 
+                value={bulkEditData.status} 
+                onValueChange={(v) => setBulkEditData({ ...bulkEditData, status: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select to change..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>Don't Change</SelectItem>
+                  <SelectItem value="vacant">Vacant</SelectItem>
+                  <SelectItem value="occupied">Occupied</SelectItem>
+                  <SelectItem value="maintenance">Maintenance</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setShowBulkEditDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                className="bg-blue-600 hover:bg-blue-700"
+                disabled={bulkUpdateMutation.isPending || (!bulkEditData.unit_type && !bulkEditData.status)}
+              >
+                {bulkUpdateMutation.isPending ? 'Updating...' : 'Update Units'}
               </Button>
             </DialogFooter>
           </form>
