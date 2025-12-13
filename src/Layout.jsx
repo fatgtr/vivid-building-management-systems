@@ -44,6 +44,7 @@ const navItems = [
   { name: 'Buildings', icon: Building2, page: 'Buildings' },
   { name: 'Units', icon: Home, page: 'Units' },
   { name: 'Residents', icon: Users, page: 'Residents' },
+  { name: 'Managing Agent Portal', icon: Users, page: 'ManagingAgentPortal' },
   { name: 'Work Orders', icon: Wrench, page: 'WorkOrders' },
   { name: 'Maintenance Schedule', icon: Calendar, page: 'MaintenanceSchedule' },
   { name: 'Amenities', icon: Calendar, page: 'Amenities' },
