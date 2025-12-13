@@ -16,7 +16,7 @@ import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Users, Search, Pencil, Trash2, Building2, Home, Phone, Mail, MoreVertical, Calendar, Upload, FileText, X, ExternalLink } from 'lucide-react';
+import { Users, Search, Pencil, Trash2, Building2, Home, Phone, Mail, MoreVertical, Calendar, Upload, FileText, X, ExternalLink, Send } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -118,6 +118,16 @@ export default function Residents() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['residents'] });
       setDeleteResident(null);
+    },
+  });
+
+  const sendInviteMutation = useMutation({
+    mutationFn: async (residentId) => {
+      const { data } = await base44.functions.invoke('sendManagingAgentInvite', { residentId });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['residents'] });
     },
   });
 
@@ -364,6 +374,11 @@ export default function Residents() {
                         <DropdownMenuItem onClick={() => handleEdit(resident)}>
                           <Pencil className="mr-2 h-4 w-4" /> Edit
                         </DropdownMenuItem>
+                        {resident.managing_agent_email && (
+                          <DropdownMenuItem onClick={() => sendInviteMutation.mutate(resident.id)}>
+                            <Send className="mr-2 h-4 w-4" /> Send Portal Invite
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem onClick={() => setDeleteResident(resident)} className="text-red-600">
                           <Trash2 className="mr-2 h-4 w-4" /> Delete
                         </DropdownMenuItem>
@@ -709,7 +724,13 @@ export default function Residents() {
                     type="email"
                     value={formData.managing_agent_email}
                     onChange={(e) => setFormData({ ...formData, managing_agent_email: e.target.value })}
+                    placeholder="Managing agent will receive portal access"
                   />
+                  {formData.managing_agent_email && (
+                    <p className="text-xs text-slate-500 mt-1">
+                      After saving, use "Send Portal Invite" to grant access
+                    </p>
+                  )}
                 </div>
                 <div className="md:col-span-2">
                   <Label htmlFor="managing_agent_address">Address</Label>
