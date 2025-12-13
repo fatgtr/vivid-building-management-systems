@@ -16,6 +16,7 @@ import NotificationBell from '@/components/resident/NotificationBell';
 import NotificationSettings from '@/components/resident/NotificationSettings';
 import WorkOrderAIAssistant from '@/components/resident/WorkOrderAIAssistant';
 import LeaseAnalyzer from '@/components/resident/LeaseAnalyzer';
+import LeaseAgreementView from '@/components/resident/LeaseAgreementView';
 import { 
   Home, 
   Wrench, 
@@ -409,10 +410,14 @@ export default function ResidentPortal() {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="requests" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="requests">
             <Wrench className="h-4 w-4 mr-2" />
             My Requests
+          </TabsTrigger>
+          <TabsTrigger value="lease">
+            <FileText className="h-4 w-4 mr-2" />
+            Lease Agreement
           </TabsTrigger>
           <TabsTrigger value="announcements">
             <Bell className="h-4 w-4 mr-2" />
@@ -427,6 +432,12 @@ export default function ResidentPortal() {
             Settings
           </TabsTrigger>
         </TabsList>
+
+        {/* Lease Agreement Tab */}
+        <TabsContent value="lease" className="space-y-4">
+          <h2 className="text-xl font-semibold">My Lease Agreement</h2>
+          <LeaseAgreementView residentEmail={user?.email} buildingId={resident?.building_id} />
+        </TabsContent>
 
         {/* Maintenance Requests Tab */}
         <TabsContent value="requests" className="space-y-4">
