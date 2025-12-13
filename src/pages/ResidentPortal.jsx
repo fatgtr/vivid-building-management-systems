@@ -146,14 +146,51 @@ export default function ResidentPortal() {
     queryFn: () => base44.entities.Unit.list(),
   });
 
+  const [showOwnerChoice, setShowOwnerChoice] = useState(false);
+  const [pendingWorkOrderId, setPendingWorkOrderId] = useState(null);
+
   const createWorkOrderMutation = useMutation({
-    mutationFn: (data) => base44.entities.WorkOrder.create(data),
-    onSuccess: () => {
+    mutationFn: async (formData) => {
+      const { data } = await base44.functions.invoke('reportResidentMaintenance', formData);
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data.requiresOwnerChoice) {
+        // Owner needs to choose how to proceed
+        setPendingWorkOrderId(data.workOrderId);
+        setShowOwnerChoice(true);
+      } else {
+        // Tenant workflow - all done
+        queryClient.invalidateQueries({ queryKey: ['workOrders'] });
+        setShowRequestDialog(false);
+        setFormData({ title: '', description: '', category: 'other', priority: 'medium' });
+        setSelectedPhotos([]);
+        toast.success('Request submitted! Managing agent has been notified.');
+      }
+    },
+  });
+
+  const ownerChoiceMutation = useMutation({
+    mutationFn: async ({ workOrderId, choice }) => {
+      const { data } = await base44.functions.invoke('handleOwnerMaintenanceChoice', {
+        workOrderId,
+        choice,
+      });
+      return data;
+    },
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['workOrders'] });
       setShowRequestDialog(false);
+      setShowOwnerChoice(false);
+      setPendingWorkOrderId(null);
       setFormData({ title: '', description: '', category: 'other', priority: 'medium' });
       setSelectedPhotos([]);
-      toast.success('Work order submitted successfully!');
+      
+      if (variables.choice === 'bm_facilitated') {
+        toast.success('Request submitted! Building manager will facilitate repairs (additional fee applies).');
+      } else {
+        toast.success('Request logged. You can now arrange your own contractor.');
+      }
     },
   });
 
@@ -230,25 +267,27 @@ export default function ResidentPortal() {
         photoUrls = photoUploads.map(r => r.file_url);
       }
 
-      const workOrderData = {
-        building_id: resident.building_id,
-        unit_id: resident.unit_id,
+      const maintenanceData = {
         title: formData.title,
         description: formData.description,
         category: formData.category,
         priority: formData.priority,
-        status: 'open',
-        reported_by: user.email,
-        reported_by_name: user.full_name || `${resident.first_name} ${resident.last_name}`,
-        photos: photoUrls.length > 0 ? photoUrls : undefined,
+        photoUrls: photoUrls,
       };
 
-      createWorkOrderMutation.mutate(workOrderData);
+      createWorkOrderMutation.mutate(maintenanceData);
     } catch (error) {
       toast.error('Failed to submit request');
     } finally {
       setUploadingFiles(false);
     }
+  };
+
+  const handleOwnerChoice = (choice) => {
+    ownerChoiceMutation.mutate({
+      workOrderId: pendingWorkOrderId,
+      choice: choice,
+    });
   };
 
   const getBuildingName = (buildingId) => buildings.find(b => b.id === buildingId)?.name || 'N/A';
@@ -577,6 +616,51 @@ export default function ResidentPortal() {
         </TabsContent>
       </Tabs>
 
+      {/* Owner Choice Dialog */}
+      <Dialog open={showOwnerChoice} onOpenChange={setShowOwnerChoice}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>How would you like to proceed?</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-slate-600">
+              As the property owner, you can choose how to handle this maintenance issue:
+            </p>
+            
+            <button
+              onClick={() => handleOwnerChoice('bm_facilitated')}
+              className="w-full p-4 border-2 border-slate-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all text-left"
+              disabled={ownerChoiceMutation.isPending}
+            >
+              <h4 className="font-semibold text-slate-900 mb-2">Building Manager Facilitation</h4>
+              <p className="text-sm text-slate-600 mb-2">
+                The building manager will coordinate contractors and oversee repairs.
+              </p>
+              <Badge className="bg-orange-100 text-orange-700 border-orange-200">
+                Additional service fee applies
+              </Badge>
+            </button>
+
+            <button
+              onClick={() => handleOwnerChoice('self_manage')}
+              className="w-full p-4 border-2 border-slate-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all text-left"
+              disabled={ownerChoiceMutation.isPending}
+            >
+              <h4 className="font-semibold text-slate-900 mb-2">Arrange My Own Contractor</h4>
+              <p className="text-sm text-slate-600">
+                You will coordinate and pay for repairs directly with your chosen contractor.
+              </p>
+            </button>
+
+            {ownerChoiceMutation.isPending && (
+              <div className="text-center text-sm text-slate-500">
+                Processing your choice...
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Submit Request Dialog */}
       <Dialog open={showRequestDialog} onOpenChange={(open) => {
         setShowRequestDialog(open);
@@ -587,6 +671,8 @@ export default function ResidentPortal() {
           setAiData(null);
           setFormData({ title: '', description: '', category: 'other', priority: 'medium' });
           setSelectedPhotos([]);
+          setShowOwnerChoice(false);
+          setPendingWorkOrderId(null);
         }
       }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
