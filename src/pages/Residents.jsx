@@ -240,6 +240,46 @@ export default function Residents() {
         action={() => setShowDialog(true)}
         actionLabel="Add Resident"
       >
+        <Button 
+          variant="outline" 
+          onClick={async () => {
+            try {
+              const myResident = residents.find(r => r.email === user?.email);
+              if (myResident) {
+                toast.success('You already have a resident profile!');
+                return;
+              }
+
+              const firstBuilding = buildings[0];
+              const firstUnit = units.find(u => u.building_id === firstBuilding?.id);
+
+              if (!firstBuilding || !firstUnit) {
+                toast.error('Please create a building and unit first');
+                return;
+              }
+
+              await base44.entities.Resident.create({
+                building_id: firstBuilding.id,
+                unit_id: firstUnit.id,
+                first_name: user.full_name?.split(' ')[0] || 'Test',
+                last_name: user.full_name?.split(' ').slice(1).join(' ') || 'Admin',
+                email: user.email,
+                resident_type: 'owner',
+                status: 'active',
+                notes: 'Test resident profile for admin testing'
+              });
+
+              queryClient.invalidateQueries({ queryKey: ['residents'] });
+              toast.success('Test resident profile created! You can now access the Resident Portal.');
+            } catch (error) {
+              toast.error('Failed to create test profile');
+            }
+          }}
+          className="border-blue-200"
+        >
+          <User className="h-4 w-4 mr-2" />
+          Create Test Profile
+        </Button>
         <Link to={createPageUrl('ResidentPortal')}>
           <Button variant="outline">
             <ExternalLink className="h-4 w-4 mr-2" />
