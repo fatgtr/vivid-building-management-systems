@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -419,6 +420,11 @@ export default function Residents() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => handleEdit(resident)}>
                           <Pencil className="mr-2 h-4 w-4" /> Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to={createPageUrl(`ResidentPortal?residentId=${resident.id}`)}>
+                            <ExternalLink className="mr-2 h-4 w-4" /> View Portal
+                          </Link>
                         </DropdownMenuItem>
                         {resident.managing_agent_email && (
                           <DropdownMenuItem onClick={() => sendInviteMutation.mutate(resident.id)}>

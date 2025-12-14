@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -83,18 +84,26 @@ export default function ResidentPortal() {
     }).catch(() => {});
   }, []);
 
+  // Read residentId from URL for manager override
+  const urlParams = new URLSearchParams(window.location.search);
+  const managerResidentId = urlParams.get('residentId');
+
   // Fetch resident profile
   const { data: residents = [], refetch: refetchResidents } = useQuery({
-    queryKey: ['residents', user?.email],
-    queryFn: () => base44.entities.Resident.filter({ email: user?.email }),
-    enabled: !!user?.email,
+    queryKey: ['residents', user?.email, managerResidentId],
+    queryFn: async () => {
+      if (managerResidentId) {
+        // If managerResidentId is present, fetch that specific resident
+        const resident = await base44.entities.Resident.get(managerResidentId);
+        return resident ? [resident] : [];
+      } else if (user?.email) {
+        // Otherwise, fetch residents by the logged-in user's email
+        return base44.entities.Resident.filter({ email: user?.email });
+      }
+      return [];
+    },
+    enabled: !!user?.email || !!managerResidentId,
   });
-
-  useEffect(() => {
-    if (user?.email) {
-      refetchResidents();
-    }
-  }, [user?.email, refetchResidents]);
 
   useEffect(() => {
     if (residents.length > 0) {
@@ -104,11 +113,18 @@ export default function ResidentPortal() {
     }
   }, [residents]);
 
+  // Refetch residents if the managerResidentId or user email changes
+  useEffect(() => {
+    if (user?.email || managerResidentId) {
+      refetchResidents();
+    }
+  }, [user?.email, managerResidentId, refetchResidents]);
+
   // Fetch work orders for this resident
   const { data: workOrders = [] } = useQuery({
-    queryKey: ['workOrders', user?.email],
-    queryFn: () => base44.entities.WorkOrder.filter({ reported_by: user?.email }),
-    enabled: !!user?.email,
+    queryKey: ['workOrders', resident?.email], // Use resident's email, which could be from manager override
+    queryFn: () => base44.entities.WorkOrder.filter({ reported_by: resident?.email }),
+    enabled: !!resident?.email,
   });
 
   // Fetch announcements for resident's building
@@ -282,6 +298,7 @@ export default function ResidentPortal() {
         category: formData.category,
         priority: formData.priority,
         photoUrls: photoUrls,
+        residentEmail: resident.email, // Pass resident email explicitly for manager override
       };
 
       createWorkOrderMutation.mutate(maintenanceData);
@@ -325,7 +342,7 @@ export default function ResidentPortal() {
     (doc.visibility === 'owners_only' && resident?.resident_type === 'owner')
   );
 
-  if (!user) {
+  if (!user && !managerResidentId) { // Only require login if not in manager override mode
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <Card className="w-96 text-center p-8">
@@ -366,6 +383,11 @@ export default function ResidentPortal() {
                 <span>Unit {getUnitNumber(resident.unit_id)}</span>
               </div>
             </div>
+            {managerResidentId && (
+              <Badge className="mt-2 bg-yellow-400 text-yellow-900">
+                Viewing as Manager for Resident ID: {managerResidentId}
+              </Badge>
+            )}
           </div>
           <NotificationBell userEmail={user?.email} />
         </div>
@@ -444,7 +466,7 @@ export default function ResidentPortal() {
         {/* Lease Agreement Tab */}
         <TabsContent value="lease" className="space-y-4">
           <h2 className="text-xl font-semibold">My Lease Agreement</h2>
-          <LeaseAgreementView residentEmail={user?.email} buildingId={resident?.building_id} />
+          <LeaseAgreementView residentEmail={resident?.email} buildingId={resident?.building_id} />
         </TabsContent>
 
         {/* Maintenance Requests Tab */}
@@ -842,7 +864,7 @@ export default function ResidentPortal() {
                 {selectedDocument.title}
               </DialogTitle>
             </DialogHeader>
-            <LeaseAnalyzer document={selectedDocument} userEmail={user?.email} />
+            <LeaseAnalyzer document={selectedDocument} userEmail={resident?.email} /> {/* Use resident's email here */}
           </DialogContent>
         </Dialog>
       )}
