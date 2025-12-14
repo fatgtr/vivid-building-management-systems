@@ -54,6 +54,7 @@ const navItems = [
   { name: 'Inspections', icon: ClipboardCheck, page: 'Inspections' },
   { name: 'Contractors', icon: HardHat, page: 'Contractors' },
   { name: 'Smart Devices', icon: Settings, page: 'SmartDevices' },
+  { name: 'Strata Knowledge Base', icon: FileText, page: 'StrataKnowledgeBase' },
 ];
 
 function LayoutInner({ children, currentPageName }) {
