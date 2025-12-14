@@ -84,15 +84,23 @@ export default function ResidentPortal() {
   }, []);
 
   // Fetch resident profile
-  const { data: residents = [] } = useQuery({
+  const { data: residents = [], refetch: refetchResidents } = useQuery({
     queryKey: ['residents', user?.email],
     queryFn: () => base44.entities.Resident.filter({ email: user?.email }),
     enabled: !!user?.email,
   });
 
   useEffect(() => {
+    if (user?.email) {
+      refetchResidents();
+    }
+  }, [user?.email, refetchResidents]);
+
+  useEffect(() => {
     if (residents.length > 0) {
       setResident(residents[0]);
+    } else {
+      setResident(null);
     }
   }, [residents]);
 
