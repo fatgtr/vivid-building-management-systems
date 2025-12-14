@@ -6,6 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { 
   FileText, 
   Calendar, 
@@ -18,7 +28,8 @@ import {
   Send,
   ExternalLink,
   Shield,
-  PawPrint
+  PawPrint,
+  Trash2
 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { toast } from 'sonner';
@@ -26,8 +37,20 @@ import { toast } from 'sonner';
 export default function LeaseAgreementView({ residentEmail, buildingId }) {
   const [showRenewalDialog, setShowRenewalDialog] = useState(false);
   const [renewalMessage, setRenewalMessage] = useState('');
+  const [deleteAgreementId, setDeleteAgreementId] = useState(null);
 
   const queryClient = useQueryClient();
+
+  // Fetch all rental agreements for this resident
+  const { data: rentalAgreements = [] } = useQuery({
+    queryKey: ['rentalAgreements', residentEmail],
+    queryFn: async () => {
+      const residents = await base44.entities.Resident.filter({ email: residentEmail });
+      if (!residents || residents.length === 0) return [];
+      return base44.entities.RentalAgreement.filter({ resident_id: residents[0].id });
+    },
+    enabled: !!residentEmail,
+  });
 
   // Fetch lease analysis
   const { data: leaseAnalyses = [], isLoading } = useQuery({
@@ -38,18 +61,19 @@ export default function LeaseAgreementView({ residentEmail, buildingId }) {
 
   const leaseAnalysis = leaseAnalyses.length > 0 ? leaseAnalyses[0] : null;
 
-  // Fetch the actual lease document
-  const { data: documents = [] } = useQuery({
-    queryKey: ['documents', leaseAnalysis?.document_id],
+  // Fetch lease agreement documents
+  const { data: leaseDocuments = [] } = useQuery({
+    queryKey: ['leaseDocuments', buildingId],
     queryFn: async () => {
-      if (!leaseAnalysis?.document_id) return [];
-      const docs = await base44.entities.Document.filter({ id: leaseAnalysis.document_id });
-      return docs;
+      if (!buildingId) return [];
+      return base44.entities.Document.filter({ 
+        building_id: buildingId,
+        category: 'lease_agreement',
+        status: 'active'
+      });
     },
-    enabled: !!leaseAnalysis?.document_id,
+    enabled: !!buildingId,
   });
-
-  const leaseDocument = documents.length > 0 ? documents[0] : null;
 
   // Fetch building documents (bylaws, policies)
   const { data: buildingDocs = [] } = useQuery({
@@ -85,6 +109,50 @@ export default function LeaseAgreementView({ residentEmail, buildingId }) {
     },
   });
 
+  const deleteAgreementMutation = useMutation({
+    mutationFn: async (agreementId) => {
+      const agreement = await base44.entities.RentalAgreement.get(agreementId);
+      
+      // Delete associated lease analysis if exists
+      const analyses = await base44.entities.LeaseAnalysis.filter({ 
+        document_id: agreement.document_id 
+      });
+      for (const analysis of analyses) {
+        await base44.entities.LeaseAnalysis.delete(analysis.id);
+      }
+      
+      // Delete the document
+      if (agreement.document_id) {
+        const doc = await base44.entities.Document.get(agreement.document_id);
+        await base44.entities.Document.delete(agreement.document_id);
+        
+        // Remove document URL from resident's documents array
+        if (agreement.resident_id && doc?.file_url) {
+          const resident = await base44.entities.Resident.get(agreement.resident_id);
+          if (resident.documents) {
+            await base44.entities.Resident.update(agreement.resident_id, {
+              documents: resident.documents.filter(url => url !== doc.file_url)
+            });
+          }
+        }
+      }
+      
+      // Delete the rental agreement
+      await base44.entities.RentalAgreement.delete(agreementId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['rentalAgreements'] });
+      queryClient.invalidateQueries({ queryKey: ['leaseAnalyses'] });
+      queryClient.invalidateQueries({ queryKey: ['leaseDocuments'] });
+      queryClient.invalidateQueries({ queryKey: ['residents'] });
+      toast.success('Lease agreement deleted successfully');
+      setDeleteAgreementId(null);
+    },
+    onError: (error) => {
+      toast.error('Failed to delete: ' + error.message);
+    },
+  });
+
   const handleSendRenewalInquiry = () => {
     if (!renewalMessage.trim()) {
       toast.error('Please enter a message');
@@ -104,7 +172,7 @@ export default function LeaseAgreementView({ residentEmail, buildingId }) {
     );
   }
 
-  if (!leaseAnalysis) {
+  if (rentalAgreements.length === 0) {
     return (
       <Card className="border-0 shadow-sm">
         <CardContent className="p-12 text-center">
@@ -118,8 +186,13 @@ export default function LeaseAgreementView({ residentEmail, buildingId }) {
     );
   }
 
-  const leaseEndDate = leaseAnalysis.lease_end_date ? new Date(leaseAnalysis.lease_end_date) : null;
-  const leaseStartDate = leaseAnalysis.lease_start_date ? new Date(leaseAnalysis.lease_start_date) : null;
+  // Get the most recent rental agreement
+  const currentAgreement = rentalAgreements.sort((a, b) => 
+    new Date(b.created_date) - new Date(a.created_date)
+  )[0];
+
+  const leaseEndDate = currentAgreement?.lease_end_date ? new Date(currentAgreement.lease_end_date) : null;
+  const leaseStartDate = currentAgreement?.lease_start_date ? new Date(currentAgreement.lease_start_date) : null;
   const today = new Date();
   const daysUntilExpiry = leaseEndDate ? differenceInDays(leaseEndDate, today) : null;
   const isExpiringSoon = daysUntilExpiry !== null && daysUntilExpiry > 0 && daysUntilExpiry <= 90;
@@ -127,6 +200,81 @@ export default function LeaseAgreementView({ residentEmail, buildingId }) {
 
   return (
     <div className="space-y-6">
+      {/* All Lease Agreements */}
+      <Card className="border-0 shadow-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-blue-600" />
+              Lease Agreements
+            </div>
+            <Badge variant="outline">{rentalAgreements.length} Agreement{rentalAgreements.length !== 1 ? 's' : ''}</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {rentalAgreements.map((agreement) => {
+            const agreementDoc = leaseDocuments.find(d => d.id === agreement.document_id);
+            const isCurrentLease = agreement.id === currentAgreement?.id;
+            
+            return (
+              <div key={agreement.id} className={`p-4 rounded-lg border-2 ${isCurrentLease ? 'border-blue-200 bg-blue-50' : 'border-slate-200 bg-slate-50'}`}>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h4 className="font-semibold text-slate-900">{agreementDoc?.title || 'Lease Agreement'}</h4>
+                      {isCurrentLease && <Badge className="bg-blue-600">Current</Badge>}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      {agreement.lease_start_date && (
+                        <div>
+                          <span className="text-slate-500">Start:</span>{' '}
+                          <span className="font-medium">{format(new Date(agreement.lease_start_date), 'MMM d, yyyy')}</span>
+                        </div>
+                      )}
+                      {agreement.lease_end_date && (
+                        <div>
+                          <span className="text-slate-500">End:</span>{' '}
+                          <span className="font-medium">{format(new Date(agreement.lease_end_date), 'MMM d, yyyy')}</span>
+                        </div>
+                      )}
+                      {agreement.rent_amount && (
+                        <div>
+                          <span className="text-slate-500">Rent:</span>{' '}
+                          <span className="font-medium">${agreement.rent_amount.toLocaleString()}</span>
+                        </div>
+                      )}
+                      {agreement.bond_amount && (
+                        <div>
+                          <span className="text-slate-500">Bond:</span>{' '}
+                          <span className="font-medium">${agreement.bond_amount.toLocaleString()}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-2 ml-4">
+                    {agreementDoc?.file_url && (
+                      <a href={agreementDoc.file_url} target="_blank" rel="noopener noreferrer">
+                        <Button variant="ghost" size="sm">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </a>
+                    )}
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => setDeleteAgreementId(agreement.id)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
+
       {/* Lease Status Banner */}
       {isExpired && (
         <Card className="border-red-200 bg-red-50">
@@ -186,7 +334,7 @@ export default function LeaseAgreementView({ residentEmail, buildingId }) {
           </CardContent>
         </Card>
 
-        {leaseAnalysis.monthly_rent && (
+        {currentAgreement?.rent_amount && (
           <Card className="border-0 shadow-sm">
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-3">
@@ -194,17 +342,18 @@ export default function LeaseAgreementView({ residentEmail, buildingId }) {
                   <DollarSign className="h-5 w-5 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500">Monthly Rent</p>
+                  <p className="text-xs text-slate-500">Rent</p>
                   <p className="font-semibold text-slate-900 text-xl">
-                    ${leaseAnalysis.monthly_rent.toLocaleString()}
+                    ${currentAgreement.rent_amount.toLocaleString()}
                   </p>
+                  <p className="text-xs text-slate-500">{currentAgreement.rent_frequency || 'per month'}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         )}
 
-        {leaseAnalysis.security_deposit && (
+        {currentAgreement?.bond_amount && (
           <Card className="border-0 shadow-sm">
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-3">
@@ -214,7 +363,7 @@ export default function LeaseAgreementView({ residentEmail, buildingId }) {
                 <div>
                   <p className="text-xs text-slate-500">Security Deposit</p>
                   <p className="font-semibold text-slate-900 text-xl">
-                    ${leaseAnalysis.security_deposit.toLocaleString()}
+                    ${currentAgreement.bond_amount.toLocaleString()}
                   </p>
                 </div>
               </div>
@@ -233,23 +382,23 @@ export default function LeaseAgreementView({ residentEmail, buildingId }) {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {leaseAnalysis.pet_policy && (
+            {currentAgreement?.pet_policy && (
               <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
                 <PawPrint className="h-5 w-5 text-slate-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-medium text-slate-900 mb-1">Pet Policy</p>
-                  <p className="text-sm text-slate-600">{leaseAnalysis.pet_policy}</p>
+                  <p className="text-sm text-slate-600">{currentAgreement.pet_policy}</p>
                 </div>
               </div>
             )}
 
-            {leaseAnalysis.parking_included !== null && (
+            {currentAgreement?.parking_included !== null && (
               <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
                 <Home className="h-5 w-5 text-slate-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-medium text-slate-900 mb-1">Parking</p>
                   <div className="flex items-center gap-2">
-                    {leaseAnalysis.parking_included ? (
+                    {currentAgreement.parking_included ? (
                       <Badge className="bg-green-100 text-green-700 border-green-200">
                         <CheckCircle2 className="h-3 w-3 mr-1" />
                         Included
@@ -258,19 +407,19 @@ export default function LeaseAgreementView({ residentEmail, buildingId }) {
                       <Badge variant="outline">Not Included</Badge>
                     )}
                   </div>
-                  {leaseAnalysis.parking_details && (
-                    <p className="text-sm text-slate-600 mt-1">{leaseAnalysis.parking_details}</p>
+                  {currentAgreement.parking_details && (
+                    <p className="text-sm text-slate-600 mt-1">{currentAgreement.parking_details}</p>
                   )}
                 </div>
               </div>
             )}
           </div>
 
-          {leaseAnalysis.special_clauses && leaseAnalysis.special_clauses.length > 0 && (
+          {currentAgreement?.special_conditions && currentAgreement.special_conditions.length > 0 && (
             <div>
-              <h4 className="text-sm font-medium text-slate-900 mb-2">Special Clauses</h4>
+              <h4 className="text-sm font-medium text-slate-900 mb-2">Special Conditions</h4>
               <ul className="space-y-2">
-                {leaseAnalysis.special_clauses.map((clause, idx) => (
+                {currentAgreement.special_conditions.map((clause, idx) => (
                   <li key={idx} className="flex items-start gap-2 text-sm text-slate-600">
                     <span className="text-blue-600 mt-1">•</span>
                     <span>{clause}</span>
@@ -279,46 +428,19 @@ export default function LeaseAgreementView({ residentEmail, buildingId }) {
               </ul>
             </div>
           )}
-
-          {leaseAnalysis.renewal_terms && (
-            <div>
-              <h4 className="text-sm font-medium text-slate-900 mb-2">Renewal Terms</h4>
-              <p className="text-sm text-slate-600">{leaseAnalysis.renewal_terms}</p>
-            </div>
-          )}
         </CardContent>
       </Card>
 
       {/* Related Documents */}
-      {(leaseDocument || bylaws.length > 0) && (
+      {bylaws.length > 0 && (
         <Card className="border-0 shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              Related Documents
+              Building Documents
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {leaseDocument && (
-              <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <FileText className="h-5 w-5 text-blue-600" />
-                  <div>
-                    <p className="font-medium text-slate-900">{leaseDocument.title}</p>
-                    <p className="text-xs text-slate-500">Your lease agreement</p>
-                  </div>
-                </div>
-                {leaseDocument.file_url && (
-                  <a href={leaseDocument.file_url} target="_blank" rel="noopener noreferrer">
-                    <Button variant="outline" size="sm">
-                      <Download className="h-4 w-4 mr-2" />
-                      Download
-                    </Button>
-                  </a>
-                )}
-              </div>
-            )}
-
             {bylaws.map((doc) => (
               <div key={doc.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                 <div className="flex items-center gap-3">
@@ -405,13 +527,13 @@ export default function LeaseAgreementView({ residentEmail, buildingId }) {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation */}
       <AlertDialog open={!!deleteAgreementId} onOpenChange={() => setDeleteAgreementId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Lease Agreement</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this lease agreement? This will also remove the associated document and cannot be undone.
+              Are you sure you want to delete this lease agreement? This will also remove the associated document and analysis, and cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
