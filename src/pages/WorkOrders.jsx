@@ -19,6 +19,7 @@ import KanbanBoard from '@/components/workorders/KanbanBoard';
 import RatingDialog from '@/components/workorders/RatingDialog';
 import AISchedulingAssistant from '@/components/workorders/AISchedulingAssistant';
 import DescriptionAIAssistant from '@/components/workorders/DescriptionAIAssistant';
+import ResponsibilityLookup from '@/components/workorders/ResponsibilityLookup';
 import { Wrench, Search, Building2, AlertCircle, Clock, CheckCircle2, XCircle, MoreVertical, Pencil, Trash2, Calendar, User, Eye, Upload, Image as ImageIcon, Video, X, LayoutGrid, List, Star, Repeat, Sparkles } from 'lucide-react';
 import {
   DropdownMenu,
@@ -490,23 +491,26 @@ export default function WorkOrders() {
         action={() => setShowDialog(true)}
         actionLabel="Create Work Order"
       >
-        <div className="flex items-center gap-2 bg-slate-100 rounded-lg p-1">
-          <Button
-            variant={viewMode === 'grid' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('grid')}
-            className="h-8"
-          >
-            <LayoutGrid className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={viewMode === 'kanban' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('kanban')}
-            className="h-8"
-          >
-            <List className="h-4 w-4" />
-          </Button>
+        <div className="flex items-center gap-2">
+          <ResponsibilityLookup />
+          <div className="flex items-center gap-2 bg-slate-100 rounded-lg p-1">
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('grid')}
+              className="h-8"
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'kanban' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('kanban')}
+              className="h-8"
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </PageHeader>
 
