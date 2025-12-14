@@ -43,8 +43,12 @@ export default function RentalAgreementExtractor({ residentId, buildingId, unitI
   };
 
   const handleExtract = async () => {
-    if (!selectedFile) return;
+    if (!selectedFile) {
+      toast.error('No file selected.');
+      return;
+    }
 
+    console.log('[Extract] Starting extraction process...');
     let uploadedFileUrl = null;
     let createdDocumentId = null;
 
@@ -54,10 +58,18 @@ export default function RentalAgreementExtractor({ residentId, buildingId, unitI
 
     try {
       // Step 1: Upload the file
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: selectedFile });
-      uploadedFileUrl = file_url;
+      console.log('[Extract] Step 1: Uploading file...');
+      const uploadResult = await base44.integrations.Core.UploadFile({ file: selectedFile });
+      console.log('[Extract] Upload result:', uploadResult);
+      
+      uploadedFileUrl = uploadResult.file_url;
+      if (!uploadedFileUrl) {
+        throw new Error("File upload failed: No URL returned.");
+      }
+      console.log('[Extract] File uploaded successfully:', uploadedFileUrl);
       
       // Step 2: Create document record
+      console.log('[Extract] Step 2: Creating document record...');
       const doc = await base44.entities.Document.create({
         building_id: buildingId,
         title: `Lease Agreement - ${selectedFile.name}`,
@@ -69,51 +81,67 @@ export default function RentalAgreementExtractor({ residentId, buildingId, unitI
         visibility: 'residents_only',
         status: 'active',
       });
+      console.log('[Extract] Document created:', doc);
+      
       createdDocumentId = doc.id;
+      if (!createdDocumentId) {
+        throw new Error("Document record creation failed: No ID returned.");
+      }
       
       setDocumentId(createdDocumentId);
       setUploading(false);
       setExtracting(true);
 
       // Step 3: Get the schema
+      console.log('[Extract] Step 3: Getting schema...');
       const schema = await base44.entities.RentalAgreement.schema();
+      console.log('[Extract] Schema retrieved:', schema);
 
       // Step 4: Extract data using AI
+      console.log('[Extract] Step 4: Extracting data with AI...');
       const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
         file_url: uploadedFileUrl,
         json_schema: schema,
       });
+      console.log('[Extract] AI extraction result:', result);
 
       if (result.status === 'success' && result.output) {
-        setExtractedData({
+        const finalData = {
           ...result.output,
           resident_id: residentId,
           building_id: buildingId,
           unit_id: unitId,
           document_id: createdDocumentId,
           status: 'active',
-        });
-        setExtracting(false);
+        };
+        console.log('[Extract] Setting extracted data:', finalData);
+        setExtractedData(finalData);
         toast.success('Data extracted successfully!');
       } else {
-        setExtracting(false);
-        toast.error('AI extraction failed: ' + (result.details || 'No error details provided'));
+        throw new Error('AI extraction failed: ' + (result.details || 'No specific error details provided'));
       }
     } catch (error) {
+      console.error('[Extract] Error occurred:', error);
+      
       if (!uploadedFileUrl) {
-        toast.error('Failed to upload file: ' + error.message);
+        toast.error('Upload Error: ' + error.message);
       } else if (!createdDocumentId) {
-        toast.error('Failed to create document record: ' + error.message);
+        toast.error('Document Record Error: ' + error.message);
       } else {
-        toast.error('Error during AI extraction: ' + error.message);
+        toast.error('AI Extraction Error: ' + error.message);
       }
+    } finally {
+      console.log('[Extract] Cleanup - resetting states');
       setUploading(false);
       setExtracting(false);
     }
   };
 
   const handleSave = () => {
-    if (!extractedData) return;
+    if (!extractedData) {
+      toast.error("No data to save.");
+      return;
+    }
     saveAgreementMutation.mutate(extractedData);
   };
 
@@ -163,6 +191,18 @@ export default function RentalAgreementExtractor({ residentId, buildingId, unitI
                 {!uploading && !extracting && <Sparkles className="h-4 w-4 mr-2" />}
                 {uploading ? 'Uploading...' : extracting ? 'Extracting Data...' : 'Extract with AI'}
               </Button>
+            )}
+
+            {(uploading || extracting) && (
+              <div className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+                <div className="flex-1">
+                  <p className="font-medium text-blue-900">
+                    {uploading ? 'Uploading document...' : 'AI is extracting information...'}
+                  </p>
+                  <p className="text-sm text-blue-700">This may take a few moments</p>
+                </div>
+              </div>
             )}
 
             <div className="text-sm text-slate-600 bg-blue-50 border border-blue-200 rounded-lg p-4">
