@@ -94,7 +94,7 @@ export default function RentalAgreementExtractor({ residentId, buildingId, unitI
 
       // Step 3: Get the schema
       console.log('[Extract] Step 3: Getting schema...');
-      const schema = await base44.entities.RentalAgreement.schema();
+      const schema = base44.entities.RentalAgreement.schema;
       console.log('[Extract] Schema retrieved:', schema);
 
       // Step 4: Extract data using AI
