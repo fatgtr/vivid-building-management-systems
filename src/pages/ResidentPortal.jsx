@@ -337,9 +337,10 @@ export default function ResidentPortal() {
   };
 
   const visibleDocuments = documents.filter(doc => 
-    doc.visibility === 'public' || 
+    doc.category !== 'lease_agreement' && // Exclude lease agreements from general documents
+    (doc.visibility === 'public' || 
     doc.visibility === 'residents_only' ||
-    (doc.visibility === 'owners_only' && resident?.resident_type === 'owner')
+    (doc.visibility === 'owners_only' && resident?.resident_type === 'owner'))
   );
 
   if (!user && !managerResidentId) { // Only require login if not in manager override mode

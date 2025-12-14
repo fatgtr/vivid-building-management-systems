@@ -404,6 +404,28 @@ export default function LeaseAgreementView({ residentEmail, buildingId }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteAgreementId} onOpenChange={() => setDeleteAgreementId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Lease Agreement</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this lease agreement? This will also remove the associated document and cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => deleteAgreementMutation.mutate(deleteAgreementId)}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleteAgreementMutation.isPending}
+            >
+              {deleteAgreementMutation.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

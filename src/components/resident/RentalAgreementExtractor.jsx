@@ -130,13 +130,25 @@ export default function RentalAgreementExtractor({ residentId, buildingId, unitI
       }
       console.log('[Extract] File uploaded successfully:', uploadedFileUrl);
       
-      // Step 2: Create document record
-      console.log('[Extract] Step 2: Creating document record...');
+      // Step 2: Check for duplicate document
+      console.log('[Extract] Step 2: Checking for duplicate documents...');
+      const existingDocs = await base44.entities.Document.filter({
+        building_id: buildingId,
+        title: `Lease Agreement - ${selectedFile.name}`,
+        category: 'lease_agreement',
+      });
+
+      if (existingDocs.length > 0) {
+        throw new Error(`A lease agreement with the name "${selectedFile.name}" already exists. Please use a different file or delete the existing one first.`);
+      }
+
+      // Step 3: Create document record
+      console.log('[Extract] Step 3: Creating document record...');
       const doc = await base44.entities.Document.create({
         building_id: buildingId,
         title: `Lease Agreement - ${selectedFile.name}`,
         description: 'Rental tenancy agreement',
-        category: 'contract',
+        category: 'lease_agreement',
         file_url: uploadedFileUrl,
         file_type: 'pdf',
         file_size: selectedFile.size,
@@ -151,11 +163,23 @@ export default function RentalAgreementExtractor({ residentId, buildingId, unitI
       }
       
       setDocumentId(createdDocumentId);
+
+      // Update resident to add document URL
+      if (residentId) {
+        const currentResident = await base44.entities.Resident.get(residentId);
+        const existingDocs = currentResident.documents || [];
+        if (!existingDocs.includes(uploadedFileUrl)) {
+          await base44.entities.Resident.update(residentId, {
+            documents: [...existingDocs, uploadedFileUrl]
+          });
+        }
+      }
+
       setUploading(false);
       setExtracting(true);
 
-      // Step 3: Define the schema for extraction
-      console.log('[Extract] Step 3: Using RentalAgreement schema...');
+      // Step 4: Define the schema for extraction
+      console.log('[Extract] Step 4: Using RentalAgreement schema...');
       const schema = {
         type: "object",
         properties: {
@@ -211,8 +235,8 @@ export default function RentalAgreementExtractor({ residentId, buildingId, unitI
         }
       };
 
-      // Step 4: Extract data using AI
-      console.log('[Extract] Step 4: Extracting data with AI...');
+      // Step 5: Extract data using AI
+      console.log('[Extract] Step 5: Extracting data with AI...');
       console.log('[Extract] Schema being sent:', JSON.stringify(schema, null, 2));
       const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
         file_url: uploadedFileUrl,
