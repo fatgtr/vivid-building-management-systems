@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card } from "@/components/ui/card";
@@ -16,7 +16,8 @@ import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Users, Search, Pencil, Trash2, Building2, Home, Phone, Mail, MoreVertical, Calendar, Upload, FileText, X, ExternalLink, Send } from 'lucide-react';
+import { Users, Search, Pencil, Trash2, Building2, Home, Phone, Mail, MoreVertical, Calendar, Upload, FileText, X, ExternalLink, Send, User } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -79,8 +80,13 @@ export default function Residents() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [deleteResident, setDeleteResident] = useState(null);
   const [uploadingFiles, setUploadingFiles] = useState(false);
+  const [user, setUser] = useState(null);
 
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
 
   const { data: residents = [], isLoading } = useQuery({
     queryKey: ['residents'],
