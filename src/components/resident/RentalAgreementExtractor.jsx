@@ -21,10 +21,68 @@ export default function RentalAgreementExtractor({ residentId, buildingId, unitI
   const queryClient = useQueryClient();
 
   const saveAgreementMutation = useMutation({
-    mutationFn: (data) => base44.entities.RentalAgreement.create(data),
+    mutationFn: async (data) => {
+      // Save the rental agreement
+      const agreement = await base44.entities.RentalAgreement.create(data);
+      
+      // Update the resident with extracted information
+      if (residentId && data) {
+        const residentUpdates = {};
+        
+        // Map lease dates
+        if (data.lease_start_date) residentUpdates.move_in_date = data.lease_start_date;
+        if (data.lease_end_date) residentUpdates.move_out_date = data.lease_end_date;
+        
+        // Map pet information
+        if (data.pets_allowed !== undefined) residentUpdates.has_pet = data.pets_allowed;
+        
+        // Map contact information (first tenant)
+        if (data.tenant_emails && data.tenant_emails.length > 0) {
+          residentUpdates.email = data.tenant_emails[0];
+        }
+        if (data.tenant_phones && data.tenant_phones.length > 0) {
+          residentUpdates.phone = data.tenant_phones[0];
+        }
+        
+        // Map tenant name (first tenant)
+        if (data.tenant_names && data.tenant_names.length > 0) {
+          const fullName = data.tenant_names[0];
+          const nameParts = fullName.trim().split(' ');
+          if (nameParts.length > 0) {
+            residentUpdates.first_name = nameParts[0];
+            if (nameParts.length > 1) {
+              residentUpdates.last_name = nameParts.slice(1).join(' ');
+            }
+          }
+        }
+        
+        // Map parking details
+        if (data.parking_details) residentUpdates.parking_spot = data.parking_details;
+        
+        // Append special conditions and inclusions to notes
+        const notesParts = [];
+        if (data.special_conditions && data.special_conditions.length > 0) {
+          notesParts.push('Special Conditions:\n' + data.special_conditions.map(c => '- ' + c).join('\n'));
+        }
+        if (data.inclusions) {
+          notesParts.push('Inclusions:\n' + data.inclusions);
+        }
+        if (notesParts.length > 0) {
+          residentUpdates.notes = notesParts.join('\n\n');
+        }
+        
+        // Update the resident if we have any updates
+        if (Object.keys(residentUpdates).length > 0) {
+          await base44.entities.Resident.update(residentId, residentUpdates);
+        }
+      }
+      
+      return agreement;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['rentalAgreements'] });
-      toast.success('Rental agreement saved successfully!');
+      queryClient.invalidateQueries({ queryKey: ['residents'] });
+      toast.success('Rental agreement saved and resident information updated!');
       if (onComplete) onComplete();
       setSelectedFile(null);
       setExtractedData(null);
