@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -18,6 +17,7 @@ import NotificationSettings from '@/components/resident/NotificationSettings';
 import WorkOrderAIAssistant from '@/components/resident/WorkOrderAIAssistant';
 import LeaseAnalyzer from '@/components/resident/LeaseAnalyzer';
 import LeaseAgreementView from '@/components/resident/LeaseAgreementView';
+import RentalAgreementExtractor from '@/components/resident/RentalAgreementExtractor';
 import { 
   Home, 
   Wrench, 
@@ -466,6 +466,14 @@ export default function ResidentPortal() {
         {/* Lease Agreement Tab */}
         <TabsContent value="lease" className="space-y-4">
           <h2 className="text-xl font-semibold">My Lease Agreement</h2>
+
+          <RentalAgreementExtractor 
+            residentId={resident?.id}
+            buildingId={resident?.building_id}
+            unitId={resident?.unit_id}
+            onComplete={() => queryClient.invalidateQueries({ queryKey: ['rentalAgreements'] })}
+          />
+
           <LeaseAgreementView residentEmail={resident?.email} buildingId={resident?.building_id} />
         </TabsContent>
 
