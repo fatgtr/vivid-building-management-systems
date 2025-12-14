@@ -88,6 +88,10 @@ export default function RentalAgreementExtractor({ residentId, buildingId, unitI
       setExtractedData(null);
       setDocumentId(null);
     },
+    onError: (error) => {
+      console.error('[Save] Error saving rental agreement:', error);
+      toast.error('Failed to save: ' + (error.message || 'Unknown error'));
+    },
   });
 
   const handleFileSelect = (e) => {
@@ -209,11 +213,12 @@ export default function RentalAgreementExtractor({ residentId, buildingId, unitI
 
       // Step 4: Extract data using AI
       console.log('[Extract] Step 4: Extracting data with AI...');
+      console.log('[Extract] Schema being sent:', JSON.stringify(schema, null, 2));
       const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
         file_url: uploadedFileUrl,
         json_schema: schema,
       });
-      console.log('[Extract] AI extraction result:', result);
+      console.log('[Extract] AI extraction result:', JSON.stringify(result, null, 2));
 
       if (result.status === 'success' && result.output) {
         const finalData = {
