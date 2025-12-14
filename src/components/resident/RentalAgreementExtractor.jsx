@@ -45,34 +45,42 @@ export default function RentalAgreementExtractor({ residentId, buildingId, unitI
   const handleExtract = async () => {
     if (!selectedFile) return;
 
+    let uploadedFileUrl = null;
+    let createdDocumentId = null;
+
     setUploading(true);
+    setExtracting(false);
+    setExtractedData(null);
+
     try {
-      // Upload the file
+      // Step 1: Upload the file
       const { file_url } = await base44.integrations.Core.UploadFile({ file: selectedFile });
+      uploadedFileUrl = file_url;
       
-      // Create document record
+      // Step 2: Create document record
       const doc = await base44.entities.Document.create({
         building_id: buildingId,
         title: `Lease Agreement - ${selectedFile.name}`,
         description: 'Rental tenancy agreement',
         category: 'contract',
-        file_url: file_url,
+        file_url: uploadedFileUrl,
         file_type: 'pdf',
         file_size: selectedFile.size,
         visibility: 'residents_only',
         status: 'active',
       });
+      createdDocumentId = doc.id;
       
-      setDocumentId(doc.id);
+      setDocumentId(createdDocumentId);
       setUploading(false);
       setExtracting(true);
 
-      // Get the schema
+      // Step 3: Get the schema
       const schema = await base44.entities.RentalAgreement.schema();
 
-      // Extract data using AI
+      // Step 4: Extract data using AI
       const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
-        file_url: file_url,
+        file_url: uploadedFileUrl,
         json_schema: schema,
       });
 
@@ -82,16 +90,23 @@ export default function RentalAgreementExtractor({ residentId, buildingId, unitI
           resident_id: residentId,
           building_id: buildingId,
           unit_id: unitId,
-          document_id: doc.id,
+          document_id: createdDocumentId,
           status: 'active',
         });
+        setExtracting(false);
         toast.success('Data extracted successfully!');
       } else {
-        toast.error('Failed to extract data: ' + (result.details || 'Unknown error'));
+        setExtracting(false);
+        toast.error('AI extraction failed: ' + (result.details || 'No error details provided'));
       }
     } catch (error) {
-      toast.error('Error processing file: ' + error.message);
-    } finally {
+      if (!uploadedFileUrl) {
+        toast.error('Failed to upload file: ' + error.message);
+      } else if (!createdDocumentId) {
+        toast.error('Failed to create document record: ' + error.message);
+      } else {
+        toast.error('Error during AI extraction: ' + error.message);
+      }
       setUploading(false);
       setExtracting(false);
     }
