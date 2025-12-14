@@ -92,10 +92,62 @@ export default function RentalAgreementExtractor({ residentId, buildingId, unitI
       setUploading(false);
       setExtracting(true);
 
-      // Step 3: Get the schema
-      console.log('[Extract] Step 3: Getting schema...');
-      const schema = base44.entities.RentalAgreement.schema;
-      console.log('[Extract] Schema retrieved:', schema);
+      // Step 3: Define the schema for extraction
+      console.log('[Extract] Step 3: Using RentalAgreement schema...');
+      const schema = {
+        type: "object",
+        properties: {
+          property_address: { type: "string" },
+          landlord_name: { type: "string" },
+          landlord_address: { type: "string" },
+          landlord_agent_name: { type: "string" },
+          landlord_agent_address: { type: "string" },
+          landlord_agent_phone: { type: "string" },
+          landlord_agent_email: { type: "string" },
+          tenant_names: { type: "array", items: { type: "string" } },
+          tenant_emails: { type: "array", items: { type: "string" } },
+          tenant_phones: { type: "array", items: { type: "string" } },
+          lease_term_type: { type: "string" },
+          lease_term_description: { type: "string" },
+          lease_start_date: { type: "string", format: "date" },
+          lease_end_date: { type: "string", format: "date" },
+          agreement_date: { type: "string", format: "date" },
+          rent_amount: { type: "number" },
+          rent_frequency: { type: "string" },
+          rent_due_day: { type: "string" },
+          first_rent_payment_date: { type: "string", format: "date" },
+          rent_payment_method: { type: "string" },
+          rent_payment_details: { 
+            type: "object",
+            properties: {
+              bsb: { type: "string" },
+              account_number: { type: "string" },
+              account_name: { type: "string" },
+              bank_name: { type: "string" },
+              payment_reference: { type: "string" }
+            }
+          },
+          bond_amount: { type: "number" },
+          bond_lodged_with: { type: "string" },
+          max_occupants: { type: "number" },
+          inclusions: { type: "string" },
+          parking_included: { type: "boolean" },
+          parking_details: { type: "string" },
+          utilities_electricity_embedded: { type: "boolean" },
+          utilities_gas_embedded: { type: "boolean" },
+          water_usage_payable: { type: "boolean" },
+          urgent_repairs_contact: { type: "string" },
+          urgent_repairs_phone: { type: "string" },
+          smoke_alarm_type: { type: "string" },
+          smoke_alarm_battery_type: { type: "string" },
+          strata_bylaws_applicable: { type: "boolean" },
+          pet_policy: { type: "string" },
+          pets_allowed: { type: "boolean" },
+          special_conditions: { type: "array", items: { type: "string" } },
+          electronic_service_consent: { type: "boolean" },
+          electronic_service_email: { type: "string" }
+        }
+      };
 
       // Step 4: Extract data using AI
       console.log('[Extract] Step 4: Extracting data with AI...');
