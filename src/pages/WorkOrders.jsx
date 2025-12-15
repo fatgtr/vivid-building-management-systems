@@ -862,9 +862,9 @@ export default function WorkOrders() {
                       selectedPhotos={selectedPhotos}
                       selectedVideos={selectedVideos}
                       currentDescription={formData.description}
-                      onDescriptionGenerated={(desc) => setFormData({ ...formData, description: desc })}
-                      onTitleGenerated={(title) => setFormData({ ...formData, title: title })}
-                      onPriorityGenerated={(priority) => setFormData({ ...formData, priority: priority })}
+                      onDescriptionGenerated={(desc) => setFormData(prev => ({ ...prev, description: desc }))}
+                      onTitleGenerated={(title) => setFormData(prev => ({ ...prev, title: title }))}
+                      onPriorityGenerated={(priority) => setFormData(prev => ({ ...prev, priority: priority }))}
                       generateTitle={!editingOrder}
                       suggestPriority={true}
                     />

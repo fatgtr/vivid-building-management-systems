@@ -175,7 +175,7 @@ Generate only the description text, no additional commentary.`;
         type="button"
         variant="outline"
         onClick={handleGenerate}
-        disabled={generating || (!generateTitle && !title) || (generateTitle && !category)}
+        disabled={generating || (generateTitle && !category)}
         className="w-full bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 hover:from-blue-100 hover:to-indigo-100"
       >
         {generating ? (
@@ -186,7 +186,7 @@ Generate only the description text, no additional commentary.`;
         ) : (
           <>
             <Sparkles className="h-4 w-4 mr-2" />
-            {generateTitle ? 'Generate Title & Description with AI' : 'Generate Description with AI'}
+            {generateTitle ? 'Generate Title & Description with AI' : 'Enhance Description with AI'}
           </>
         )}
       </Button>
