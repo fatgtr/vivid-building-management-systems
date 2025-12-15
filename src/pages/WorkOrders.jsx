@@ -571,16 +571,38 @@ export default function WorkOrders() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredOrders.map((order) => (
-            <Card key={order.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+            <Card key={order.id} className="group border-0 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden">
+              <div className={`h-1.5 w-full ${
+                order.priority === 'urgent' ? 'bg-gradient-to-r from-red-500 to-red-600' :
+                order.priority === 'high' ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
+                order.priority === 'medium' ? 'bg-gradient-to-r from-blue-500 to-blue-600' : 
+                'bg-gradient-to-r from-slate-400 to-slate-500'
+              }`} />
               <CardContent className="p-5">
                 <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    {priorityIcons[order.priority]}
+                  <div className="flex items-center gap-2 flex-wrap">
                     <StatusBadge status={order.status} />
+                    <Badge 
+                      variant="outline" 
+                      className={`capitalize font-medium ${
+                        order.priority === 'urgent' ? 'border-red-300 text-red-700 bg-red-50' :
+                        order.priority === 'high' ? 'border-orange-300 text-orange-700 bg-orange-50' :
+                        order.priority === 'medium' ? 'border-blue-300 text-blue-700 bg-blue-50' :
+                        'border-slate-300 text-slate-700 bg-slate-50'
+                      }`}
+                    >
+                      {order.priority}
+                    </Badge>
+                    {order.is_recurring && (
+                      <Badge className="bg-purple-100 text-purple-700 border border-purple-200">
+                        <Repeat className="h-3 w-3 mr-1" />
+                        Recurring
+                      </Badge>
+                    )}
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 opacity-60 group-hover:opacity-100 transition-opacity">
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -606,54 +628,72 @@ export default function WorkOrders() {
                   </DropdownMenu>
                 </div>
 
-                <h3 className="font-semibold text-slate-900 mb-1 line-clamp-1">{order.title}</h3>
-                <p className="text-sm text-slate-500 mb-3 line-clamp-2">{order.description || 'No description'}</p>
+                <h3 className="font-bold text-lg text-slate-900 mb-2 line-clamp-2 group-hover:text-blue-700 transition-colors leading-tight">
+                  {order.title}
+                </h3>
+                <p className="text-sm text-slate-600 mb-4 line-clamp-2 leading-relaxed">
+                  {order.description || 'No description'}
+                </p>
 
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <Building2 className="h-4 w-4 text-slate-400" />
-                    <span>{getBuildingName(order.building_id)}</span>
-                    {order.unit_id && <span>• Unit {getUnitNumber(order.unit_id)}</span>}
+                <div className="space-y-2.5 mb-4">
+                  <div className="flex items-center gap-2 text-xs bg-slate-50 px-3 py-2 rounded-lg">
+                    <Building2 className="h-3.5 w-3.5 text-slate-500 flex-shrink-0" />
+                    <span className="text-slate-700 font-medium truncate">
+                      {getBuildingName(order.building_id)}
+                      {order.unit_id && <span className="text-slate-500"> • Unit {getUnitNumber(order.unit_id)}</span>}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <Wrench className="h-4 w-4 text-slate-400" />
-                    <span className="capitalize">{order.category?.replace(/_/g, ' ')}</span>
+                  
+                  <div className="flex items-center gap-2 text-xs bg-slate-50 px-3 py-2 rounded-lg">
+                    <Wrench className="h-3.5 w-3.5 text-slate-500 flex-shrink-0" />
+                    <span className="capitalize text-slate-700">{order.category?.replace(/_/g, ' ')}</span>
                   </div>
+
                   {order.due_date && (
-                    <div className="flex items-center gap-2 text-slate-600">
-                      <Calendar className="h-4 w-4 text-slate-400" />
-                      <span>Due: {format(new Date(order.due_date), 'MMM d, yyyy')}</span>
+                    <div className="flex items-center gap-2 text-xs bg-orange-50 px-3 py-2 rounded-lg">
+                      <Calendar className="h-3.5 w-3.5 text-orange-600 flex-shrink-0" />
+                      <span className="text-orange-700 font-medium">
+                        Due {format(new Date(order.due_date), 'MMM d, yyyy')}
+                      </span>
                     </div>
                   )}
+
                   {order.assigned_to && (
-                   <div className="flex items-center gap-2 text-slate-600">
-                     <User className="h-4 w-4 text-slate-400" />
-                     <span>{order.assigned_to}</span>
-                   </div>
+                    <div className="flex items-center gap-2 text-xs bg-blue-50 px-3 py-2 rounded-lg">
+                      <User className="h-3.5 w-3.5 text-blue-600 flex-shrink-0" />
+                      <span className="text-slate-700 font-medium truncate">{order.assigned_to}</span>
+                    </div>
                   )}
+
                   {order.assigned_contractor_id && (
-                   <div className="flex items-center gap-2 text-slate-600">
-                     <Wrench className="h-4 w-4 text-blue-500" />
-                     <span className="text-blue-600 font-medium">
-                       {contractors.find(c => c.id === order.assigned_contractor_id)?.company_name || 'Contractor'}
-                     </span>
-                   </div>
+                    <div className="flex items-center gap-2 text-xs bg-indigo-50 px-3 py-2 rounded-lg">
+                      <Wrench className="h-3.5 w-3.5 text-indigo-600 flex-shrink-0" />
+                      <span className="text-indigo-700 font-medium truncate">
+                        {contractors.find(c => c.id === order.assigned_contractor_id)?.company_name || 'Contractor'}
+                      </span>
+                    </div>
                   )}
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-xs text-slate-500">
-                    {order.created_date && format(new Date(order.created_date), 'MMM d, yyyy')}
-                  </span>
-                  <div className="flex items-center gap-2">
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                    <Clock className="h-3 w-3" />
+                    <span>{order.created_date && format(new Date(order.created_date), 'MMM d, yyyy')}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
                     {order.rating && (
-                      <div className="flex items-center gap-1 text-yellow-500">
-                        <Star className="h-3 w-3 fill-yellow-500" />
-                        <span className="text-xs font-medium">{order.rating}</span>
+                      <div className="flex items-center gap-1 text-amber-500">
+                        <Star className="h-3.5 w-3.5 fill-amber-500" />
+                        <span className="text-xs font-semibold text-slate-700">{order.rating}</span>
                       </div>
                     )}
                     {order.estimated_cost && (
-                      <span className="text-sm font-medium text-slate-700">${order.estimated_cost.toLocaleString()}</span>
+                      <span className="text-sm font-bold text-slate-900">${order.estimated_cost.toLocaleString()}</span>
+                    )}
+                    {order.completed_date && (
+                      <div className="flex items-center gap-1 text-green-600">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                      </div>
                     )}
                   </div>
                 </div>
@@ -840,6 +880,8 @@ export default function WorkOrders() {
                   selectedVideos={selectedVideos}
                   currentDescription={formData.description}
                   onDescriptionGenerated={(desc) => setFormData({ ...formData, description: desc })}
+                  onTitleGenerated={(title) => setFormData({ ...formData, title: title })}
+                  generateTitle={!editingOrder}
                 />
                 <Textarea
                   id="description"
