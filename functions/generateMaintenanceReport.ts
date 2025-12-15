@@ -113,12 +113,10 @@ Analyze this data and provide:
             }
         };
 
-        const aiAnalysis = await base44.asServiceRole.integrations.Core.InvokeLLM({
+        const analysis = await base44.asServiceRole.integrations.Core.InvokeLLM({
             prompt: analysisPrompt,
             response_json_schema: analysisSchema
         });
-
-        const analysis = aiAnalysis.data;
 
         // Generate PDF Report
         const doc = new jsPDF();
