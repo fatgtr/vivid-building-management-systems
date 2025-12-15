@@ -864,7 +864,9 @@ export default function WorkOrders() {
                       currentDescription={formData.description}
                       onDescriptionGenerated={(desc) => setFormData({ ...formData, description: desc })}
                       onTitleGenerated={(title) => setFormData({ ...formData, title: title })}
+                      onPriorityGenerated={(priority) => setFormData({ ...formData, priority: priority })}
                       generateTitle={!editingOrder}
+                      suggestPriority={true}
                     />
                   </div>
                   <Textarea

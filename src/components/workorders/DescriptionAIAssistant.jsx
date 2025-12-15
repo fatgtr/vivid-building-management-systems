@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Sparkles, Loader2, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -12,11 +13,15 @@ export default function DescriptionAIAssistant({
   currentDescription,
   onDescriptionGenerated,
   onTitleGenerated,
-  generateTitle = false
+  onPriorityGenerated,
+  generateTitle = false,
+  suggestPriority = false
 }) {
   const [generating, setGenerating] = useState(false);
   const [generatedTitle, setGeneratedTitle] = useState('');
   const [generatedDescription, setGeneratedDescription] = useState('');
+  const [generatedPriority, setGeneratedPriority] = useState('');
+  const [priorityReason, setPriorityReason] = useState('');
   const [copied, setCopied] = useState(false);
 
   const handleGenerate = async () => {
@@ -44,8 +49,10 @@ export default function DescriptionAIAssistant({
         }
       }
 
-      const prompt = generateTitle 
-        ? `You are assisting a building manager in creating a professional work order.
+      let prompt = '';
+      
+      if (generateTitle) {
+        prompt = `You are assisting a building manager in creating a professional work order.
 
 Category: ${category}
 ${currentDescription ? `Issue Details: ${currentDescription}` : ''}
@@ -58,9 +65,34 @@ Please generate:
    - Includes relevant context for contractors
    - Is suitable for property management records
    - Uses professional language
+${suggestPriority ? `3. Suggest a priority level (low, medium, high, urgent) based on:
+   - Safety risks or hazards
+   - Impact on residents/operations
+   - Urgency of the issue
+   - Potential for escalation
+   - Building code or compliance concerns
+4. Provide a brief reason for the priority recommendation` : ''}
 
-${photoUrls.length > 0 ? 'Analyze the provided photos to add specific visual details.' : ''}`
-        : `You are assisting a building manager in writing a professional work order description.
+${photoUrls.length > 0 ? 'Analyze the provided photos to add specific visual details and assess severity.' : ''}`;
+      } else if (suggestPriority) {
+        prompt = `You are assisting a building manager in prioritizing a work order.
+
+Title: ${title}
+Category: ${category}
+Description: ${currentDescription || 'No description provided'}
+
+Analyze the work order and suggest a priority level (low, medium, high, urgent) based on:
+- Safety risks or hazards
+- Impact on residents/operations
+- Urgency of the issue
+- Potential for escalation
+- Building code or compliance concerns
+
+${photoUrls.length > 0 ? 'Analyze the provided photos to assess severity and safety concerns.' : ''}
+
+Provide the priority level and a brief explanation for your recommendation.`;
+      } else {
+        prompt = `You are assisting a building manager in writing a professional work order description.
 
 Title: ${title}
 Category: ${category}
@@ -75,17 +107,27 @@ Please generate a clear, professional work order description that:
 ${photoUrls.length > 0 ? 'Analyze the provided photos to add specific visual details to the description.' : ''}
 
 Generate only the description text, no additional commentary.`;
+      }
 
       const { data } = await base44.functions.invoke('generateWorkOrderDescription', {
         prompt,
         file_urls: photoUrls.length > 0 ? photoUrls : undefined,
-        generateTitle: generateTitle
+        generateTitle: generateTitle,
+        suggestPriority: suggestPriority
       });
 
       if (generateTitle && data?.title && data?.description) {
         setGeneratedTitle(data.title);
         setGeneratedDescription(data.description);
-        toast.success('Title and description generated successfully');
+        if (data.priority) {
+          setGeneratedPriority(data.priority);
+          setPriorityReason(data.priority_reason || '');
+        }
+        toast.success('Content generated successfully');
+      } else if (suggestPriority && data?.priority) {
+        setGeneratedPriority(data.priority);
+        setPriorityReason(data.priority_reason || '');
+        toast.success('Priority suggestion generated');
       } else if (data?.description) {
         setGeneratedDescription(data.description);
         toast.success('Description generated successfully');
@@ -104,10 +146,17 @@ Generate only the description text, no additional commentary.`;
     if (generatedTitle && onTitleGenerated) {
       onTitleGenerated(generatedTitle);
     }
-    onDescriptionGenerated(generatedDescription);
+    if (generatedDescription) {
+      onDescriptionGenerated(generatedDescription);
+    }
+    if (generatedPriority && onPriorityGenerated) {
+      onPriorityGenerated(generatedPriority);
+    }
     setGeneratedTitle('');
     setGeneratedDescription('');
-    toast.success(generatedTitle ? 'Title and description applied' : 'Description applied');
+    setGeneratedPriority('');
+    setPriorityReason('');
+    toast.success('AI suggestions applied');
   };
 
   const handleCopy = () => {
@@ -142,7 +191,7 @@ Generate only the description text, no additional commentary.`;
         )}
       </Button>
 
-      {(generatedTitle || generatedDescription) && (
+      {(generatedTitle || generatedDescription || generatedPriority) && (
         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-4 space-y-3">
           {generatedTitle && (
             <div>
@@ -150,10 +199,10 @@ Generate only the description text, no additional commentary.`;
               <p className="text-sm font-semibold text-slate-900">{generatedTitle}</p>
             </div>
           )}
-          {generatedTitle && generatedDescription && <div className="border-t border-blue-200" />}
+          {(generatedTitle || generatedPriority) && generatedDescription && <div className="border-t border-blue-200" />}
           {generatedDescription && (
             <div>
-              {generatedTitle && <p className="text-xs font-medium text-blue-700 mb-1">Generated Description</p>}
+              {(generatedTitle || generatedPriority) && <p className="text-xs font-medium text-blue-700 mb-1">Generated Description</p>}
               <div className="flex items-start justify-between gap-2">
                 <p className="text-sm text-slate-700 flex-1">{generatedDescription}</p>
                 <Button
@@ -168,6 +217,24 @@ Generate only the description text, no additional commentary.`;
               </div>
             </div>
           )}
+          {generatedPriority && (
+            <>
+              {(generatedTitle || generatedDescription) && <div className="border-t border-blue-200" />}
+              <div>
+                <p className="text-xs font-medium text-blue-700 mb-2">Suggested Priority</p>
+                <div className="flex items-start gap-3">
+                  <Badge className={`${
+                    generatedPriority === 'urgent' ? 'bg-red-500' :
+                    generatedPriority === 'high' ? 'bg-orange-500' :
+                    generatedPriority === 'medium' ? 'bg-blue-500' : 'bg-slate-400'
+                  } text-white capitalize font-medium`}>
+                    {generatedPriority}
+                  </Badge>
+                  <p className="text-xs text-slate-600 flex-1">{priorityReason}</p>
+                </div>
+              </div>
+            </>
+          )}
           <div className="flex gap-2 pt-2">
             <Button
               type="button"
@@ -176,6 +243,8 @@ Generate only the description text, no additional commentary.`;
               onClick={() => {
                 setGeneratedTitle('');
                 setGeneratedDescription('');
+                setGeneratedPriority('');
+                setPriorityReason('');
               }}
               className="flex-1"
             >
@@ -187,7 +256,7 @@ Generate only the description text, no additional commentary.`;
               onClick={handleUseDescription}
               className="flex-1 bg-blue-600 hover:bg-blue-700"
             >
-              {generatedTitle ? 'Use Title & Description' : 'Use This Description'}
+              Apply AI Suggestions
             </Button>
           </div>
         </div>
