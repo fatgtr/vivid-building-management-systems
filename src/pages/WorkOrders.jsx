@@ -21,7 +21,7 @@ import RatingDialog from '@/components/workorders/RatingDialog';
 import AISchedulingAssistant from '@/components/workorders/AISchedulingAssistant';
 import DescriptionAIAssistant from '@/components/workorders/DescriptionAIAssistant';
 import ResponsibilityLookup from '@/components/workorders/ResponsibilityLookup';
-import { Wrench, Search, Building2, AlertCircle, Clock, CheckCircle2, XCircle, MoreVertical, Pencil, Trash2, Calendar, User, Eye, Upload, Image as ImageIcon, Video, X, LayoutGrid, List, Star, Repeat, Sparkles } from 'lucide-react';
+import { Wrench, Search, Building2, AlertCircle, Clock, CheckCircle2, XCircle, MoreVertical, Pencil, Trash2, Calendar, User, Eye, Upload, Image as ImageIcon, Video, X, LayoutGrid, List, Star, Repeat, Sparkles, Home } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -706,220 +706,319 @@ export default function WorkOrders() {
 
       {/* Add/Edit Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingOrder ? 'Edit Work Order' : 'Create Work Order'}</DialogTitle>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="border-b pb-4">
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              {editingOrder ? 'Edit Work Order' : 'Create Work Order'}
+            </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
-                <Label htmlFor="title">Title *</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="Brief description of the issue"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="building_id">Building *</Label>
-                <Select value={formData.building_id} onValueChange={(v) => setFormData({ ...formData, building_id: v, unit_id: '', is_common_area: false })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select building" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {buildings.map(b => (
-                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <div className="flex items-center space-x-2 mb-2">
-                  <Checkbox
-                    id="is_common_area"
-                    checked={formData.is_common_area}
-                    onCheckedChange={(checked) => setFormData({ ...formData, is_common_area: checked, unit_id: '' })}
-                    disabled={!formData.building_id}
+          <form onSubmit={handleSubmit} className="space-y-6 pt-2">
+            {/* Basic Information Card */}
+            <Card className="border-2 border-blue-100 shadow-sm">
+              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Wrench className="h-5 w-5 text-blue-600" />
+                  Work Order Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-4">
+                <div className="md:col-span-2">
+                  <Label htmlFor="title" className="text-sm font-semibold">Title *</Label>
+                  <Input
+                    id="title"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="Brief description of the issue"
+                    required
+                    className="mt-1.5"
                   />
-                  <Label htmlFor="is_common_area" className="cursor-pointer text-sm font-medium">Common Area</Label>
                 </div>
-                {!formData.is_common_area && (
-                  <>
-                    <Label htmlFor="unit_id">Unit</Label>
-                    <Select value={formData.unit_id} onValueChange={(v) => setFormData({ ...formData, unit_id: v })} disabled={!formData.building_id}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select unit (optional)" />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="building_id" className="text-sm font-semibold">Building *</Label>
+                    <Select value={formData.building_id} onValueChange={(v) => setFormData({ ...formData, building_id: v, unit_id: '', is_common_area: false })}>
+                      <SelectTrigger className="mt-1.5">
+                        <SelectValue placeholder="Select building" />
                       </SelectTrigger>
                       <SelectContent>
-                        {getFilteredUnits().map(u => (
-                          <SelectItem key={u.id} value={u.id}>Unit {u.unit_number}</SelectItem>
+                        {buildings.map(b => (
+                          <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                  </>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="category">Category *</Label>
-                <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map(c => (
-                      <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="priority">Priority</Label>
-                <Select value={formData.priority} onValueChange={(v) => setFormData({ ...formData, priority: v })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="urgent">Urgent</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="status">Status</Label>
-                <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="open">Open</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="on_hold">On Hold</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="due_date">Due Date</Label>
-                <Input
-                  id="due_date"
-                  type="date"
-                  value={formData.due_date}
-                  onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="reported_by_name">Reported By</Label>
-                <Input
-                  id="reported_by_name"
-                  value={formData.reported_by_name}
-                  onChange={(e) => setFormData({ ...formData, reported_by_name: e.target.value })}
-                  placeholder="Name of person reporting"
-                />
-              </div>
-              <div>
-                <Label htmlFor="assigned_to">Assigned To</Label>
-                <Input
-                  id="assigned_to"
-                  value={formData.assigned_to}
-                  onChange={(e) => setFormData({ ...formData, assigned_to: e.target.value })}
-                  placeholder="Staff member name"
-                />
-              </div>
-              <div>
-               <Label htmlFor="assigned_contractor_id">Assign Contractor</Label>
-               <Select value={formData.assigned_contractor_id} onValueChange={(v) => setFormData({ ...formData, assigned_contractor_id: v })}>
-                 <SelectTrigger>
-                   <SelectValue placeholder="Select contractor (optional)" />
-                 </SelectTrigger>
-                 <SelectContent>
-                   <SelectItem value={null}>No contractor</SelectItem>
-                   {contractors.map(c => (
-                     <SelectItem key={c.id} value={c.id}>
-                       <div className="flex flex-col">
-                         <span>{c.company_name}</span>
-                         <span className="text-xs text-slate-500">{c.contact_name} • {c.email}</span>
-                       </div>
-                     </SelectItem>
-                   ))}
-                 </SelectContent>
-               </Select>
-               {formData.assigned_contractor_id && (
-                 <p className="text-xs text-blue-600 mt-1">✓ Contractor will be notified via email</p>
-               )}
-              </div>
-              <div>
-                <Label htmlFor="estimated_cost">Estimated Cost</Label>
-                <Input
-                  id="estimated_cost"
-                  type="number"
-                  value={formData.estimated_cost}
-                  onChange={(e) => setFormData({ ...formData, estimated_cost: e.target.value })}
-                  placeholder="0.00"
-                />
-              </div>
-              <div>
-                <Label htmlFor="actual_cost">Actual Cost</Label>
-                <Input
-                  id="actual_cost"
-                  type="number"
-                  value={formData.actual_cost}
-                  onChange={(e) => setFormData({ ...formData, actual_cost: e.target.value })}
-                  placeholder="0.00"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <Label htmlFor="description">Description</Label>
-                <DescriptionAIAssistant
-                  title={formData.title}
-                  category={formData.category}
-                  selectedPhotos={selectedPhotos}
-                  selectedVideos={selectedVideos}
-                  currentDescription={formData.description}
-                  onDescriptionGenerated={(desc) => setFormData({ ...formData, description: desc })}
-                  onTitleGenerated={(title) => setFormData({ ...formData, title: title })}
-                  generateTitle={!editingOrder}
-                />
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={4}
-                  placeholder="Detailed description of the issue"
-                  className="mt-2"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <Label htmlFor="notes">Notes</Label>
-                <Textarea
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  rows={2}
-                  placeholder="Additional notes"
-                />
-              </div>
+                  </div>
 
-              <div className="md:col-span-2 border-t pt-4">
-                <div className="flex items-center gap-2 mb-4">
+                  <div>
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Checkbox
+                        id="is_common_area"
+                        checked={formData.is_common_area}
+                        onCheckedChange={(checked) => setFormData({ ...formData, is_common_area: checked, unit_id: '' })}
+                        disabled={!formData.building_id}
+                      />
+                      <Label htmlFor="is_common_area" className="cursor-pointer text-sm font-medium">Common Area</Label>
+                    </div>
+                    {!formData.is_common_area && (
+                      <>
+                        <Label htmlFor="unit_id" className="text-sm font-semibold">Unit</Label>
+                        <Select value={formData.unit_id} onValueChange={(v) => setFormData({ ...formData, unit_id: v })} disabled={!formData.building_id}>
+                          <SelectTrigger className="mt-1.5">
+                            <SelectValue placeholder="Select unit (optional)" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {getFilteredUnits().map(u => (
+                              <SelectItem key={u.id} value={u.id}>Unit {u.unit_number}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="category" className="text-sm font-semibold">Category *</Label>
+                    <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
+                      <SelectTrigger className="mt-1.5">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map(c => (
+                          <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="priority" className="text-sm font-semibold">Priority</Label>
+                    <Select value={formData.priority} onValueChange={(v) => setFormData({ ...formData, priority: v })}>
+                      <SelectTrigger className="mt-1.5">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-slate-400" />
+                            Low
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="medium">
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-blue-500" />
+                            Medium
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="high">
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-orange-500" />
+                            High
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="urgent">
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-red-500" />
+                            Urgent
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="status" className="text-sm font-semibold">Status</Label>
+                    <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
+                      <SelectTrigger className="mt-1.5">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="open">Open</SelectItem>
+                        <SelectItem value="in_progress">In Progress</SelectItem>
+                        <SelectItem value="on_hold">On Hold</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="due_date" className="text-sm font-semibold">Due Date</Label>
+                    <Input
+                      id="due_date"
+                      type="date"
+                      value={formData.due_date}
+                      onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                      className="mt-1.5"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <Label htmlFor="description" className="text-sm font-semibold">Description</Label>
+                  <div className="mt-2">
+                    <DescriptionAIAssistant
+                      title={formData.title}
+                      category={formData.category}
+                      selectedPhotos={selectedPhotos}
+                      selectedVideos={selectedVideos}
+                      currentDescription={formData.description}
+                      onDescriptionGenerated={(desc) => setFormData({ ...formData, description: desc })}
+                      onTitleGenerated={(title) => setFormData({ ...formData, title: title })}
+                      generateTitle={!editingOrder}
+                    />
+                  </div>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    rows={4}
+                    placeholder="Detailed description of the issue"
+                    className="mt-2"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="notes" className="text-sm font-semibold">Additional Notes</Label>
+                  <Textarea
+                    id="notes"
+                    value={formData.notes}
+                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    rows={2}
+                    placeholder="Any additional information"
+                    className="mt-1.5"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Assignment Card */}
+            <Card className="border-2 border-indigo-100 shadow-sm">
+              <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <User className="h-5 w-5 text-indigo-600" />
+                  Assignment & Responsibility
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="reported_by_name" className="text-sm font-semibold">Reported By</Label>
+                    <Input
+                      id="reported_by_name"
+                      value={formData.reported_by_name}
+                      onChange={(e) => setFormData({ ...formData, reported_by_name: e.target.value })}
+                      placeholder="Name of person reporting"
+                      className="mt-1.5"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="assigned_to" className="text-sm font-semibold">Assigned To</Label>
+                    <Input
+                      id="assigned_to"
+                      value={formData.assigned_to}
+                      onChange={(e) => setFormData({ ...formData, assigned_to: e.target.value })}
+                      placeholder="Staff member name"
+                      className="mt-1.5"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <Label htmlFor="assigned_contractor_id" className="text-sm font-semibold">Assign Contractor</Label>
+                    <Select value={formData.assigned_contractor_id} onValueChange={(v) => setFormData({ ...formData, assigned_contractor_id: v })}>
+                      <SelectTrigger className="mt-1.5">
+                        <SelectValue placeholder="Select contractor (optional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={null}>No contractor</SelectItem>
+                        {contractors.map(c => (
+                          <SelectItem key={c.id} value={c.id}>
+                            <div className="flex flex-col">
+                              <span>{c.company_name}</span>
+                              <span className="text-xs text-slate-500">{c.contact_name} • {c.email}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {formData.assigned_contractor_id && (
+                      <div className="mt-2 flex items-center gap-2 text-xs bg-blue-50 text-blue-700 px-3 py-2 rounded-lg">
+                        <CheckCircle2 className="h-4 w-4" />
+                        Contractor will be notified via email
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Cost Tracking Card */}
+            <Card className="border-2 border-green-100 shadow-sm">
+              <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5 text-green-600" />
+                  Cost Tracking
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="estimated_cost" className="text-sm font-semibold">Estimated Cost</Label>
+                    <div className="relative mt-1.5">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">$</span>
+                      <Input
+                        id="estimated_cost"
+                        type="number"
+                        value={formData.estimated_cost}
+                        onChange={(e) => setFormData({ ...formData, estimated_cost: e.target.value })}
+                        placeholder="0.00"
+                        className="pl-7"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="actual_cost" className="text-sm font-semibold">Actual Cost</Label>
+                    <div className="relative mt-1.5">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">$</span>
+                      <Input
+                        id="actual_cost"
+                        type="number"
+                        value={formData.actual_cost}
+                        onChange={(e) => setFormData({ ...formData, actual_cost: e.target.value })}
+                        placeholder="0.00"
+                        className="pl-7"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Recurring Options Card */}
+            <Card className="border-2 border-purple-100 shadow-sm">
+              <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 border-b">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Repeat className="h-5 w-5 text-purple-600" />
+                  Recurring Options
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-4">
+                <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
                   <Checkbox
                     id="is_recurring"
                     checked={formData.is_recurring}
                     onCheckedChange={(checked) => setFormData({ ...formData, is_recurring: checked })}
                   />
-                  <Label htmlFor="is_recurring" className="cursor-pointer">Make this a recurring work order</Label>
+                  <Label htmlFor="is_recurring" className="cursor-pointer font-medium">Make this a recurring work order</Label>
                 </div>
 
                 {formData.is_recurring && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                     <div>
-                      <Label htmlFor="recurrence_pattern">Recurrence Pattern</Label>
+                      <Label htmlFor="recurrence_pattern" className="text-sm font-semibold">Recurrence Pattern</Label>
                       <Select value={formData.recurrence_pattern} onValueChange={(v) => setFormData({ ...formData, recurrence_pattern: v })}>
-                        <SelectTrigger>
+                        <SelectTrigger className="mt-1.5">
                           <SelectValue placeholder="Select pattern" />
                         </SelectTrigger>
                         <SelectContent>
@@ -932,172 +1031,231 @@ export default function WorkOrders() {
                       </Select>
                     </div>
                     <div>
-                      <Label htmlFor="recurrence_end_date">End Date (Optional)</Label>
+                      <Label htmlFor="recurrence_end_date" className="text-sm font-semibold">End Date (Optional)</Label>
                       <Input
                         id="recurrence_end_date"
                         type="date"
                         value={formData.recurrence_end_date || ''}
                         onChange={(e) => setFormData({ ...formData, recurrence_end_date: e.target.value })}
+                        className="mt-1.5"
                       />
                     </div>
                   </div>
                 )}
-              </div>
+              </CardContent>
+            </Card>
 
-              {/* Photos Upload */}
-              <div className="md:col-span-2">
-                <Label>Photos (Max 12)</Label>
-                <div className="mt-2">
-                  <Button type="button" variant="outline" className="w-full" asChild>
-                    <label>
-                      <ImageIcon className="h-4 w-4 mr-2" />
-                      Upload Photos ({selectedPhotos.length}/12)
-                      <input
-                        type="file"
-                        multiple
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handlePhotoSelect}
-                        disabled={selectedPhotos.length >= 12}
-                      />
-                    </label>
-                  </Button>
-                  {selectedPhotos.length > 0 && (
-                    <div className="grid grid-cols-4 gap-2 mt-2">
-                      {selectedPhotos.map((file, idx) => (
-                        <div key={idx} className="relative group">
-                          <img 
-                            src={URL.createObjectURL(file)} 
-                            alt="" 
-                            className="w-full h-20 object-cover rounded"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removePhoto(idx)}
-                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+            {/* Attachments Card */}
+            <Card className="border-2 border-orange-100 shadow-sm">
+              <CardHeader className="bg-gradient-to-r from-orange-50 to-amber-50 border-b">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Upload className="h-5 w-5 text-orange-600" />
+                  Attachments
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-6">
+                {/* Photos Upload */}
+                <div>
+                  <Label className="text-sm font-semibold flex items-center gap-2">
+                    <ImageIcon className="h-4 w-4 text-blue-600" />
+                    Photos (Max 12)
+                  </Label>
+                  <div className="mt-2">
+                    <Button type="button" variant="outline" className="w-full border-2 border-dashed hover:border-blue-400 hover:bg-blue-50" asChild>
+                      <label className="cursor-pointer">
+                        <ImageIcon className="h-4 w-4 mr-2" />
+                        Upload Photos ({selectedPhotos.length}/12)
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handlePhotoSelect}
+                          disabled={selectedPhotos.length >= 12}
+                        />
+                      </label>
+                    </Button>
+                    {selectedPhotos.length > 0 && (
+                      <div className="grid grid-cols-4 gap-3 mt-3">
+                        {selectedPhotos.map((file, idx) => (
+                          <div key={idx} className="relative group">
+                            <img 
+                              src={URL.createObjectURL(file)} 
+                              alt="" 
+                              className="w-full h-24 object-cover rounded-lg border-2 border-slate-200 shadow-sm"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removePhoto(idx)}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {/* Videos Upload */}
-              <div className="md:col-span-2">
-                <Label>Videos</Label>
-                <div className="mt-2">
-                  <Button type="button" variant="outline" className="w-full" asChild>
-                    <label>
-                      <Video className="h-4 w-4 mr-2" />
-                      Upload Videos ({selectedVideos.length})
-                      <input
-                        type="file"
-                        multiple
-                        accept="video/*"
-                        className="hidden"
-                        onChange={handleVideoSelect}
-                      />
-                    </label>
-                  </Button>
-                  {selectedVideos.length > 0 && (
-                    <div className="space-y-2 mt-2">
-                      {selectedVideos.map((file, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded">
-                          <span className="text-sm truncate">{file.name}</span>
-                          <button
-                            type="button"
-                            onClick={() => removeVideo(idx)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                {/* Videos Upload */}
+                <div>
+                  <Label className="text-sm font-semibold flex items-center gap-2">
+                    <Video className="h-4 w-4 text-purple-600" />
+                    Videos
+                  </Label>
+                  <div className="mt-2">
+                    <Button type="button" variant="outline" className="w-full border-2 border-dashed hover:border-purple-400 hover:bg-purple-50" asChild>
+                      <label className="cursor-pointer">
+                        <Video className="h-4 w-4 mr-2" />
+                        Upload Videos ({selectedVideos.length})
+                        <input
+                          type="file"
+                          multiple
+                          accept="video/*"
+                          className="hidden"
+                          onChange={handleVideoSelect}
+                        />
+                      </label>
+                    </Button>
+                    {selectedVideos.length > 0 && (
+                      <div className="space-y-2 mt-3">
+                        {selectedVideos.map((file, idx) => (
+                          <div key={idx} className="flex items-center justify-between p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <Video className="h-4 w-4 text-purple-600 flex-shrink-0" />
+                              <span className="text-sm truncate">{file.name}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeVideo(idx)}
+                              className="text-red-500 hover:text-red-700 ml-2"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {/* Quotes Upload */}
-              <div className="md:col-span-2">
-                <Label>Quotes (AI will summarize)</Label>
-                <div className="mt-2">
-                  <Button type="button" variant="outline" className="w-full" asChild>
-                    <label>
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload Quotes ({selectedQuotes.length})
-                      <input
-                        type="file"
-                        multiple
-                        accept=".pdf,.doc,.docx,.jpg,.png"
-                        className="hidden"
-                        onChange={handleQuoteSelect}
-                      />
-                    </label>
-                  </Button>
-                  {selectedQuotes.length > 0 && (
-                    <div className="space-y-2 mt-2">
-                      {selectedQuotes.map((file, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded">
-                          <span className="text-sm truncate">{file.name}</span>
-                          <button
-                            type="button"
-                            onClick={() => removeQuote(idx)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                {/* Quotes Upload */}
+                <div>
+                  <Label className="text-sm font-semibold flex items-center gap-2">
+                    <Upload className="h-4 w-4 text-green-600" />
+                    Quotes <Badge variant="outline" className="ml-2">AI will summarize</Badge>
+                  </Label>
+                  <div className="mt-2">
+                    <Button type="button" variant="outline" className="w-full border-2 border-dashed hover:border-green-400 hover:bg-green-50" asChild>
+                      <label className="cursor-pointer">
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload Quotes ({selectedQuotes.length})
+                        <input
+                          type="file"
+                          multiple
+                          accept=".pdf,.doc,.docx,.jpg,.png"
+                          className="hidden"
+                          onChange={handleQuoteSelect}
+                        />
+                      </label>
+                    </Button>
+                    {selectedQuotes.length > 0 && (
+                      <div className="space-y-2 mt-3">
+                        {selectedQuotes.map((file, idx) => (
+                          <div key={idx} className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <Upload className="h-4 w-4 text-green-600 flex-shrink-0" />
+                              <span className="text-sm truncate">{file.name}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeQuote(idx)}
+                              className="text-red-500 hover:text-red-700 ml-2"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {/* Invoices Upload */}
-              <div className="md:col-span-2">
-                <Label>Invoices (Auto-send to strata agent)</Label>
-                <div className="mt-2">
-                  <Button type="button" variant="outline" className="w-full" asChild>
-                    <label>
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload Invoices ({selectedInvoices.length})
-                      <input
-                        type="file"
-                        multiple
-                        accept=".pdf,.doc,.docx,.jpg,.png"
-                        className="hidden"
-                        onChange={handleInvoiceSelect}
-                      />
-                    </label>
-                  </Button>
-                  {selectedInvoices.length > 0 && (
-                    <div className="space-y-2 mt-2">
-                      {selectedInvoices.map((file, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded">
-                          <span className="text-sm truncate">{file.name}</span>
-                          <button
-                            type="button"
-                            onClick={() => removeInvoice(idx)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                {/* Invoices Upload */}
+                <div>
+                  <Label className="text-sm font-semibold flex items-center gap-2">
+                    <Upload className="h-4 w-4 text-indigo-600" />
+                    Invoices <Badge variant="outline" className="ml-2">Auto-send to strata</Badge>
+                  </Label>
+                  <div className="mt-2">
+                    <Button type="button" variant="outline" className="w-full border-2 border-dashed hover:border-indigo-400 hover:bg-indigo-50" asChild>
+                      <label className="cursor-pointer">
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload Invoices ({selectedInvoices.length})
+                        <input
+                          type="file"
+                          multiple
+                          accept=".pdf,.doc,.docx,.jpg,.png"
+                          className="hidden"
+                          onChange={handleInvoiceSelect}
+                        />
+                      </label>
+                    </Button>
+                    {selectedInvoices.length > 0 && (
+                      <div className="space-y-2 mt-3">
+                        {selectedInvoices.map((file, idx) => (
+                          <div key={idx} className="flex items-center justify-between p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <Upload className="h-4 w-4 text-indigo-600 flex-shrink-0" />
+                              <span className="text-sm truncate">{file.name}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeInvoice(idx)}
+                              className="text-red-500 hover:text-red-700 ml-2"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={handleCloseDialog}>Cancel</Button>
-                <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={createMutation.isPending || updateMutation.isPending || uploadingFiles}>
-                  {uploadingFiles ? 'Uploading...' : (createMutation.isPending || updateMutation.isPending ? 'Saving...' : (editingOrder ? 'Update' : 'Create'))}
+              <DialogFooter className="border-t pt-4 bg-slate-50">
+                <Button type="button" variant="outline" onClick={handleCloseDialog} className="min-w-24">
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white min-w-32" 
+                  disabled={createMutation.isPending || updateMutation.isPending || uploadingFiles}
+                >
+                  {uploadingFiles ? (
+                    <>
+                      <Upload className="h-4 w-4 mr-2 animate-pulse" />
+                      Uploading...
+                    </>
+                  ) : (createMutation.isPending || updateMutation.isPending) ? (
+                    <>
+                      <Clock className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : editingOrder ? (
+                    <>
+                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      Update Work Order
+                    </>
+                  ) : (
+                    <>
+                      <Wrench className="h-4 w-4 mr-2" />
+                      Create Work Order
+                    </>
+                  )}
                 </Button>
               </DialogFooter>
           </form>
