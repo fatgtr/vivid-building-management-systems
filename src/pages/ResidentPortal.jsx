@@ -234,7 +234,7 @@ export default function ResidentPortal() {
   const deleteDocumentMutation = useMutation({
     mutationFn: (documentId) => base44.entities.Document.delete(documentId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['buildingDocs'] });
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
       toast.success('Document deleted successfully');
       setDeleteDocumentId(null);
     },
