@@ -2,15 +2,17 @@ import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import StatusBadge from '@/components/common/StatusBadge';
+import WorkOrderHistoryAnalysis from './WorkOrderHistoryAnalysis';
 import { 
   X, Upload, File, Image as ImageIcon, Video, FileText, 
-  Package, MessageSquare, Trash2, Calendar, Building2, User 
+  Package, MessageSquare, Trash2, Calendar, Building2, User, BarChart3 
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -19,6 +21,7 @@ export default function WorkOrderDetail({ order, onClose, buildings, units, cont
   const [uploading, setUploading] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [inventoryItem, setInventoryItem] = useState({ name: '', quantity: '', unit: '' });
+  const [activeTab, setActiveTab] = useState('details');
 
   const queryClient = useQueryClient();
 
@@ -123,7 +126,21 @@ export default function WorkOrderDetail({ order, onClose, buildings, units, cont
               </Button>
             </CardHeader>
 
-            <CardContent className="p-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <div className="px-6 pt-4">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="details">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Work Order Details
+                  </TabsTrigger>
+                  <TabsTrigger value="analysis">
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    History & Trends
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+
+              <TabsContent value="details" className="p-6 mt-0">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column - Main Info */}
                 <div className="lg:col-span-2 space-y-6">
@@ -515,7 +532,17 @@ export default function WorkOrderDetail({ order, onClose, buildings, units, cont
                   </Card>
                 </div>
               </div>
-            </CardContent>
+              </TabsContent>
+
+              <TabsContent value="analysis" className="p-6 mt-0">
+                <WorkOrderHistoryAnalysis
+                  buildingId={order.building_id}
+                  unitId={order.unit_id}
+                  buildingName={getBuildingName(order.building_id)}
+                  unitNumber={order.unit_id ? getUnitNumber(order.unit_id) : null}
+                />
+              </TabsContent>
+            </Tabs>
           </Card>
         </div>
       </div>
