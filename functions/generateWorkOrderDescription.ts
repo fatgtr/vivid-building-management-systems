@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
             // Allow unauthenticated for internal calls
         }
 
-        const { prompt, file_urls } = await req.json();
+        const { prompt, file_urls, generateTitle } = await req.json();
 
         if (!prompt) {
             return Response.json({ success: false, error: 'Prompt is required' }, { status: 400 });
@@ -19,10 +19,21 @@ Deno.serve(async (req) => {
         const response = await base44.asServiceRole.integrations.Core.InvokeLLM({
             prompt: prompt,
             file_urls: file_urls || undefined,
+            response_json_schema: generateTitle ? {
+                type: "object",
+                properties: {
+                    title: { type: "string", description: "A concise, professional title for the work order (max 60 characters)" },
+                    description: { type: "string", description: "A detailed professional description of the work order" }
+                },
+                required: ["title", "description"]
+            } : undefined
         });
 
         if (response && response.data) {
-            return Response.json({ success: true, description: response.data });
+            return Response.json({ 
+                success: true, 
+                ...(generateTitle ? response.data : { description: response.data })
+            });
         } else {
             return Response.json({ success: false, error: 'Failed to generate description' }, { status: 500 });
         }
