@@ -14,6 +14,7 @@ import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
 import { Building2, MapPin, Home, Users, Pencil, Trash2, Search, MoreVertical, Sparkles, Upload } from 'lucide-react';
 import StrataRollUploader from '@/components/buildings/StrataRollUploader';
+import ReportGenerator from '@/components/buildings/ReportGenerator';
 import { toast } from 'sonner';
 import {
   DropdownMenu,
@@ -57,6 +58,8 @@ const initialFormState = {
   strata_lots: '',
   compliance_reminder_intervals: '90, 60, 30',
   compliance_reminder_recipients: '',
+  report_frequency: 'none',
+  next_report_date: '',
 };
 
 export default function Buildings() {
@@ -167,6 +170,8 @@ export default function Buildings() {
       strata_lots: building.strata_lots || '',
       compliance_reminder_intervals: building.compliance_reminder_intervals ? building.compliance_reminder_intervals.join(', ') : '90, 60, 30',
       compliance_reminder_recipients: building.compliance_reminder_recipients ? building.compliance_reminder_recipients.join(', ') : '',
+      report_frequency: building.report_frequency || 'none',
+      next_report_date: building.next_report_date || '',
     });
     setShowDialog(true);
   };
@@ -336,12 +341,18 @@ export default function Buildings() {
                      <span className="font-medium text-slate-700">{getResidentCount(building.id)}</span>
                      <span className="text-slate-500">residents</span>
                    </div>
-                 </div>
-                 <StrataRollUploader 
-                   buildingId={building.id}
-                   onUnitsCreated={() => queryClient.invalidateQueries({ queryKey: ['units'] })}
-                 />
-                </div>
+                   </div>
+                    <div className="space-y-2">
+                      <StrataRollUploader 
+                        buildingId={building.id}
+                        onUnitsCreated={() => queryClient.invalidateQueries({ queryKey: ['units'] })}
+                      />
+                      <ReportGenerator 
+                        buildingId={building.id}
+                        buildingName={building.name}
+                      />
+                    </div>
+                   </div>
                 {building.building_type && (
                   <div className="mt-3 pt-3 border-t border-slate-100">
                     <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
@@ -639,6 +650,43 @@ export default function Buildings() {
                     Comma-separated email addresses to receive compliance reminders (in addition to admins)
                   </p>
                 </div>
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              <h4 className="font-medium text-slate-900 mb-4">Automated Reporting</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="report_frequency">Report Frequency</Label>
+                  <Select value={formData.report_frequency} onValueChange={(v) => setFormData({ ...formData, report_frequency: v })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None - Manual Only</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="quarterly">Quarterly</SelectItem>
+                      <SelectItem value="semi_annually">Semi-Annually</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Automatically generate and email maintenance reports
+                  </p>
+                </div>
+                {formData.report_frequency !== 'none' && (
+                  <div>
+                    <Label htmlFor="next_report_date">Next Report Date</Label>
+                    <Input
+                      id="next_report_date"
+                      type="date"
+                      value={formData.next_report_date}
+                      onChange={(e) => setFormData({ ...formData, next_report_date: e.target.value })}
+                    />
+                    <p className="text-xs text-slate-500 mt-1">
+                      When to generate the next report
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
