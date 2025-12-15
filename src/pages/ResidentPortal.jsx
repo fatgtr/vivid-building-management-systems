@@ -11,6 +11,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import StatusBadge from '@/components/common/StatusBadge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import FaultReportingWizard from '@/components/resident/FaultReportingWizard';
 import NotificationBell from '@/components/resident/NotificationBell';
 import NotificationSettings from '@/components/resident/NotificationSettings';
@@ -33,7 +43,8 @@ import {
   Clock,
   CheckCircle2,
   Settings,
-  Sparkles
+  Sparkles,
+  Trash2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -66,6 +77,7 @@ export default function ResidentPortal() {
   const [aiData, setAiData] = useState(null);
   const [selectedWorkOrder, setSelectedWorkOrder] = useState(null);
   const [selectedDocument, setSelectedDocument] = useState(null);
+  const [deleteDocumentId, setDeleteDocumentId] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -650,6 +662,14 @@ export default function ResidentPortal() {
                             </Button>
                           </a>
                         )}
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => setDeleteDocumentId(doc.id)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -943,8 +963,30 @@ export default function ResidentPortal() {
               )}
             </div>
           </DialogContent>
-        </Dialog>
-      )}
-    </div>
-  );
-}
+          </Dialog>
+          )}
+
+          {/* Delete Document Confirmation */}
+          <AlertDialog open={!!deleteDocumentId} onOpenChange={() => setDeleteDocumentId(null)}>
+          <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Document</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this document? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => deleteDocumentMutation.mutate(deleteDocumentId)}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleteDocumentMutation.isPending}
+            >
+              {deleteDocumentMutation.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+          </AlertDialogContent>
+          </AlertDialog>
+          </div>
+          );
+          }
