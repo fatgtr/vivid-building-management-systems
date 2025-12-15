@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { buildingId, reportPeriod = 'last_month' } = await req.json();
+        const { buildingId, reportPeriod = 'last_month', sendEmail = false } = await req.json();
 
         if (!buildingId) {
             return Response.json({ error: 'Building ID is required' }, { status: 400 });
@@ -154,7 +154,7 @@ Analyze this data and provide:
         doc.setFillColor(37, 99, 235); // Blue-600
         doc.rect(0, 0, pageWidth, 60, 'F');
         
-        addText('Building Maintenance Report', 20, 25, 24, 'bold', [255, 255, 255]);
+        addText('Building Managers Report', 20, 25, 24, 'bold', [255, 255, 255]);
         addText(building.name, 20, 40, 14, 'normal', [255, 255, 255]);
         addText(`${startDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`, 20, 50, 12, 'normal', [219, 234, 254]);
 
@@ -335,16 +335,17 @@ Analyze this data and provide:
         // Upload PDF
         const { file_url } = await base44.asServiceRole.integrations.Core.UploadFile({ file: pdfFile });
 
-        // Send emails to strata committee and manager
-        if (recipientEmails.length > 0) {
+        // Send emails only if sendEmail is true
+        let emailsSent = 0;
+        if (sendEmail && recipientEmails.length > 0) {
             const emailPromises = recipientEmails.map(email => 
                 base44.asServiceRole.integrations.Core.SendEmail({
                     to: email,
-                    subject: `${building.name} - Monthly Maintenance Report`,
+                    subject: `${building.name} - Building Managers Report`,
                     body: `
-                        <h2>Building Maintenance Report</h2>
+                        <h2>Building Managers Report</h2>
                         <p>Dear Strata Committee Member,</p>
-                        <p>Please find attached the maintenance report for <strong>${building.name}</strong> covering the period from <strong>${startDate.toLocaleDateString()}</strong> to <strong>${endDate.toLocaleDateString()}</strong>.</p>
+                        <p>Please find attached the building managers report for <strong>${building.name}</strong> covering the period from <strong>${startDate.toLocaleDateString()}</strong> to <strong>${endDate.toLocaleDateString()}</strong>.</p>
                         
                         <h3>Report Highlights:</h3>
                         <ul>
@@ -361,12 +362,14 @@ Analyze this data and provide:
             );
 
             await Promise.all(emailPromises);
+            emailsSent = recipientEmails.length;
         }
 
         return Response.json({
             success: true,
             report_url: file_url,
-            recipients_notified: recipientEmails.length,
+            recipients_notified: emailsSent,
+            recipient_emails: recipientEmails,
             analysis: analysis
         });
 

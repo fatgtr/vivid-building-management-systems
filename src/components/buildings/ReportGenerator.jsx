@@ -9,25 +9,29 @@ import { toast } from 'sonner';
 
 export default function ReportGenerator({ buildingId, buildingName }) {
   const [generating, setGenerating] = useState(false);
+  const [sending, setSending] = useState(false);
   const [reportUrl, setReportUrl] = useState(null);
   const [reportPeriod, setReportPeriod] = useState('last_month');
   const [recipientsNotified, setRecipientsNotified] = useState(0);
+  const [recipientEmails, setRecipientEmails] = useState([]);
 
   const handleGenerateReport = async () => {
     setGenerating(true);
     setReportUrl(null);
     setRecipientsNotified(0);
+    setRecipientEmails([]);
 
     try {
       const { data } = await base44.functions.invoke('generateMaintenanceReport', {
         buildingId,
-        reportPeriod
+        reportPeriod,
+        sendEmail: false
       });
 
       if (data.success) {
         setReportUrl(data.report_url);
-        setRecipientsNotified(data.recipients_notified);
-        toast.success('Report generated and sent successfully!');
+        setRecipientEmails(data.recipient_emails || []);
+        toast.success('Report generated successfully! Review it before sending.');
       } else {
         toast.error('Failed to generate report');
       }
@@ -39,12 +43,36 @@ export default function ReportGenerator({ buildingId, buildingName }) {
     }
   };
 
+  const handleEmailReport = async () => {
+    setSending(true);
+
+    try {
+      const { data } = await base44.functions.invoke('generateMaintenanceReport', {
+        buildingId,
+        reportPeriod,
+        sendEmail: true
+      });
+
+      if (data.success) {
+        setRecipientsNotified(data.recipients_notified);
+        toast.success(`Report emailed to ${data.recipients_notified} recipient(s)!`);
+      } else {
+        toast.error('Failed to send report');
+      }
+    } catch (error) {
+      console.error('Email sending error:', error);
+      toast.error('Failed to send report: ' + error.message);
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
     <Card className="border-2 border-blue-100">
       <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5 text-blue-600" />
-          Generate Maintenance Report
+          Generate Building Managers Report
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-6 space-y-4">
@@ -77,18 +105,9 @@ export default function ReportGenerator({ buildingId, buildingName }) {
           </AlertDescription>
         </Alert>
 
-        {recipientsNotified > 0 && (
-          <Alert className="border-green-200 bg-green-50">
-            <Mail className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-sm text-green-800">
-              Report sent to {recipientsNotified} recipient(s) (strata committee members and manager)
-            </AlertDescription>
-          </Alert>
-        )}
-
         <Button
           onClick={handleGenerateReport}
-          disabled={generating}
+          disabled={generating || reportUrl}
           className="w-full bg-blue-600 hover:bg-blue-700"
         >
           {generating ? (
@@ -99,7 +118,7 @@ export default function ReportGenerator({ buildingId, buildingName }) {
           ) : (
             <>
               <FileText className="h-4 w-4 mr-2" />
-              Generate & Email Report
+              Generate Report
             </>
           )}
         </Button>
@@ -110,14 +129,44 @@ export default function ReportGenerator({ buildingId, buildingName }) {
               <CheckCircle2 className="h-5 w-5" />
               <span className="font-medium">Report Generated Successfully!</span>
             </div>
+            
             <Button
               variant="outline"
               className="w-full"
               onClick={() => window.open(reportUrl, '_blank')}
             >
               <Download className="h-4 w-4 mr-2" />
-              Download Report PDF
+              View Report PDF
             </Button>
+
+            {recipientEmails.length > 0 && !recipientsNotified && (
+              <Button
+                onClick={handleEmailReport}
+                disabled={sending}
+                className="w-full bg-green-600 hover:bg-green-700"
+              >
+                {sending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="h-4 w-4 mr-2" />
+                    Email Report to {recipientEmails.length} Recipient(s)
+                  </>
+                )}
+              </Button>
+            )}
+
+            {recipientsNotified > 0 && (
+              <Alert className="border-green-200 bg-green-50">
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <AlertDescription className="text-sm text-green-800">
+                  Report emailed to {recipientsNotified} recipient(s) (strata committee members and manager)
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
         )}
       </CardContent>
