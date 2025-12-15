@@ -129,7 +129,7 @@ export default function ReportGenerator({ buildingId, buildingName }) {
               <CheckCircle2 className="h-5 w-5" />
               <span className="font-medium">Report Generated Successfully!</span>
             </div>
-            
+
             <Button
               variant="outline"
               className="w-full"
@@ -139,10 +139,10 @@ export default function ReportGenerator({ buildingId, buildingName }) {
               View Report PDF
             </Button>
 
-            {recipientEmails.length > 0 && !recipientsNotified && (
+            {recipientEmails.length > 0 && (
               <Button
                 onClick={handleEmailReport}
-                disabled={sending}
+                disabled={sending || recipientsNotified > 0}
                 className="w-full bg-green-600 hover:bg-green-700"
               >
                 {sending ? (
@@ -150,10 +150,15 @@ export default function ReportGenerator({ buildingId, buildingName }) {
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     Sending...
                   </>
+                ) : recipientsNotified > 0 ? (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    Email Sent
+                  </>
                 ) : (
                   <>
                     <Mail className="h-4 w-4 mr-2" />
-                    Email Report to {recipientEmails.length} Recipient(s)
+                    Send Report to {recipientEmails.length} Recipient(s)
                   </>
                 )}
               </Button>
