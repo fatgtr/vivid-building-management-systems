@@ -231,6 +231,18 @@ export default function ResidentPortal() {
     },
   });
 
+  const deleteDocumentMutation = useMutation({
+    mutationFn: (documentId) => base44.entities.Document.delete(documentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['buildingDocs'] });
+      toast.success('Document deleted successfully');
+      setDeleteDocumentId(null);
+    },
+    onError: (error) => {
+      toast.error('Failed to delete document: ' + error.message);
+    },
+  });
+
   const handlePhotoSelect = (e) => {
     const files = Array.from(e.target.files || []);
     if (selectedPhotos.length + files.length > 5) {
