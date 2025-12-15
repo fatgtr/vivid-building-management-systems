@@ -31,7 +31,14 @@ export default function ReportGenerator({ buildingId, buildingName }) {
       if (data.success) {
         setReportUrl(data.report_url);
         setRecipientEmails(data.recipient_emails || []);
-        toast.success('Report generated successfully! Review it before sending.');
+        console.log('Recipient emails:', data.recipient_emails);
+        if (data.recipient_emails && data.recipient_emails.length > 0) {
+          toast.success('Report generated successfully! Review it before sending.');
+        } else {
+          toast.success('Report generated successfully!', {
+            description: 'No recipients configured (add strata committee members or managing agent email)'
+          });
+        }
       } else {
         toast.error('Failed to generate report');
       }
@@ -139,7 +146,7 @@ export default function ReportGenerator({ buildingId, buildingName }) {
               View Report PDF
             </Button>
 
-            {recipientEmails.length > 0 && (
+            {recipientEmails.length > 0 ? (
               <Button
                 onClick={handleEmailReport}
                 disabled={sending || recipientsNotified > 0}
@@ -162,6 +169,13 @@ export default function ReportGenerator({ buildingId, buildingName }) {
                   </>
                 )}
               </Button>
+            ) : (
+              <Alert className="border-amber-200 bg-amber-50">
+                <AlertCircle className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-sm text-amber-800">
+                  No recipients configured. Add strata committee members or managing agent email to enable email delivery.
+                </AlertDescription>
+              </Alert>
             )}
 
             {recipientsNotified > 0 && (
