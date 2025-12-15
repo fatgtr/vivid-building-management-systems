@@ -21,6 +21,7 @@ import RatingDialog from '@/components/workorders/RatingDialog';
 import AISchedulingAssistant from '@/components/workorders/AISchedulingAssistant';
 import DescriptionAIAssistant from '@/components/workorders/DescriptionAIAssistant';
 import ResponsibilityLookup from '@/components/workorders/ResponsibilityLookup';
+import MaintenanceSchedulingSuggestions from '@/components/workorders/MaintenanceSchedulingSuggestions';
 import { Wrench, Search, Building2, AlertCircle, Clock, CheckCircle2, XCircle, MoreVertical, Pencil, Trash2, Calendar, User, Eye, Upload, Image as ImageIcon, Video, X, LayoutGrid, List, Star, Repeat, Sparkles, Home } from 'lucide-react';
 import {
   DropdownMenu,
@@ -1016,32 +1017,48 @@ export default function WorkOrders() {
                 </div>
 
                 {formData.is_recurring && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                    <div>
-                      <Label htmlFor="recurrence_pattern" className="text-sm font-semibold">Recurrence Pattern</Label>
-                      <Select value={formData.recurrence_pattern} onValueChange={(v) => setFormData({ ...formData, recurrence_pattern: v })}>
-                        <SelectTrigger className="mt-1.5">
-                          <SelectValue placeholder="Select pattern" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="daily">Daily</SelectItem>
-                          <SelectItem value="weekly">Weekly</SelectItem>
-                          <SelectItem value="monthly">Monthly</SelectItem>
-                          <SelectItem value="quarterly">Quarterly</SelectItem>
-                          <SelectItem value="yearly">Yearly</SelectItem>
-                        </SelectContent>
-                      </Select>
+                  <div className="space-y-4 pt-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="recurrence_pattern" className="text-sm font-semibold">Recurrence Pattern</Label>
+                        <Select value={formData.recurrence_pattern} onValueChange={(v) => setFormData({ ...formData, recurrence_pattern: v })}>
+                          <SelectTrigger className="mt-1.5">
+                            <SelectValue placeholder="Select pattern" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="daily">Daily</SelectItem>
+                            <SelectItem value="weekly">Weekly</SelectItem>
+                            <SelectItem value="monthly">Monthly</SelectItem>
+                            <SelectItem value="quarterly">Quarterly</SelectItem>
+                            <SelectItem value="yearly">Yearly</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="recurrence_end_date" className="text-sm font-semibold">End Date (Optional)</Label>
+                        <Input
+                          id="recurrence_end_date"
+                          type="date"
+                          value={formData.recurrence_end_date || ''}
+                          onChange={(e) => setFormData({ ...formData, recurrence_end_date: e.target.value })}
+                          className="mt-1.5"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <Label htmlFor="recurrence_end_date" className="text-sm font-semibold">End Date (Optional)</Label>
-                      <Input
-                        id="recurrence_end_date"
-                        type="date"
-                        value={formData.recurrence_end_date || ''}
-                        onChange={(e) => setFormData({ ...formData, recurrence_end_date: e.target.value })}
-                        className="mt-1.5"
-                      />
-                    </div>
+
+                    <MaintenanceSchedulingSuggestions
+                      workOrderData={formData}
+                      buildingId={formData.building_id}
+                      category={formData.category}
+                      isRecurring={formData.is_recurring}
+                      onApplySuggestion={(suggestion) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          due_date: suggestion.due_date,
+                          priority: suggestion.recommended_priority || prev.priority
+                        }));
+                      }}
+                    />
                   </div>
                 )}
               </CardContent>
