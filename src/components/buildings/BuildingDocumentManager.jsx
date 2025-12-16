@@ -23,7 +23,8 @@ import {
   Scale,
   FileCheck,
   Flame,
-  Droplet
+  Droplet,
+  Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -422,6 +423,21 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
                           </span>
                         </div>
                         <div className="flex items-center gap-1">
+                          {docType.hasAI && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-blue-600 hover:text-blue-700"
+                              onClick={() => {
+                                setUploadedFileUrl(doc.file_url);
+                                setCurrentAIType(docType.category);
+                                setAiDialogOpen(true);
+                              }}
+                              title="Analyze with AI"
+                            >
+                              <Sparkles className="h-3 w-3" />
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="icon"
