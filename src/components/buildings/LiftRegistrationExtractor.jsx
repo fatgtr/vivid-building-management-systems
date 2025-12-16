@@ -18,11 +18,46 @@ export default function LiftRegistrationExtractor({ buildingId, buildingName, fi
 
   const createSchedulesMutation = useMutation({
     mutationFn: async (liftsData) => {
-      const schedulePromises = liftsData.map(lift => {
+      const schedulePromises = liftsData.map(async (lift) => {
         // Calculate reminder date (2 weeks before expiry)
         const expiryDate = new Date(lift.expiry_date);
         const reminderDate = subDays(expiryDate, 14);
 
+        // 1. Create or update Asset entity for the lift
+        const assetData = {
+          building_id: buildingId,
+          document_id: documentId,
+          asset_category: 'lift',
+          asset_type: lift.lift_type || 'lift',
+          name: lift.lift_identifier,
+          identifier: lift.registration_number || lift.plant_number || lift.lift_identifier,
+          location: lift.location,
+          manufacturer: lift.certifying_body,
+          model: lift.lift_type || 'lift',
+          installation_date: lift.issue_date,
+          last_service_date: lift.issue_date,
+          next_service_date: lift.expiry_date,
+          service_frequency: 'yearly',
+          compliance_status: lift.compliance_status || 'unknown',
+          notes: lift.conditions,
+          status: 'active',
+        };
+
+        // Check if an asset with this identifier already exists
+        const existingAssets = await base44.entities.Asset.filter({
+          building_id: buildingId,
+          asset_category: 'lift',
+          identifier: assetData.identifier
+        });
+        
+        let asset;
+        if (existingAssets.length > 0) {
+          asset = await base44.entities.Asset.update(existingAssets[0].id, assetData);
+        } else {
+          asset = await base44.entities.Asset.create(assetData);
+        }
+
+        // 2. Create MaintenanceSchedule linked to the Asset entity
         return base44.entities.MaintenanceSchedule.create({
           building_id: buildingId,
           subject: `Lift Registration Renewal - ${lift.lift_identifier}`,
@@ -30,7 +65,7 @@ export default function LiftRegistrationExtractor({ buildingId, buildingName, fi
           event_start: format(reminderDate, 'yyyy-MM-dd'),
           event_end: format(expiryDate, 'yyyy-MM-dd'),
           recurrence: 'yearly',
-          asset: lift.lift_identifier,
+          asset: asset.id,
           job_area: lift.location || 'Building Lift',
           contractor_name: lift.certifying_body || null,
           auto_send_email: true,
@@ -42,7 +77,8 @@ export default function LiftRegistrationExtractor({ buildingId, buildingName, fi
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['maintenanceSchedules'] });
-      toast.success(`Created ${data.length} maintenance schedule(s) with email reminders!`);
+      queryClient.invalidateQueries({ queryKey: ['assets'] });
+      toast.success(`Created ${data.length} lift asset(s) and maintenance schedule(s) with email reminders!`);
       setExtractedData(null);
       setPlanFile(null);
       if (onComplete) onComplete(data);
@@ -160,6 +196,7 @@ export default function LiftRegistrationExtractor({ buildingId, buildingName, fi
                   <li>Issue and expiry dates</li>
                   <li>Certifying body and inspector details</li>
                   <li>Lift specifications and locations</li>
+                  <li><strong>Create lift assets in your asset register</strong></li>
                   <li><strong>Auto-create renewal reminders 2 weeks before expiry</strong></li>
                   <li><strong>Send email notifications to strata & building managers</strong></li>
                 </ul>
@@ -279,11 +316,12 @@ export default function LiftRegistrationExtractor({ buildingId, buildingName, fi
             <Alert className="border-blue-200 bg-blue-50">
               <Mail className="h-4 w-4 text-blue-600" />
               <AlertDescription className="text-xs text-blue-800">
-                <strong>Email notifications will be sent:</strong>
+                <strong>This will create:</strong>
                 <ul className="list-disc list-inside mt-1">
-                  <li>To strata managers and building managers</li>
-                  <li>2 weeks before each lift registration expires</li>
-                  <li>Annually as a recurring reminder</li>
+                  <li>Lift assets in your asset register with unique identifiers</li>
+                  <li>Maintenance schedules linked to each lift asset</li>
+                  <li>Email notifications 2 weeks before each expiry</li>
+                  <li>Yearly recurring reminders for all lifts</li>
                 </ul>
               </AlertDescription>
             </Alert>
@@ -307,12 +345,12 @@ export default function LiftRegistrationExtractor({ buildingId, buildingName, fi
                 {createSchedulesMutation.isPending ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Creating Schedules...
+                    Creating Assets & Schedules...
                   </>
                 ) : (
                   <>
                     <Calendar className="h-4 w-4 mr-2" />
-                    Create {extractedData.lifts?.length || 0} Renewal Schedule(s)
+                    Create {extractedData.lifts?.length || 0} Lift Asset(s) & Schedule(s)
                   </>
                 )}
               </Button>
@@ -321,7 +359,7 @@ export default function LiftRegistrationExtractor({ buildingId, buildingName, fi
             <Alert className="border-amber-200 bg-amber-50">
               <AlertCircle className="h-4 w-4 text-amber-600" />
               <AlertDescription className="text-xs text-amber-800">
-                This will create maintenance schedules set to remind 2 weeks before expiry. Email notifications will be automatically sent to designated managers.
+                This will create lift assets with unique identifiers (registration numbers) in your asset register, and maintenance schedules linked to those assets with reminders 2 weeks before expiry.
               </AlertDescription>
             </Alert>
           </div>
