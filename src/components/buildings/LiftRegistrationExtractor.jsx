@@ -84,20 +84,36 @@ export default function LiftRegistrationExtractor({ buildingId, buildingName, fi
           console.log('Created new lift asset:', asset.id, asset.name);
         }
 
-        // 2. Create MaintenanceSchedule linked to the Asset entity
-        return base44.entities.MaintenanceSchedule.create({
+        // 2. Create or update MaintenanceSchedule linked to the Asset entity
+        const scheduleSubject = `Lift Registration Renewal - ${lift.lift_identifier}`;
+        const scheduleEventEnd = format(expiryDate, 'yyyy-MM-dd');
+        
+        // Check for existing schedule to prevent duplicates
+        const existingSchedules = await base44.entities.MaintenanceSchedule.filter({
           building_id: buildingId,
-          subject: `Lift Registration Renewal - ${lift.lift_identifier}`,
+          asset: asset.id,
+          event_end: scheduleEventEnd
+        });
+
+        const scheduleData = {
+          building_id: buildingId,
+          subject: scheduleSubject,
           description: `Lift registration certificate for ${lift.lift_identifier} (Registration: ${lift.registration_number || 'N/A'}) is due for renewal. Current certificate expires on ${format(expiryDate, 'PPP')}.`,
           event_start: format(reminderDate, 'yyyy-MM-dd'),
-          event_end: format(expiryDate, 'yyyy-MM-dd'),
+          event_end: scheduleEventEnd,
           recurrence: 'yearly',
           asset: asset.id,
           job_area: lift.location || 'Building Lift',
           contractor_name: lift.certifying_body || null,
           auto_send_email: true,
           status: 'active'
-        });
+        };
+
+        if (existingSchedules.length > 0) {
+          return base44.entities.MaintenanceSchedule.update(existingSchedules[0].id, scheduleData);
+        } else {
+          return base44.entities.MaintenanceSchedule.create(scheduleData);
+        }
       });
 
       return Promise.all(schedulePromises);
