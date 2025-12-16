@@ -473,6 +473,39 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
             />
           )}
 
+          {currentAIType === 'afss_documentation' && uploadedFileUrl && (
+            <AFSSExtractor
+              buildingId={buildingId}
+              buildingName={buildingName}
+              fileUrl={uploadedFileUrl}
+              onComplete={() => {
+                handleCloseAIDialog();
+                queryClient.invalidateQueries({ queryKey: ['assets'] });
+                queryClient.invalidateQueries({ queryKey: ['maintenanceSchedules'] });
+              }}
+            />
+          )}
+
+          {(currentAIType === 'as_built_electrical' || 
+            currentAIType === 'as_built_mechanical' ||
+            currentAIType === 'as_built_plumbing') && uploadedFileUrl && (
+            <AsBuiltExtractor
+              buildingId={buildingId}
+              buildingName={buildingName}
+              fileUrl={uploadedFileUrl}
+              assetCategory={
+                currentAIType === 'as_built_electrical' ? 'electrical' :
+                currentAIType === 'as_built_mechanical' ? 'mechanical' :
+                'plumbing'
+              }
+              onComplete={() => {
+                handleCloseAIDialog();
+                queryClient.invalidateQueries({ queryKey: ['assets'] });
+                queryClient.invalidateQueries({ queryKey: ['maintenanceSchedules'] });
+              }}
+            />
+          )}
+
           <div className="flex justify-end">
             <Button variant="outline" onClick={handleCloseAIDialog}>
               Close
