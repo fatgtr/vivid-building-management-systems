@@ -14,6 +14,7 @@ import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
 import { Building2, MapPin, Home, Users, Pencil, Trash2, Search, MoreVertical, Sparkles, Upload } from 'lucide-react';
 import StrataRollUploader from '@/components/buildings/StrataRollUploader';
+import SubdivisionPlanExtractor from '@/components/buildings/SubdivisionPlanExtractor';
 import ReportGenerator from '@/components/buildings/ReportGenerator';
 import { toast } from 'sonner';
 import {
@@ -71,6 +72,8 @@ export default function Buildings() {
   const [autoPopulating, setAutoPopulating] = useState(false);
   const [dialogStep, setDialogStep] = useState('form');
   const [newlyCreatedBuilding, setNewlyCreatedBuilding] = useState(null);
+  const [subdivisionPlanFileUrl, setSubdivisionPlanFileUrl] = useState(null);
+  const [subdivisionPlanFileName, setSubdivisionPlanFileName] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -97,8 +100,8 @@ export default function Buildings() {
     onSuccess: (building) => {
       queryClient.invalidateQueries({ queryKey: ['buildings'] });
       setNewlyCreatedBuilding(building);
-      setDialogStep('uploadStrataRoll');
-      toast.success('Building created. Now upload Strata Roll to populate units and residents.');
+      setDialogStep('uploadSubdivisionPlan');
+      toast.success('Building created. Now upload Subdivision Plan to extract units.');
     },
   });
 
@@ -137,9 +140,11 @@ export default function Buildings() {
     setFormData(initialFormState);
     setDialogStep('form');
     setNewlyCreatedBuilding(null);
+    setSubdivisionPlanFileUrl(null);
+    setSubdivisionPlanFileName(null);
   };
 
-  const handleSkipStrataRoll = () => {
+  const handleSkip = () => {
     handleCloseDialog();
   };
 
@@ -371,7 +376,11 @@ export default function Buildings() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingBuilding ? 'Edit Building' : (dialogStep === 'form' ? 'Add New Building - Step 1' : 'Add New Building - Step 2: Upload Strata Roll')}
+              {editingBuilding ? 'Edit Building' : (
+                dialogStep === 'form' ? 'Add New Building - Step 1: Building Details' :
+                dialogStep === 'uploadSubdivisionPlan' ? 'Add New Building - Step 2: Upload Subdivision Plan' :
+                'Add New Building - Step 3: Upload Strata Roll'
+              )}
             </DialogTitle>
           </DialogHeader>
           
@@ -699,20 +708,82 @@ export default function Buildings() {
                 className="bg-blue-600 hover:bg-blue-700"
                 disabled={createMutation.isPending || updateMutation.isPending}
               >
-                {createMutation.isPending || updateMutation.isPending ? 'Saving...' : (editingBuilding ? 'Update' : 'Next: Upload Strata Roll')}
+                {createMutation.isPending || updateMutation.isPending ? 'Saving...' : (editingBuilding ? 'Update' : 'Next')}
               </Button>
             </DialogFooter>
           </form>
           )}
 
-          {dialogStep === 'uploadStrataRoll' && newlyCreatedBuilding && (
+          {dialogStep === 'uploadSubdivisionPlan' && newlyCreatedBuilding && (
             <div className="space-y-4">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <p className="text-sm text-blue-900">
                   <strong>{newlyCreatedBuilding.name}</strong> has been created successfully.
                 </p>
                 <p className="text-sm text-blue-700 mt-1">
-                  Upload the Strata Roll PDF to automatically create all units and populate resident/owner information.
+                  Upload the subdivision plan PDF to automatically extract units, lot numbers, and property details.
+                </p>
+              </div>
+
+              <div className="border-2 border-dashed border-slate-200 rounded-lg p-8 text-center">
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setSubdivisionPlanFileName(file.name);
+                    toast.info('Uploading subdivision plan...');
+                    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                    setSubdivisionPlanFileUrl(file_url);
+                    toast.success('File uploaded successfully!');
+                  }}
+                  className="hidden"
+                  id="subdivision-plan-upload"
+                />
+                <label htmlFor="subdivision-plan-upload" className="cursor-pointer">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center">
+                      <Upload className="h-8 w-8 text-indigo-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-slate-700">
+                        {subdivisionPlanFileName || 'Click to upload subdivision plan'}
+                      </p>
+                      <p className="text-sm text-slate-500 mt-1">
+                        PDF format only
+                      </p>
+                    </div>
+                  </div>
+                </label>
+              </div>
+
+              {subdivisionPlanFileUrl && (
+                <SubdivisionPlanExtractor
+                  buildingId={newlyCreatedBuilding.id}
+                  buildingName={newlyCreatedBuilding.name}
+                  fileUrl={subdivisionPlanFileUrl}
+                  onComplete={() => {
+                    queryClient.invalidateQueries({ queryKey: ['units'] });
+                    setDialogStep('uploadStrataRoll');
+                  }}
+                />
+              )}
+              
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={handleSkip}>Skip & Finish</Button>
+              </div>
+            </div>
+          )}
+
+          {dialogStep === 'uploadStrataRoll' && newlyCreatedBuilding && (
+            <div className="space-y-4">
+              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                <p className="text-sm text-emerald-900">
+                  ✓ Subdivision plan processed successfully!
+                </p>
+                <p className="text-sm text-emerald-700 mt-1">
+                  Now upload the Strata Roll PDF to populate resident and owner information.
                 </p>
               </div>
               
@@ -724,7 +795,7 @@ export default function Buildings() {
                   queryClient.invalidateQueries({ queryKey: ['buildings'] });
                   handleCloseDialog();
                 }}
-                onSkip={handleSkipStrataRoll}
+                onSkip={handleSkip}
               />
             </div>
           )}
