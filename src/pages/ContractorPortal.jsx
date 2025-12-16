@@ -14,25 +14,35 @@ export default function ContractorPortal() {
   const [contractor, setContractor] = useState(null);
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    base44.auth.me().then(async (userData) => {
+      setUser(userData);
+      
+      // If user has contractor_id, fetch that contractor directly
+      if (userData.contractor_id) {
+        try {
+          const contractorData = await base44.entities.Contractor.get(userData.contractor_id);
+          setContractor(contractorData);
+        } catch (error) {
+          // Fallback to email lookup
+          const contractors = await base44.entities.Contractor.filter({ email: userData.email });
+          if (contractors.length > 0) {
+            setContractor(contractors[0]);
+          }
+        }
+      } else {
+        // Fallback to email lookup for existing contractors
+        const contractors = await base44.entities.Contractor.filter({ email: userData.email });
+        if (contractors.length > 0) {
+          setContractor(contractors[0]);
+        }
+      }
+    }).catch(() => {});
   }, []);
-
-  const { data: contractors = [] } = useQuery({
-    queryKey: ['contractors'],
-    queryFn: () => base44.entities.Contractor.list(),
-  });
 
   const { data: workOrders = [] } = useQuery({
     queryKey: ['contractor-work-orders'],
     queryFn: () => base44.entities.WorkOrder.list('-created_date'),
   });
-
-  useEffect(() => {
-    if (user?.email && contractors.length > 0) {
-      const found = contractors.find(c => c.email === user.email);
-      setContractor(found);
-    }
-  }, [user, contractors]);
 
   const myWorkOrders = workOrders.filter(wo => wo.assigned_contractor_id === contractor?.id);
   const openOrders = myWorkOrders.filter(wo => ['open', 'in_progress'].includes(wo.status));
