@@ -16,6 +16,7 @@ import SmartDevices from './pages/SmartDevices';
 import ManagingAgentPortal from './pages/ManagingAgentPortal';
 import StrataKnowledgeBase from './pages/StrataKnowledgeBase';
 import BuildingProfile from './pages/BuildingProfile';
+import AssetRegister from './pages/AssetRegister';
 import __Layout from './Layout.jsx';
 
 
@@ -38,6 +39,7 @@ export const PAGES = {
     "ManagingAgentPortal": ManagingAgentPortal,
     "StrataKnowledgeBase": StrataKnowledgeBase,
     "BuildingProfile": BuildingProfile,
+    "AssetRegister": AssetRegister,
 }
 
 export const pagesConfig = {
