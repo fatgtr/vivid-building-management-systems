@@ -64,9 +64,13 @@ export default function AssetRegister() {
 
   const { data: assets = [], isLoading } = useQuery({
     queryKey: ['assets', selectedBuildingId],
-    queryFn: () => selectedBuildingId 
-      ? base44.entities.Asset.filter({ building_id: selectedBuildingId })
-      : base44.entities.Asset.list(),
+    queryFn: async () => {
+      const result = selectedBuildingId 
+        ? await base44.entities.Asset.filter({ building_id: selectedBuildingId })
+        : await base44.entities.Asset.list();
+      console.log('Assets fetched:', result);
+      return result;
+    },
   });
 
   const { data: buildings = [] } = useQuery({

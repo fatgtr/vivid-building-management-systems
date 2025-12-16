@@ -49,12 +49,14 @@ export default function LiftRegistrationExtractor({ buildingId, buildingName, fi
           asset_category: 'lift',
           identifier: assetData.identifier
         });
-        
+
         let asset;
         if (existingAssets.length > 0) {
           asset = await base44.entities.Asset.update(existingAssets[0].id, assetData);
+          console.log('Updated existing lift asset:', asset.id, asset.name);
         } else {
           asset = await base44.entities.Asset.create(assetData);
+          console.log('Created new lift asset:', asset.id, asset.name);
         }
 
         // 2. Create MaintenanceSchedule linked to the Asset entity
