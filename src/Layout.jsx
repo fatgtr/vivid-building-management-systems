@@ -69,6 +69,9 @@ function LayoutInner({ children, currentPageName }) {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
+  // Check if user is a contractor
+  const isContractor = user?.contractor_id;
+
   const handleLogout = () => {
     base44.auth.logout();
   };
@@ -190,6 +193,16 @@ function LayoutInner({ children, currentPageName }) {
         <nav className="p-3 space-y-1 overflow-y-auto h-[calc(100vh-8rem)]">
           {navItems.map((item) => {
             const isActive = currentPageName === item.page;
+            
+            // Hide navigation items based on user type
+            if (isContractor) {
+              // For contractors, only show Contractor Portal
+              if (item.page !== 'ContractorPortal') return null;
+            } else {
+              // For non-contractors, hide Contractor Portal
+              if (item.page === 'ContractorPortal') return null;
+            }
+            
             return (
               <Link
                 key={item.page}

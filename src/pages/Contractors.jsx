@@ -87,7 +87,20 @@ export default function Contractors() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Contractor.create(data),
+    mutationFn: async (data) => {
+      const contractor = await base44.entities.Contractor.create(data);
+      // Auto-create user account for contractor
+      try {
+        await base44.functions.invoke('createContractorUser', { 
+          contractorId: contractor.id,
+          email: data.email,
+          name: data.contact_name
+        });
+      } catch (error) {
+        console.error('Failed to create contractor user:', error);
+      }
+      return contractor;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contractors'] });
       handleCloseDialog();
