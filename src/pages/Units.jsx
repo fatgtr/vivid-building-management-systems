@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
+import SubdivisionPlanExtractor from '@/components/buildings/SubdivisionPlanExtractor';
 import { Home, Search, Pencil, Trash2, Building2, Bed, Bath, Square, MoreVertical, Edit } from 'lucide-react';
 import {
   DropdownMenu,
@@ -34,6 +35,7 @@ import {
 const initialFormState = {
   building_id: '',
   unit_number: '',
+  lot_number: '',
   floor: '',
   bedrooms: '',
   bathrooms: '',
@@ -151,6 +153,7 @@ export default function Units() {
     setFormData({
       building_id: unit.building_id || '',
       unit_number: unit.unit_number || '',
+      lot_number: unit.lot_number || '',
       floor: unit.floor || '',
       bedrooms: unit.bedrooms || '',
       bathrooms: unit.bathrooms || '',
@@ -213,6 +216,14 @@ export default function Units() {
         action={() => setShowDialog(true)}
         actionLabel="Add Unit"
       />
+
+      {/* Subdivision Plan Extractor */}
+      {filterBuilding !== 'all' && (
+        <SubdivisionPlanExtractor 
+          buildingId={filterBuilding}
+          buildingName={getBuildingName(filterBuilding)}
+        />
+      )}
 
       {/* Bulk Edit Actions */}
       {selectedUnits.length > 0 && (
@@ -319,8 +330,9 @@ export default function Units() {
                         <Home className="h-4 w-4 text-blue-600" />
                       </div>
                       <div>
-                        <p className="font-medium text-slate-900">{unit.unit_number}</p>
-                        {unit.floor && <p className="text-xs text-slate-500">Floor {unit.floor}</p>}
+                       <p className="font-medium text-slate-900">{unit.unit_number}</p>
+                       {unit.lot_number && <p className="text-xs text-slate-500">Lot {unit.lot_number}</p>}
+                       {unit.floor && <p className="text-xs text-slate-500">Floor {unit.floor}</p>}
                       </div>
                     </div>
                   </TableCell>
@@ -412,6 +424,15 @@ export default function Units() {
                   onChange={(e) => setFormData({ ...formData, unit_number: e.target.value })}
                   placeholder="e.g., 101, A1"
                   required
+                />
+              </div>
+              <div>
+                <Label htmlFor="lot_number">Lot Number</Label>
+                <Input
+                  id="lot_number"
+                  value={formData.lot_number}
+                  onChange={(e) => setFormData({ ...formData, lot_number: e.target.value })}
+                  placeholder="e.g., PT 58"
                 />
               </div>
               <div>
