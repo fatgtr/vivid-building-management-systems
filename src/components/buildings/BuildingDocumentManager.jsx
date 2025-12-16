@@ -21,12 +21,16 @@ import {
   Layers,
   AlertCircle,
   Scale,
-  FileCheck
+  FileCheck,
+  Flame,
+  Droplet
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import SubdivisionPlanExtractor from './SubdivisionPlanExtractor';
 import StrataRollUploader from './StrataRollUploader';
+import AFSSExtractor from './AFSSExtractor';
+import AsBuiltExtractor from './AsBuiltExtractor';
 import {
   Dialog,
   DialogContent,
@@ -79,20 +83,36 @@ const documentTypes = [
     hasAI: true,
   },
   {
+    category: 'afss_documentation',
+    label: 'AFSS Documentation',
+    icon: Flame,
+    description: 'Extract fire safety assets and auto-schedule maintenance',
+    color: 'orange',
+    hasAI: true,
+  },
+  {
     category: 'as_built_electrical',
     label: 'As-Built Electrical',
     icon: Zap,
-    description: 'Electrical system documentation',
+    description: 'Extract electrical assets and create maintenance register',
     color: 'yellow',
-    hasAI: false,
+    hasAI: true,
   },
   {
     category: 'as_built_mechanical',
     label: 'As-Built Mechanical',
     icon: Wind,
-    description: 'HVAC and mechanical systems',
+    description: 'Extract HVAC/mechanical assets and create register',
     color: 'cyan',
-    hasAI: false,
+    hasAI: true,
+  },
+  {
+    category: 'as_built_plumbing',
+    label: 'As-Built Plumbing',
+    icon: Droplet,
+    description: 'Extract plumbing assets and create maintenance register',
+    color: 'blue',
+    hasAI: true,
   },
   {
     category: 'as_built_windows',
@@ -117,6 +137,7 @@ const colorClasses = {
   blue: 'bg-blue-100 text-blue-700 border-blue-200',
   emerald: 'bg-emerald-100 text-emerald-700 border-emerald-200',
   violet: 'bg-violet-100 text-violet-700 border-violet-200',
+  orange: 'bg-orange-100 text-orange-700 border-orange-200',
   yellow: 'bg-yellow-100 text-yellow-700 border-yellow-200',
   cyan: 'bg-cyan-100 text-cyan-700 border-cyan-200',
   teal: 'bg-teal-100 text-teal-700 border-teal-200',
@@ -299,6 +320,42 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
                             <li>Strata committee responsibilities</li>
                             <li>Levy and contribution details</li>
                             <li>Service and maintenance obligations</li>
+                          </>
+                        )}
+                        {docType.category === 'afss_documentation' && (
+                          <>
+                            <li>Fire extinguishers and hose reels</li>
+                            <li>Smoke detectors and fire alarms</li>
+                            <li>Fire panels and sprinkler systems</li>
+                            <li>Service dates and compliance status</li>
+                            <li>Auto-generate maintenance schedules</li>
+                          </>
+                        )}
+                        {docType.category === 'as_built_electrical' && (
+                          <>
+                            <li>Switchboards and distribution boards</li>
+                            <li>Electrical meters and sub-meters</li>
+                            <li>Circuit breakers and panels</li>
+                            <li>Emergency power systems (generators, UPS)</li>
+                            <li>Create asset register and maintenance schedules</li>
+                          </>
+                        )}
+                        {docType.category === 'as_built_mechanical' && (
+                          <>
+                            <li>HVAC units and air handling systems</li>
+                            <li>Chillers, boilers, and cooling towers</li>
+                            <li>Pumps and ventilation fans</li>
+                            <li>Building management system (BMS) panels</li>
+                            <li>Create asset register and maintenance schedules</li>
+                          </>
+                        )}
+                        {docType.category === 'as_built_plumbing' && (
+                          <>
+                            <li>Water meters and hot water systems</li>
+                            <li>Water pumps and tanks</li>
+                            <li>Backflow preventers and isolation valves</li>
+                            <li>Drainage systems and grease traps</li>
+                            <li>Create asset register and maintenance schedules</li>
                           </>
                         )}
                       </ul>
