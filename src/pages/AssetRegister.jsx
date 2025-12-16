@@ -298,7 +298,7 @@ export default function AssetRegister() {
                     </div>
                   </div>
 
-                  {asset.notes && (
+                  {(asset.notes && asset.notes !== 'null') && (
                     <div className="mt-3 pt-3 border-t border-slate-100">
                       <p className="text-xs text-slate-600 line-clamp-2">{asset.notes}</p>
                     </div>
