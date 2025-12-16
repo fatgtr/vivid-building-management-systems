@@ -13,7 +13,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
-import { FileText, Search, Building2, MoreVertical, Pencil, Trash2, Download, Upload, Eye, File, FileImage, FileArchive } from 'lucide-react';
+import SubdivisionPlanExtractor from '@/components/buildings/SubdivisionPlanExtractor';
+import { FileText, Search, Building2, MoreVertical, Pencil, Trash2, Download, Upload, Eye, File, FileImage, FileArchive, Database } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,6 +65,7 @@ export default function Documents() {
   const [filterCategory, setFilterCategory] = useState('all');
   const [deleteDocument, setDeleteDocument] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [extractingDocument, setExtractingDocument] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -142,6 +144,8 @@ export default function Documents() {
   };
 
   const getBuildingName = (buildingId) => buildings.find(b => b.id === buildingId)?.name || 'All Buildings';
+
+  const isPDF = (url) => url?.toLowerCase().includes('.pdf');
 
   const getFileIcon = (url) => {
     if (!url) return File;
@@ -293,6 +297,11 @@ export default function Documents() {
                                 </a>
                               </DropdownMenuItem>
                             )}
+                            {doc.building_id && isPDF(doc.file_url) && (
+                              <DropdownMenuItem onClick={() => setExtractingDocument(doc)}>
+                                <Database className="mr-2 h-4 w-4" /> Extract Building Data
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem onClick={() => handleEdit(doc)}>
                               <Pencil className="mr-2 h-4 w-4" /> Edit
                             </DropdownMenuItem>
@@ -411,6 +420,23 @@ export default function Documents() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Plan Extraction Dialog */}
+      <Dialog open={!!extractingDocument} onOpenChange={() => setExtractingDocument(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Extract Building Data from Plan</DialogTitle>
+          </DialogHeader>
+          {extractingDocument && (
+            <SubdivisionPlanExtractor
+              buildingId={extractingDocument.building_id}
+              buildingName={getBuildingName(extractingDocument.building_id)}
+              fileUrl={extractingDocument.file_url}
+              onComplete={() => setExtractingDocument(null)}
+            />
+          )}
         </DialogContent>
       </Dialog>
 

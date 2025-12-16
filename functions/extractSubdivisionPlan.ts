@@ -61,10 +61,30 @@ Deno.serve(async (req) => {
                             address_no: { type: "string" },
                             road_name: { type: "string" },
                             road_type: { type: "string" },
-                            locality: { type: "string" }
+                            locality: { type: "string" },
+                            bedrooms: {
+                                type: "number",
+                                description: "Number of bedrooms if specified on plan"
+                            },
+                            bathrooms: {
+                                type: "number",
+                                description: "Number of bathrooms if specified on plan"
+                            },
+                            square_feet: {
+                                type: "number",
+                                description: "Unit area in square feet or square meters"
+                            },
+                            has_balcony: {
+                                type: "boolean",
+                                description: "Whether unit has a balcony"
+                            },
+                            balcony_area: {
+                                type: "number",
+                                description: "Balcony area if specified"
+                            }
                         }
                     },
-                    description: "Mapping from STREET ADDRESS SCHEDULE table"
+                    description: "Mapping from STREET ADDRESS SCHEDULE table with unit details"
                 },
                 levels: {
                     type: "array",

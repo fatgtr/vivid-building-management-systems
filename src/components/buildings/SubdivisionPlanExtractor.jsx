@@ -8,7 +8,7 @@ import { Upload, FileText, Loader2, CheckCircle2, AlertCircle, Database, MapPin 
 import { toast } from 'sonner';
 import { Badge } from "@/components/ui/badge";
 
-export default function SubdivisionPlanExtractor({ buildingId, buildingName }) {
+export default function SubdivisionPlanExtractor({ buildingId, buildingName, fileUrl = null, onComplete = null }) {
   const [uploading, setUploading] = useState(false);
   const [extracting, setExtracting] = useState(false);
   const [planFile, setPlanFile] = useState(null);
@@ -41,30 +41,36 @@ export default function SubdivisionPlanExtractor({ buildingId, buildingName }) {
   };
 
   const handleExtractPlan = async () => {
-    if (!planFile) {
+    let extractFileUrl = fileUrl;
+
+    if (!fileUrl && !planFile) {
       toast.error('Please select a plan file first');
       return;
     }
 
-    setUploading(true);
+    setUploading(!fileUrl && planFile);
     setExtracting(false);
 
     try {
-      // Upload the file
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: planFile });
+      // Upload the file if not already provided
+      if (!fileUrl && planFile) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file: planFile });
+        extractFileUrl = file_url;
+      }
 
       setUploading(false);
       setExtracting(true);
 
       // Extract data from the plan
       const { data } = await base44.functions.invoke('extractSubdivisionPlan', {
-        file_url,
+        file_url: extractFileUrl,
         buildingId
       });
 
       if (data.success) {
         setExtractedData(data.data);
         toast.success('Plan data extracted successfully!');
+        if (onComplete) onComplete(data.data);
       } else {
         toast.error('Failed to extract plan data: ' + data.error);
       }
@@ -89,6 +95,11 @@ export default function SubdivisionPlanExtractor({ buildingId, buildingName }) {
         building_id: buildingId,
         unit_number: mapping.unit_number,
         lot_number: mapping.lot_number,
+        bedrooms: mapping.bedrooms || null,
+        bathrooms: mapping.bathrooms || null,
+        square_feet: mapping.square_feet || null,
+        has_balcony: mapping.has_balcony || false,
+        balcony_area: mapping.balcony_area || null,
         status: 'vacant'
       }));
 
@@ -115,30 +126,32 @@ export default function SubdivisionPlanExtractor({ buildingId, buildingName }) {
         
         {!extractedData && (
           <>
-            <div className="border-2 border-dashed border-slate-200 rounded-lg p-8 text-center">
-              <input
-                type="file"
-                accept="application/pdf"
-                onChange={handleFileSelect}
-                className="hidden"
-                id="plan-upload"
-              />
-              <label htmlFor="plan-upload" className="cursor-pointer">
-                <div className="flex flex-col items-center gap-3">
-                  <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center">
-                    <FileText className="h-8 w-8 text-indigo-600" />
+            {!fileUrl && (
+              <div className="border-2 border-dashed border-slate-200 rounded-lg p-8 text-center">
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  id="plan-upload"
+                />
+                <label htmlFor="plan-upload" className="cursor-pointer">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center">
+                      <FileText className="h-8 w-8 text-indigo-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-slate-700">
+                        {planFile ? planFile.name : 'Click to upload subdivision plan'}
+                      </p>
+                      <p className="text-sm text-slate-500 mt-1">
+                        PDF format only
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-slate-700">
-                      {planFile ? planFile.name : 'Click to upload subdivision plan'}
-                    </p>
-                    <p className="text-sm text-slate-500 mt-1">
-                      PDF format only
-                    </p>
-                  </div>
-                </div>
-              </label>
-            </div>
+                </label>
+              </div>
+            )}
 
             <Alert className="border-blue-200 bg-blue-50">
               <AlertCircle className="h-4 w-4 text-blue-600" />
@@ -156,7 +169,7 @@ export default function SubdivisionPlanExtractor({ buildingId, buildingName }) {
 
             <Button
               onClick={handleExtractPlan}
-              disabled={!planFile || uploading || extracting}
+              disabled={(!planFile && !fileUrl) || uploading || extracting}
               className="w-full bg-indigo-600 hover:bg-indigo-700"
             >
               {uploading ? (
