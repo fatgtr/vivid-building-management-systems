@@ -18,9 +18,11 @@ import {
   Building,
   Wind,
   Ruler,
-  Layers
+  Layers,
+  AlertCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import SubdivisionPlanExtractor from './SubdivisionPlanExtractor';
 import StrataRollUploader from './StrataRollUploader';
 import {
@@ -213,36 +215,95 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-4 space-y-3">
-                <input
-                  type="file"
-                  accept="application/pdf"
-                  onChange={(e) => handleFileSelect(e, docType.category, docType.label)}
-                  className="hidden"
-                  id={`upload-${docType.category}`}
-                  disabled={isUploading}
-                />
-                <label htmlFor={`upload-${docType.category}`}>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    disabled={isUploading}
-                    asChild
-                  >
-                    <div className="cursor-pointer">
-                      {isUploading ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Uploading...
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="h-4 w-4 mr-2" />
-                          Upload PDF
-                        </>
-                      )}
-                    </div>
-                  </Button>
-                </label>
+                {docs.length === 0 && (
+                  <div className="border-2 border-dashed border-slate-200 rounded-lg p-6 text-center">
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      onChange={(e) => handleFileSelect(e, docType.category, docType.label)}
+                      className="hidden"
+                      id={`upload-${docType.category}`}
+                      disabled={isUploading}
+                    />
+                    <label htmlFor={`upload-${docType.category}`} className="cursor-pointer">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className={`w-12 h-12 rounded-full ${colorClasses[docType.color]} flex items-center justify-center`}>
+                          <Icon className="h-6 w-6" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-slate-700">
+                            {isUploading ? 'Uploading...' : `Click to upload ${docType.label.toLowerCase()}`}
+                          </p>
+                          <p className="text-sm text-slate-500 mt-1">
+                            PDF format only
+                          </p>
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+                )}
+
+                {docType.hasAI && docs.length === 0 && (
+                  <Alert className="border-blue-200 bg-blue-50">
+                    <AlertCircle className="h-4 w-4 text-blue-600" />
+                    <AlertDescription className="text-sm text-slate-700">
+                      The AI will extract:
+                      <ul className="list-disc list-inside mt-2 space-y-1">
+                        {docType.category === 'subdivision_plan' && (
+                          <>
+                            <li>Building details and strata plan number</li>
+                            <li>Easements and their descriptions</li>
+                            <li>Lot-to-unit mapping (PT numbers)</li>
+                            <li>Common areas and assets on each level</li>
+                          </>
+                        )}
+                        {docType.category === 'strata_roll' && (
+                          <>
+                            <li>Unit and lot information</li>
+                            <li>Owner contact details</li>
+                            <li>Investor and managing agent information</li>
+                            <li>Resident occupancy status</li>
+                          </>
+                        )}
+                      </ul>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {docs.length > 0 && (
+                  <>
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      onChange={(e) => handleFileSelect(e, docType.category, docType.label)}
+                      className="hidden"
+                      id={`upload-${docType.category}`}
+                      disabled={isUploading}
+                    />
+                    <label htmlFor={`upload-${docType.category}`}>
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        disabled={isUploading}
+                        asChild
+                      >
+                        <div className="cursor-pointer">
+                          {isUploading ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Uploading...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="h-4 w-4 mr-2" />
+                              Upload Another
+                            </>
+                          )}
+                        </div>
+                      </Button>
+                    </label>
+                  </>
+                )}
 
                 {docs.length > 0 && (
                   <div className="space-y-2">
@@ -278,12 +339,6 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
                       </div>
                     ))}
                   </div>
-                )}
-
-                {docs.length === 0 && (
-                  <p className="text-xs text-slate-400 text-center py-2">
-                    No documents uploaded
-                  </p>
                 )}
               </CardContent>
             </Card>

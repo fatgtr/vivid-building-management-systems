@@ -13,7 +13,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
-import SubdivisionPlanExtractor from '@/components/buildings/SubdivisionPlanExtractor';
 import { Home, Search, Pencil, Trash2, Building2, Bed, Bath, Square, MoreVertical, Edit } from 'lucide-react';
 import {
   DropdownMenu,
@@ -216,14 +215,6 @@ export default function Units() {
         action={() => setShowDialog(true)}
         actionLabel="Add Unit"
       />
-
-      {/* Subdivision Plan Extractor */}
-      {filterBuilding !== 'all' && (
-        <SubdivisionPlanExtractor 
-          buildingId={filterBuilding}
-          buildingName={getBuildingName(filterBuilding)}
-        />
-      )}
 
       {/* Bulk Edit Actions */}
       {selectedUnits.length > 0 && (
