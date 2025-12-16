@@ -19,7 +19,9 @@ import {
   Wind,
   Ruler,
   Layers,
-  AlertCircle
+  AlertCircle,
+  Scale,
+  FileCheck
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -61,6 +63,22 @@ const documentTypes = [
     hasAI: true,
   },
   {
+    category: 'bylaws',
+    label: 'Bylaws',
+    icon: Scale,
+    description: 'Extract building rules, restrictions, and amendments',
+    color: 'emerald',
+    hasAI: true,
+  },
+  {
+    category: 'strata_management_statement',
+    label: 'Strata Management Statement',
+    icon: FileCheck,
+    description: 'Extract management structure, duties, and levies',
+    color: 'violet',
+    hasAI: true,
+  },
+  {
     category: 'as_built_electrical',
     label: 'As-Built Electrical',
     icon: Zap,
@@ -97,6 +115,8 @@ const documentTypes = [
 const colorClasses = {
   indigo: 'bg-indigo-100 text-indigo-700 border-indigo-200',
   blue: 'bg-blue-100 text-blue-700 border-blue-200',
+  emerald: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  violet: 'bg-violet-100 text-violet-700 border-violet-200',
   yellow: 'bg-yellow-100 text-yellow-700 border-yellow-200',
   cyan: 'bg-cyan-100 text-cyan-700 border-cyan-200',
   teal: 'bg-teal-100 text-teal-700 border-teal-200',
@@ -263,6 +283,22 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
                             <li>Owner contact details</li>
                             <li>Investor and managing agent information</li>
                             <li>Resident occupancy status</li>
+                          </>
+                        )}
+                        {docType.category === 'bylaws' && (
+                          <>
+                            <li>Key rules and restrictions</li>
+                            <li>Common property usage guidelines</li>
+                            <li>Pet and parking policies</li>
+                            <li>Amendment history and dates</li>
+                          </>
+                        )}
+                        {docType.category === 'strata_management_statement' && (
+                          <>
+                            <li>Management structure and hierarchy</li>
+                            <li>Strata committee responsibilities</li>
+                            <li>Levy and contribution details</li>
+                            <li>Service and maintenance obligations</li>
                           </>
                         )}
                       </ul>
