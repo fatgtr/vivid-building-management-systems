@@ -274,6 +274,18 @@ export default function AssetRegister() {
                       </div>
                     )}
 
+                    {asset.asset_category === 'lift' && asset.rated_load_kg && (
+                      <div className="text-xs text-slate-500">
+                        <span className="font-medium">Capacity:</span> {asset.rated_load_kg}kg ({asset.max_passengers} passengers)
+                      </div>
+                    )}
+
+                    {asset.asset_category === 'lift' && asset.design_registration_number && (
+                      <div className="text-xs text-slate-500">
+                        <span className="font-medium">Design Reg:</span> {asset.design_registration_number}
+                      </div>
+                    )}
+
                     {asset.next_service_date && (
                       <div className="flex items-center gap-2 text-sm">
                         <Calendar className="h-4 w-4 text-slate-400" />
@@ -281,6 +293,21 @@ export default function AssetRegister() {
                         <span className="font-medium text-slate-700">
                           {format(new Date(asset.next_service_date), 'MMM d, yyyy')}
                         </span>
+                      </div>
+                    )}
+
+                    {asset.asset_category === 'lift' && asset.replacement_year && (
+                      <div className="mt-2 pt-2 border-t border-slate-100">
+                        <div className="text-xs text-slate-500 space-y-1">
+                          <div>
+                            <span className="font-medium">Replacement:</span> {asset.replacement_year} (Est. ${(asset.replacement_cost || 0).toLocaleString()})
+                          </div>
+                          {asset.annual_sinking_fund > 0 && (
+                            <div>
+                              <span className="font-medium">Annual Fund:</span> ${asset.annual_sinking_fund.toLocaleString()}/year
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
 

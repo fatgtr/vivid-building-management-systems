@@ -24,6 +24,14 @@ export default function LiftRegistrationExtractor({ buildingId, buildingName, fi
         const reminderDate = subDays(expiryDate, 14);
 
         // 1. Create or update Asset entity for the lift
+        const currentYear = new Date().getFullYear();
+        const manufactureYear = lift.year_of_manufacture || currentYear - 10;
+        const lifecycleYears = 20;
+        const replacementYear = manufactureYear + lifecycleYears;
+        const replacementCost = lift.replacement_cost || 150000;
+        const yearsRemaining = Math.max(0, replacementYear - currentYear);
+        const annualSinkingFund = yearsRemaining > 0 ? Math.round(replacementCost / yearsRemaining) : 0;
+
         const assetData = {
           building_id: buildingId,
           document_id: documentId,
@@ -31,9 +39,9 @@ export default function LiftRegistrationExtractor({ buildingId, buildingName, fi
           asset_type: lift.lift_type || 'lift',
           name: lift.lift_identifier,
           identifier: lift.registration_number || lift.plant_number || lift.lift_identifier,
-          location: lift.location,
-          manufacturer: lift.certifying_body,
-          model: lift.lift_type || 'lift',
+          location: lift.location || lift.plant_location,
+          manufacturer: lift.manufacturer || lift.certifying_body,
+          model: lift.model_name || lift.lift_type || 'lift',
           installation_date: lift.issue_date,
           last_service_date: lift.issue_date,
           next_service_date: lift.expiry_date,
@@ -41,6 +49,23 @@ export default function LiftRegistrationExtractor({ buildingId, buildingName, fi
           compliance_status: lift.compliance_status || 'unknown',
           notes: lift.conditions,
           status: 'active',
+          lift_type: lift.lift_type,
+          control_type: lift.control_type,
+          drive_suspension_type: lift.drive_suspension_type,
+          carriage_type: lift.carriage_type,
+          rated_load_kg: lift.rated_load_kg,
+          max_passengers: lift.max_passengers,
+          travel_m: lift.travel_m,
+          designer_rated_speed: lift.designer_rated_speed,
+          plant_location: lift.plant_location,
+          serial_number: lift.serial_number,
+          design_registration_number: lift.design_registration_number,
+          year_of_manufacture: lift.year_of_manufacture,
+          registration_number: lift.registration_number,
+          lifecycle_years: lifecycleYears,
+          replacement_cost: replacementCost,
+          replacement_year: replacementYear,
+          annual_sinking_fund: annualSinkingFund,
         };
 
         // Check if an asset with this identifier already exists
