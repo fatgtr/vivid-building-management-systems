@@ -305,7 +305,7 @@ export default function Announcements() {
               </div>
               <div>
                 <Label htmlFor="building_id">Building</Label>
-                <Select value={formData.building_id} onValueChange={(v) => setFormData({ ...formData, building_id: v })}>
+                <Select value={formData.building_id || ''} onValueChange={(v) => setFormData({ ...formData, building_id: v === '' ? '' : v })}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Buildings" />
                   </SelectTrigger>
