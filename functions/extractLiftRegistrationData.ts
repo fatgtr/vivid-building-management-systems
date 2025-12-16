@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
               },
               registration_number: {
                 type: "string",
-                description: "Official registration number"
+                description: "Official registration number (e.g., L6-245232-20)"
               },
               plant_number: {
                 type: "string",
@@ -74,7 +74,59 @@ Deno.serve(async (req) => {
               },
               lift_type: {
                 type: "string",
-                description: "Type of lift (e.g., passenger, goods, service)"
+                description: "Type of lift (Goods/Passenger, Passenger only, etc.)"
+              },
+              control_type: {
+                type: "string",
+                description: "Control type (Automatic, Manual, etc.)"
+              },
+              drive_suspension_type: {
+                type: "string",
+                description: "Drive and suspension type (Electric/Traction, Hydraulic, etc.)"
+              },
+              carriage_type: {
+                type: "string",
+                description: "Carriage type"
+              },
+              rated_load_kg: {
+                type: "number",
+                description: "Rated load in kilograms"
+              },
+              max_passengers: {
+                type: "number",
+                description: "Maximum number of passengers"
+              },
+              travel_m: {
+                type: "number",
+                description: "Travel distance in meters"
+              },
+              designer_rated_speed: {
+                type: "number",
+                description: "Designer's rated speed in m/s"
+              },
+              manufacturer: {
+                type: "string",
+                description: "Manufacturer name (e.g., OTIS ELEVATOR COMPANY PTY LTD)"
+              },
+              model_name: {
+                type: "string",
+                description: "Model name or number"
+              },
+              year_of_manufacture: {
+                type: "number",
+                description: "Year of manufacture"
+              },
+              serial_number: {
+                type: "string",
+                description: "Serial number (e.g., 31NF8510)"
+              },
+              design_registration_number: {
+                type: "string",
+                description: "Design registration number (e.g., LEM6-221171/18)"
+              },
+              plant_location: {
+                type: "string",
+                description: "Fixed plant location address"
               },
               capacity: {
                 type: "string",
@@ -104,14 +156,27 @@ Deno.serve(async (req) => {
 
 Extract all lift registration information including:
 - Each lift's identifier (Lift 1, Lift 2, Service Lift, etc.)
+- Item registration number (e.g., L6-245232-20)
 - Registration numbers and plant numbers
 - Issue date and MOST IMPORTANTLY the expiry/renewal date
 - Next inspection date if mentioned
 - Certifying body and inspector details
-- Lift specifications (type, capacity, location)
+- Lift specifications including:
+  * Type of lift (Goods/Passenger, Passenger only, etc.)
+  * Control type (Automatic, Manual, etc.)
+  * Drive and suspension type (Electric/Traction, Hydraulic, etc.)
+  * Carriage type
+  * Rated load in kg
+  * Maximum number of passengers
+  * Travel distance in meters
+  * Designer's rated speed in m/s
+- Manufacturer details (company name, model, year of manufacture, serial number)
+- Design registration number
+- Plant location (fixed address)
 - Any conditions or compliance notes
 
 CRITICAL: Make sure to extract the expiry date accurately as this will be used for automated renewal reminders.
+Extract ALL technical plant item details as these are crucial for asset management and compliance tracking.
 
 Be thorough and extract information for ALL lifts mentioned in the certificate.`;
 
