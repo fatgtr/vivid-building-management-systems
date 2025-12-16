@@ -12,7 +12,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
-import { Building2, MapPin, Home, Users, Pencil, Trash2, Search, MoreVertical, Sparkles, Upload } from 'lucide-react';
+import { Building2, MapPin, Home, Users, Pencil, Trash2, Search, MoreVertical, Sparkles, Upload, Eye } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from './utils';
 import StrataRollUploader from '@/components/buildings/StrataRollUploader';
 import SubdivisionPlanExtractor from '@/components/buildings/SubdivisionPlanExtractor';
 import ReportGenerator from '@/components/buildings/ReportGenerator';
@@ -309,6 +311,11 @@ export default function Buildings() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                        <Link to={createPageUrl('BuildingProfile') + '?id=' + building.id}>
+                          <Eye className="mr-2 h-4 w-4" /> View Profile
+                        </Link>
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleEdit(building)}>
                         <Pencil className="mr-2 h-4 w-4" /> Edit
                       </DropdownMenuItem>
