@@ -14,7 +14,7 @@ import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
 import SubdivisionPlanExtractor from '@/components/buildings/SubdivisionPlanExtractor';
-import { FileText, Search, Building2, MoreVertical, Pencil, Trash2, Download, Upload, Eye, File, FileImage, FileArchive, Database } from 'lucide-react';
+import { FileText, Search, Building2, MoreVertical, Pencil, Trash2, Download, Upload, Eye, File, FileImage, FileArchive, Database, Folder, ChevronDown, ChevronRight } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,15 +34,25 @@ import {
 import { format } from 'date-fns';
 
 const documentCategories = [
-  { value: 'policy', label: 'Policy' },
-  { value: 'manual', label: 'Manual' },
-  { value: 'form', label: 'Form' },
-  { value: 'report', label: 'Report' },
-  { value: 'certificate', label: 'Certificate' },
-  { value: 'contract', label: 'Contract' },
-  { value: 'meeting_minutes', label: 'Meeting Minutes' },
-  { value: 'financial', label: 'Financial' },
-  { value: 'other', label: 'Other' },
+  { value: 'strata_roll', label: 'Strata Roll', icon: FileText },
+  { value: 'subdivision_plan', label: 'Subdivision Plan', icon: FileText },
+  { value: 'bylaws', label: 'By-Laws', icon: FileText },
+  { value: 'strata_management_statement', label: 'Strata Management Statement', icon: FileText },
+  { value: 'afss_documentation', label: 'AFSS Documentation', icon: FileText },
+  { value: 'as_built_electrical', label: 'As-Built Electrical Plans', icon: FileText },
+  { value: 'as_built_mechanical', label: 'As-Built Mechanical Plans', icon: FileText },
+  { value: 'as_built_plumbing', label: 'As-Built Plumbing Plans', icon: FileText },
+  { value: 'as_built_windows', label: 'As-Built Windows Plans', icon: FileText },
+  { value: 'lift_plant_registration', label: 'Lift Plant Registration', icon: FileText },
+  { value: 'policy', label: 'Policy', icon: FileText },
+  { value: 'manual', label: 'Manual', icon: FileText },
+  { value: 'form', label: 'Form', icon: FileText },
+  { value: 'report', label: 'Report', icon: FileText },
+  { value: 'certificate', label: 'Certificate', icon: FileText },
+  { value: 'contract', label: 'Contract', icon: FileText },
+  { value: 'meeting_minutes', label: 'Meeting Minutes', icon: FileText },
+  { value: 'financial', label: 'Financial', icon: FileText },
+  { value: 'other', label: 'Other', icon: File },
 ];
 
 const initialFormState = {
@@ -66,6 +76,7 @@ export default function Documents() {
   const [deleteDocument, setDeleteDocument] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [extractingDocument, setExtractingDocument] = useState(null);
+  const [expandedCategories, setExpandedCategories] = useState({});
 
   const queryClient = useQueryClient();
 
@@ -162,6 +173,20 @@ export default function Documents() {
     return matchesSearch && matchesBuilding && matchesCategory;
   });
 
+  const documentsByCategory = filteredDocuments.reduce((acc, doc) => {
+    const category = doc.category || 'other';
+    if (!acc[category]) acc[category] = [];
+    acc[category].push(doc);
+    return acc;
+  }, {});
+
+  const toggleCategory = (category) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [category]: !prev[category]
+    }));
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-8">
@@ -226,98 +251,130 @@ export default function Documents() {
           actionLabel="Upload Document"
         />
       ) : (
-        <Card className="border-0 shadow-sm overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-slate-50">
-                <TableHead>Document</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Building</TableHead>
-                <TableHead>Visibility</TableHead>
-                <TableHead>Uploaded</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-24">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredDocuments.map((doc) => {
-                const FileIcon = getFileIcon(doc.file_url);
-                return (
-                  <TableRow key={doc.id} className="hover:bg-slate-50/50">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-50 rounded-lg">
-                          <FileIcon className="h-5 w-5 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-slate-900">{doc.title}</p>
-                          {doc.description && (
-                            <p className="text-xs text-slate-500 line-clamp-1">{doc.description}</p>
-                          )}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="capitalize text-slate-600">{doc.category?.replace(/_/g, ' ')}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-slate-600">{getBuildingName(doc.building_id)}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="capitalize text-slate-600 text-sm">{doc.visibility?.replace(/_/g, ' ')}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-slate-500">
-                        {doc.created_date && format(new Date(doc.created_date), 'MMM d, yyyy')}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={doc.status} />
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        {doc.file_url && (
-                          <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                            <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
-                              <Eye className="h-4 w-4 text-slate-500" />
-                            </a>
-                          </Button>
-                        )}
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            {doc.file_url && (
-                              <DropdownMenuItem asChild>
-                                <a href={doc.file_url} download>
-                                  <Download className="mr-2 h-4 w-4" /> Download
-                                </a>
-                              </DropdownMenuItem>
-                            )}
-                            {doc.building_id && isPDF(doc.file_url) && (
-                              <DropdownMenuItem onClick={() => setExtractingDocument(doc)}>
-                                <Database className="mr-2 h-4 w-4" /> Extract Building Data
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuItem onClick={() => handleEdit(doc)}>
-                              <Pencil className="mr-2 h-4 w-4" /> Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setDeleteDocument(doc)} className="text-red-600">
-                              <Trash2 className="mr-2 h-4 w-4" /> Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </Card>
+        <div className="space-y-4">
+          {documentCategories.map(categoryConfig => {
+            const categoryDocs = documentsByCategory[categoryConfig.value] || [];
+            if (categoryDocs.length === 0) return null;
+            
+            const isExpanded = expandedCategories[categoryConfig.value];
+            const CategoryIcon = categoryConfig.icon;
+            
+            return (
+              <Card key={categoryConfig.value} className="border-0 shadow-sm overflow-hidden">
+                <button
+                  onClick={() => toggleCategory(categoryConfig.value)}
+                  className="w-full p-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-50 rounded-lg">
+                      <Folder className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div className="text-left">
+                      <h3 className="font-semibold text-slate-900">{categoryConfig.label}</h3>
+                      <p className="text-sm text-slate-500">{categoryDocs.length} document{categoryDocs.length !== 1 ? 's' : ''}</p>
+                    </div>
+                  </div>
+                  {isExpanded ? (
+                    <ChevronDown className="h-5 w-5 text-slate-400" />
+                  ) : (
+                    <ChevronRight className="h-5 w-5 text-slate-400" />
+                  )}
+                </button>
+                
+                {isExpanded && (
+                  <div className="border-t border-slate-100">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-slate-50">
+                          <TableHead>Document</TableHead>
+                          <TableHead>Building</TableHead>
+                          <TableHead>Visibility</TableHead>
+                          <TableHead>Uploaded</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="w-24">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {categoryDocs.map((doc) => {
+                          const FileIcon = getFileIcon(doc.file_url);
+                          return (
+                            <TableRow key={doc.id} className="hover:bg-slate-50/50">
+                              <TableCell>
+                                <div className="flex items-center gap-3">
+                                  <div className="p-2 bg-blue-50 rounded-lg">
+                                    <FileIcon className="h-5 w-5 text-blue-600" />
+                                  </div>
+                                  <div>
+                                    <p className="font-medium text-slate-900">{doc.title}</p>
+                                    {doc.description && (
+                                      <p className="text-xs text-slate-500 line-clamp-1">{doc.description}</p>
+                                    )}
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <span className="text-slate-600">{getBuildingName(doc.building_id)}</span>
+                              </TableCell>
+                              <TableCell>
+                                <span className="capitalize text-slate-600 text-sm">{doc.visibility?.replace(/_/g, ' ')}</span>
+                              </TableCell>
+                              <TableCell>
+                                <span className="text-sm text-slate-500">
+                                  {doc.created_date && format(new Date(doc.created_date), 'MMM d, yyyy')}
+                                </span>
+                              </TableCell>
+                              <TableCell>
+                                <StatusBadge status={doc.status} />
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-1">
+                                  {doc.file_url && (
+                                    <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                                      <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
+                                        <Eye className="h-4 w-4 text-slate-500" />
+                                      </a>
+                                    </Button>
+                                  )}
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        <MoreVertical className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      {doc.file_url && (
+                                        <DropdownMenuItem asChild>
+                                          <a href={doc.file_url} download>
+                                            <Download className="mr-2 h-4 w-4" /> Download
+                                          </a>
+                                        </DropdownMenuItem>
+                                      )}
+                                      {doc.building_id && isPDF(doc.file_url) && (
+                                        <DropdownMenuItem onClick={() => setExtractingDocument(doc)}>
+                                          <Database className="mr-2 h-4 w-4" /> Extract Building Data
+                                        </DropdownMenuItem>
+                                      )}
+                                      <DropdownMenuItem onClick={() => handleEdit(doc)}>
+                                        <Pencil className="mr-2 h-4 w-4" /> Edit
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => setDeleteDocument(doc)} className="text-red-600">
+                                        <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </Card>
+            );
+          })}
+        </div>
       )}
 
       {/* Add/Edit Dialog */}
