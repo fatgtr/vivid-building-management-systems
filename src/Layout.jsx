@@ -54,6 +54,7 @@ const navItems = [
   { name: 'Documents', icon: FileText, page: 'Documents' },
   { name: 'Inspections', icon: ClipboardCheck, page: 'Inspections' },
   { name: 'Contractors', icon: HardHat, page: 'Contractors' },
+  { name: 'Contractor Portal', icon: HardHat, page: 'ContractorPortal' },
   { name: 'Smart Devices', icon: Settings, page: 'SmartDevices' },
   { name: 'Strata Knowledge Base', icon: FileText, page: 'StrataKnowledgeBase' },
 ];
