@@ -382,6 +382,7 @@ export default function Announcements() {
               <div className="md:col-span-2">
                 <Label htmlFor="content">Content *</Label>
                 <ReactQuill
+                  key={editingAnnouncement?.id || 'new'}
                   theme="snow"
                   value={formData.content}
                   onChange={(v) => setFormData({ ...formData, content: v })}
