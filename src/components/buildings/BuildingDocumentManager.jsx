@@ -153,6 +153,7 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
   const [aiDialogOpen, setAiDialogOpen] = useState(false);
   const [currentAIType, setCurrentAIType] = useState(null);
   const [uploadedFileUrl, setUploadedFileUrl] = useState(null);
+  const [selectedDocumentId, setSelectedDocumentId] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -229,6 +230,7 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
     setAiDialogOpen(false);
     setCurrentAIType(null);
     setUploadedFileUrl(null);
+    setSelectedDocumentId(null);
   };
 
   return (
@@ -430,6 +432,7 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
                               className="h-7 w-7 text-blue-600 hover:text-blue-700"
                               onClick={() => {
                                 setUploadedFileUrl(doc.file_url);
+                                setSelectedDocumentId(doc.id);
                                 setCurrentAIType(docType.category);
                                 setAiDialogOpen(true);
                               }}
@@ -537,7 +540,7 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
               buildingId={buildingId}
               buildingName={buildingName}
               fileUrl={uploadedFileUrl}
-              documentId={documentId}
+              documentId={selectedDocumentId}
               onComplete={() => {
                 handleCloseAIDialog();
                 queryClient.invalidateQueries({ queryKey: ['maintenanceSchedules'] });
