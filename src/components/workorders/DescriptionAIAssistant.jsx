@@ -25,8 +25,8 @@ export default function DescriptionAIAssistant({
   const [copied, setCopied] = useState(false);
 
   const handleGenerate = async () => {
-    if (!generateTitle && !title) {
-      toast.error('Please enter a title first');
+    if (!generateTitle && !title && !currentDescription) {
+      toast.error('Please enter a title or description first');
       return;
     }
 
@@ -37,102 +37,111 @@ export default function DescriptionAIAssistant({
 
     setGenerating(true);
     try {
-      // Upload photos/videos if they exist and get URLs
       const photoUrls = [];
-
       if (selectedPhotos.length > 0) {
         for (const photo of selectedPhotos.slice(0, 5)) {
-          if (!photo.isExisting) {
-            const { file_url } = await base44.integrations.Core.UploadFile({ file: photo });
-            photoUrls.push(file_url);
-          }
+          const { file_url } = await base44.integrations.Core.UploadFile({ file: photo });
+          photoUrls.push(file_url);
         }
       }
 
       let prompt = '';
-      
+      let json_schema = {};
+
       if (generateTitle) {
         prompt = `You are assisting a building manager in creating a professional work order.
-
+The current inputs are:
 Category: ${category}
-${currentDescription ? `Issue Details: ${currentDescription}` : ''}
-${title ? `Initial Notes: ${title}` : ''}
+${currentDescription ? `Initial description provided by user: ${currentDescription}` : ''}
+${title ? `Current title provided by user: ${title}` : ''}
 
-Please generate:
-1. A concise, professional title (max 60 characters) that clearly identifies the issue
+Your task is to generate:
+1. A concise, professional title (max 60 characters) for the work order that clearly identifies the issue.
 2. A detailed professional description that:
-   - Describes the issue or work needed in detail
-   - Includes relevant context for contractors
-   - Is suitable for property management records
-   - Uses professional language
-${suggestPriority ? `3. Suggest a priority level (low, medium, high, urgent) based on:
-   - Safety risks or hazards
-   - Impact on residents/operations
-   - Urgency of the issue
-   - Potential for escalation
-   - Building code or compliance concerns
-4. Provide a brief reason for the priority recommendation` : ''}
+   - Describes the issue or work needed in detail.
+   - Includes relevant context for contractors.
+   - Is suitable for property management records.
+   - Uses professional language.
+${suggestPriority ? `3. Suggest a priority level (low, medium, high, urgent) for the work order.
+4. Provide a brief reason for the priority recommendation.` : ''}
 
-${photoUrls.length > 0 ? 'Analyze the provided photos to add specific visual details and assess severity.' : ''}`;
+${photoUrls.length > 0 ? 'Analyze the provided photos to add specific visual details and assess severity to the description and priority.' : ''}`;
+        
+        json_schema = {
+          type: "object",
+          properties: {
+            title: { type: "string" },
+            description: { type: "string" },
+            ...(suggestPriority && {
+              priority: { type: "string", enum: ["low", "medium", "high", "urgent"] },
+              priority_reason: { type: "string" }
+            })
+          },
+          required: ["title", "description", ...(suggestPriority ? ["priority", "priority_reason"] : [])]
+        };
+
       } else if (suggestPriority) {
         prompt = `You are assisting a building manager in prioritizing a work order.
-
+The current work order details are:
 Title: ${title}
 Category: ${category}
 Description: ${currentDescription || 'No description provided'}
 
-Analyze the work order and suggest a priority level (low, medium, high, urgent) based on:
-- Safety risks or hazards
-- Impact on residents/operations
-- Urgency of the issue
-- Potential for escalation
-- Building code or compliance concerns
+Your task is to analyze the work order and suggest a priority level (low, medium, high, urgent) and provide a brief reason for your recommendation.
+${photoUrls.length > 0 ? 'Analyze the provided photos to assess severity and safety concerns.' : ''}`;
 
-${photoUrls.length > 0 ? 'Analyze the provided photos to assess severity and safety concerns.' : ''}
-
-Provide the priority level and a brief explanation for your recommendation.`;
+        json_schema = {
+          type: "object",
+          properties: {
+            priority: { type: "string", enum: ["low", "medium", "high", "urgent"] },
+            priority_reason: { type: "string" }
+          },
+          required: ["priority", "priority_reason"]
+        };
       } else {
         prompt = `You are assisting a building manager in writing a professional work order description.
-
+The current work order details are:
 Title: ${title}
 Category: ${category}
-${currentDescription ? `Current Description: ${currentDescription}` : ''}
+Current Description: ${currentDescription || ''}
 
-Please generate a clear, professional work order description that:
-1. Describes the issue or work needed in detail
-2. Includes relevant context for contractors to understand the situation
-3. Is suitable for monthly building management reports
-4. Uses professional language appropriate for property management
+Your task is to generate a clear, professional, and detailed work order description that:
+1. Accurately describes the issue or work needed.
+2. Includes relevant context for contractors to understand the situation.
+3. Is suitable for property management records and reports.
+4. Uses professional language.
+If a current description is provided, enhance it; otherwise, create a new one based on the title and category.
 
-${photoUrls.length > 0 ? 'Analyze the provided photos to add specific visual details to the description.' : ''}
+${photoUrls.length > 0 ? 'Analyze the provided photos to add specific visual details to the description.' : ''}`;
 
-Generate only the description text, no additional commentary.`;
+        json_schema = {
+          type: "object",
+          properties: {
+            description: { type: "string" }
+          },
+          required: ["description"]
+        };
       }
 
-      const { data } = await base44.functions.invoke('generateWorkOrderDescription', {
+      const data = await base44.integrations.Core.InvokeLLM({
         prompt,
         file_urls: photoUrls.length > 0 ? photoUrls : undefined,
-        generateTitle: generateTitle,
-        suggestPriority: suggestPriority
+        response_json_schema: json_schema
       });
 
-      if (generateTitle && data?.title && data?.description) {
-        setGeneratedTitle(data.title);
-        setGeneratedDescription(data.description);
-        if (data.priority) {
-          setGeneratedPriority(data.priority);
-          setPriorityReason(data.priority_reason || '');
-        }
+      if (generateTitle) {
+        if (data?.title) setGeneratedTitle(data.title);
+        if (data?.description) setGeneratedDescription(data.description);
+        if (data?.priority) setGeneratedPriority(data.priority);
+        if (data?.priority_reason) setPriorityReason(data.priority_reason);
         toast.success('Content generated successfully');
-      } else if (suggestPriority && data?.priority) {
-        setGeneratedPriority(data.priority);
-        setPriorityReason(data.priority_reason || '');
+      } else if (suggestPriority) {
+        if (data?.priority) setGeneratedPriority(data.priority);
+        if (data?.priority_reason) setPriorityReason(data.priority_reason);
         toast.success('Priority suggestion generated');
-      } else if (data?.description) {
-        setGeneratedDescription(data.description);
-        toast.success('Description generated successfully');
       } else {
-        toast.error('Failed to generate content');
+        if (data?.description) setGeneratedDescription(data.description);
+        toast.success('Description generated successfully');
       }
     } catch (error) {
       console.error('AI generation error:', error);
