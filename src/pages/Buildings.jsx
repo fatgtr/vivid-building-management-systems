@@ -14,7 +14,7 @@ import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
 import { Building2, MapPin, Home, Users, Pencil, Trash2, Search, MoreVertical, Sparkles, Upload, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from './utils';
+import { createPageUrl } from '../utils';
 import StrataRollUploader from '@/components/buildings/StrataRollUploader';
 import SubdivisionPlanExtractor from '@/components/buildings/SubdivisionPlanExtractor';
 import ReportGenerator from '@/components/buildings/ReportGenerator';
