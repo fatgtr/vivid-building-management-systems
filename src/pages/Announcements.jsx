@@ -120,17 +120,31 @@ export default function Announcements() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const submitData = { ...formData };
+    
+    // Determine status based on publish_date
+    if (submitData.publish_date) {
+      const publishDateTime = new Date(submitData.publish_date);
+      const now = new Date();
+      
+      if (publishDateTime > now && submitData.status === 'draft') {
+        submitData.status = 'scheduled';
+      } else if (publishDateTime <= now && submitData.status === 'scheduled') {
+        submitData.status = 'published';
+      }
+    }
+    
     if (editingAnnouncement) {
-      updateMutation.mutate({ id: editingAnnouncement.id, data: formData });
+      updateMutation.mutate({ id: editingAnnouncement.id, data: submitData });
     } else {
-      createMutation.mutate(formData);
+      createMutation.mutate(submitData);
     }
   };
 
   const handlePublish = (announcement) => {
     updateMutation.mutate({
       id: announcement.id,
-      data: { ...announcement, status: 'published', publish_date: new Date().toISOString().split('T')[0] },
+      data: { ...announcement, status: 'published', publish_date: new Date().toISOString() },
     });
   };
 
@@ -192,6 +206,7 @@ export default function Announcements() {
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="draft">Draft</SelectItem>
+            <SelectItem value="scheduled">Scheduled</SelectItem>
             <SelectItem value="published">Published</SelectItem>
             <SelectItem value="archived">Archived</SelectItem>
           </SelectContent>
@@ -257,6 +272,11 @@ export default function Announcements() {
                         >
                           <Send className="h-3.5 w-3.5 mr-1" /> Publish
                         </Button>
+                      )}
+                      {announcement.status === 'scheduled' && announcement.publish_date && (
+                        <span className="text-xs text-slate-500">
+                          Scheduled: {format(new Date(announcement.publish_date), 'MMM d, yyyy h:mm a')}
+                        </span>
                       )}
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -358,6 +378,16 @@ export default function Announcements() {
                 </Select>
               </div>
               <div>
+                <Label htmlFor="publish_date">Publish Date & Time</Label>
+                <Input
+                  id="publish_date"
+                  type="datetime-local"
+                  value={formData.publish_date}
+                  onChange={(e) => setFormData({ ...formData, publish_date: e.target.value })}
+                />
+                <p className="text-xs text-slate-500 mt-1">Leave empty to publish immediately</p>
+              </div>
+              <div>
                 <Label htmlFor="expiry_date">Expiry Date</Label>
                 <Input
                   id="expiry_date"
@@ -374,6 +404,7 @@ export default function Announcements() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="scheduled">Scheduled</SelectItem>
                     <SelectItem value="published">Published</SelectItem>
                     <SelectItem value="archived">Archived</SelectItem>
                   </SelectContent>
