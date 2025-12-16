@@ -31,6 +31,7 @@ import SubdivisionPlanExtractor from './SubdivisionPlanExtractor';
 import StrataRollUploader from './StrataRollUploader';
 import AFSSExtractor from './AFSSExtractor';
 import AsBuiltExtractor from './AsBuiltExtractor';
+import LiftRegistrationExtractor from './LiftRegistrationExtractor';
 import {
   Dialog,
   DialogContent,
@@ -126,9 +127,9 @@ const documentTypes = [
     category: 'lift_plant_registration',
     label: 'Lift Plant Registration',
     icon: Building,
-    description: 'Elevator registration and compliance',
+    description: 'Extract registration data and auto-schedule renewals',
     color: 'purple',
-    hasAI: false,
+    hasAI: true,
   },
 ];
 
@@ -358,6 +359,15 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
                             <li>Create asset register and maintenance schedules</li>
                           </>
                         )}
+                        {docType.category === 'lift_plant_registration' && (
+                          <>
+                            <li>Lift identifiers and registration numbers</li>
+                            <li>Issue and expiry dates</li>
+                            <li>Certifying body and inspector details</li>
+                            <li>Auto-schedule renewals 2 weeks before expiry</li>
+                            <li>Send email reminders to strata & building managers</li>
+                          </>
+                        )}
                       </ul>
                     </AlertDescription>
                   </Alert>
@@ -501,6 +511,19 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
               onComplete={() => {
                 handleCloseAIDialog();
                 queryClient.invalidateQueries({ queryKey: ['assets'] });
+                queryClient.invalidateQueries({ queryKey: ['maintenanceSchedules'] });
+              }}
+            />
+          )}
+
+          {currentAIType === 'lift_plant_registration' && uploadedFileUrl && (
+            <LiftRegistrationExtractor
+              buildingId={buildingId}
+              buildingName={buildingName}
+              fileUrl={uploadedFileUrl}
+              documentId={documentId}
+              onComplete={() => {
+                handleCloseAIDialog();
                 queryClient.invalidateQueries({ queryKey: ['maintenanceSchedules'] });
               }}
             />
