@@ -78,6 +78,7 @@ export default function Residents() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterBuilding, setFilterBuilding] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [filterFloor, setFilterFloor] = useState('all');
   const [deleteResident, setDeleteResident] = useState(null);
   const [uploadingFiles, setUploadingFiles] = useState(false);
   const [user, setUser] = useState(null);
@@ -438,7 +439,7 @@ export default function Residents() {
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input
-            placeholder="Search residents..."
+            placeholder={activeTab === 'residents' ? "Search residents..." : "Search units..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
@@ -456,17 +457,34 @@ export default function Residents() {
             ))}
           </SelectContent>
         </Select>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="All Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-          </SelectContent>
-        </Select>
+        {activeTab === 'units' && (
+          <Select value={filterFloor} onValueChange={setFilterFloor}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="All Floors" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Floors</SelectItem>
+              {Array.from(new Set(units.map(u => u.floor).filter(f => f != null)))
+                .sort((a, b) => a - b)
+                .map(floor => (
+                  <SelectItem key={floor} value={String(floor)}>Floor {floor}</SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        )}
+        {activeTab === 'residents' && (
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="All Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {activeTab === 'residents' ? (
@@ -623,7 +641,14 @@ export default function Residents() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {units
-              .filter(u => filterBuilding === 'all' || u.building_id === filterBuilding)
+              .filter(u => {
+                const buildingMatch = filterBuilding === 'all' || u.building_id === filterBuilding;
+                const floorMatch = filterFloor === 'all' || String(u.floor) === filterFloor;
+                const searchMatch = !searchQuery || 
+                  u.unit_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  u.lot_number?.toLowerCase().includes(searchQuery.toLowerCase());
+                return buildingMatch && floorMatch && searchMatch;
+              })
               .map((unit) => {
                 const unitResidents = residents.filter(r => r.unit_id === unit.id && r.status === 'active');
                 const building = buildings.find(b => b.id === unit.building_id);
@@ -636,9 +661,17 @@ export default function Residents() {
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-3">
                         <div>
-                          <h3 className="text-lg font-bold text-slate-900">{unit.unit_number}</h3>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="text-lg font-bold text-slate-900">{unit.unit_number}</h3>
+                            {building && (
+                              <span className="text-xs text-slate-500">• {building.name}</span>
+                            )}
+                          </div>
                           {unit.lot_number && (
                             <p className="text-xs text-slate-500">Lot {unit.lot_number}</p>
+                          )}
+                          {unit.floor != null && (
+                            <p className="text-xs text-slate-500">Floor {unit.floor}</p>
                           )}
                         </div>
                         <DropdownMenu>
@@ -659,12 +692,6 @@ export default function Residents() {
                       </div>
                       
                       <div className="space-y-2 mb-3">
-                        {building && (
-                          <div className="flex items-center gap-1.5 text-xs text-slate-600">
-                            <MapPin className="h-3 w-3 text-slate-400" />
-                            <span>{building.name}</span>
-                          </div>
-                        )}
                         <div className="flex items-center gap-3 text-xs text-slate-500">
                           {unit.bedrooms && (
                             <span className="flex items-center gap-1">
@@ -1109,20 +1136,30 @@ export default function Residents() {
             <DialogTitle>{editingUnit ? 'Edit Unit' : 'Add New Unit'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleUnitSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
-                <Label htmlFor="unit_building_id">Building *</Label>
+            <Card className="border-2 border-blue-100 bg-blue-50/50">
+              <CardContent className="pt-4">
+                <Label htmlFor="unit_building_id" className="text-base font-semibold mb-2 block">Building *</Label>
                 <Select value={unitFormData.building_id} onValueChange={(v) => setUnitFormData({ ...unitFormData, building_id: v })} required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a building" />
+                  <SelectTrigger className="bg-white h-11">
+                    <Building2 className="h-4 w-4 mr-2 text-blue-600" />
+                    <SelectValue placeholder="Select the building for this unit" />
                   </SelectTrigger>
                   <SelectContent>
                     {buildings.map(b => (
-                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                      <SelectItem key={b.id} value={b.id}>
+                        <div className="flex items-center gap-2">
+                          <Building2 className="h-4 w-4 text-blue-600" />
+                          {b.name}
+                        </div>
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
+                <p className="text-xs text-slate-600 mt-2">Select which building this unit belongs to</p>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="unit_number">Unit Number *</Label>
                 <Input
