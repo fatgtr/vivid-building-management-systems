@@ -297,17 +297,17 @@ export default function StrataAIChat({ buildingId }) {
                       variant="outline" 
                       size="sm" 
                       className="w-full text-left justify-start"
-                      onClick={() => setInputMessage("Can I renovate my balcony?")}
+                      onClick={() => setInputMessage("Draft an announcement about upcoming lift maintenance")}
                     >
-                      "Can I renovate my balcony?"
+                      "Draft an announcement about upcoming lift maintenance"
                     </Button>
                     <Button 
                       variant="outline" 
                       size="sm" 
                       className="w-full text-left justify-start"
-                      onClick={() => setInputMessage("What are the noise restrictions?")}
+                      onClick={() => setInputMessage("Summarize the parking bylaws")}
                     >
-                      "What are the noise restrictions?"
+                      "Summarize the parking bylaws"
                     </Button>
                   </div>
                 </div>
