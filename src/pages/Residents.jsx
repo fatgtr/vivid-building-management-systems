@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -392,6 +391,17 @@ export default function Residents() {
                       <p className="text-xs text-slate-500 flex items-center gap-1">
                         <Home className="h-3 w-3" /> Unit {getUnitNumber(resident.unit_id)}
                       </p>
+                      {(() => {
+                        const unit = units.find(u => u.id === resident.unit_id);
+                        if (!unit) return null;
+                        return (
+                          <p className="text-xs text-slate-400">
+                            {unit.bedrooms && `${unit.bedrooms} bed`}
+                            {unit.bathrooms && ` • ${unit.bathrooms} bath`}
+                            {unit.square_feet && ` • ${unit.square_feet} sqft`}
+                          </p>
+                        );
+                      })()}
                     </div>
                   </TableCell>
                   <TableCell>

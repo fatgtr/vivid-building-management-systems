@@ -42,7 +42,6 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { name: 'Dashboard', icon: LayoutDashboard, page: 'Dashboard' },
   { name: 'Buildings', icon: Building2, page: 'Buildings' },
-  { name: 'Units', icon: Home, page: 'Units' },
   { name: 'Residents', icon: Users, page: 'Residents' },
   { name: 'Managing Agent Portal', icon: Users, page: 'ManagingAgentPortal' },
   { name: 'Work Orders', icon: Wrench, page: 'WorkOrders' },

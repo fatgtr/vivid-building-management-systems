@@ -18,6 +18,7 @@ import { createPageUrl } from '../utils';
 import StrataRollUploader from '@/components/buildings/StrataRollUploader';
 import SubdivisionPlanExtractor from '@/components/buildings/SubdivisionPlanExtractor';
 import ReportGenerator from '@/components/buildings/ReportGenerator';
+import UnitsManager from '@/components/buildings/UnitsManager';
 import { toast } from 'sonner';
 import {
   DropdownMenu,
@@ -317,7 +318,13 @@ export default function Buildings() {
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleEdit(building)}>
-                        <Pencil className="mr-2 h-4 w-4" /> Edit
+                        <Pencil className="mr-2 h-4 w-4" /> Edit Details
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => {
+                        const dialog = document.getElementById(`units-dialog-${building.id}`);
+                        if (dialog) dialog.showModal();
+                      }}>
+                        <Home className="mr-2 h-4 w-4" /> Manage Units
                       </DropdownMenuItem>
                       <DropdownMenuItem 
                         onClick={() => setDeleteBuilding(building)}
@@ -377,6 +384,34 @@ export default function Buildings() {
           ))}
         </div>
       )}
+
+      {/* Units Management Dialogs */}
+      {filteredBuildings.map((building) => (
+        <dialog key={building.id} id={`units-dialog-${building.id}`} className="backdrop:bg-black/50 rounded-xl shadow-2xl p-0 max-w-6xl w-full">
+          <div className="bg-white rounded-xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between z-10">
+              <div>
+                <h2 className="text-xl font-semibold text-slate-900">{building.name} - Units</h2>
+                <p className="text-sm text-slate-500">Manage units for this building</p>
+              </div>
+              <button
+                onClick={() => {
+                  const dialog = document.getElementById(`units-dialog-${building.id}`);
+                  if (dialog) dialog.close();
+                }}
+                className="text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <UnitsManager buildingId={building.id} />
+            </div>
+          </div>
+        </dialog>
+      ))}
 
       {/* Add/Edit Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
