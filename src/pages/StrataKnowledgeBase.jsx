@@ -21,7 +21,6 @@ export default function StrataKnowledgeBase() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedResponsibility, setSelectedResponsibility] = useState('all');
 
   // Fetch Responsibility Guide
   const { data: responsibilities = [] } = useQuery({
@@ -46,10 +45,26 @@ export default function StrataKnowledgeBase() {
       item.additional_info?.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesType = selectedType === 'all' || item.type === selectedType;
-    const matchesResponsibility = selectedResponsibility === 'all' || item.responsible === selectedResponsibility;
     
-    return matchesSearch && matchesType && matchesResponsibility;
+    return matchesSearch && matchesType;
   });
+
+  // Group responsibilities by type and then by responsibility
+  const groupedResponsibilities = types
+    .filter(type => selectedType === 'all' || type === selectedType)
+    .map(type => {
+      const itemsForType = filteredResponsibilities.filter(item => item.type === type);
+      if (itemsForType.length === 0) return null;
+
+      const groupedByResponsibility = {
+        'Owner': itemsForType.filter(item => item.responsible === 'Owner'),
+        'Owners Corporation': itemsForType.filter(item => item.responsible === 'Owners Corporation'),
+        'Owner/Owners Corporation': itemsForType.filter(item => item.responsible === 'Owner/Owners Corporation'),
+      };
+
+      return { type, groups: groupedByResponsibility };
+    })
+    .filter(Boolean);
 
   // Filter legislation
   const filteredLegislation = legislation.filter(item => {
@@ -132,64 +147,67 @@ export default function StrataKnowledgeBase() {
 
         {/* Responsibility Guide Tab */}
         <TabsContent value="guide" className="space-y-4">
-          <div className="flex gap-4 flex-wrap">
-            <Select value={selectedType} onValueChange={setSelectedType}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filter by type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                {types.map(type => (
-                  <SelectItem key={type} value={type}>{type}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <Select value={selectedType} onValueChange={setSelectedType}>
+            <SelectTrigger className="w-64">
+              <SelectValue placeholder="Select area or item type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Areas</SelectItem>
+              {types.map(type => (
+                <SelectItem key={type} value={type}>{type}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-            <Select value={selectedResponsibility} onValueChange={setSelectedResponsibility}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filter by responsibility" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Responsibilities</SelectItem>
-                <SelectItem value="Owner">Owner</SelectItem>
-                <SelectItem value="Owners Corporation">Owners Corporation</SelectItem>
-                <SelectItem value="Owner/Owners Corporation">Owner/OC</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid gap-3">
-            {filteredResponsibilities.length === 0 ? (
+          <div className="space-y-6">
+            {groupedResponsibilities.length === 0 ? (
               <Card className="border-0 shadow-sm">
                 <CardContent className="p-12 text-center">
                   <FileText className="h-12 w-12 mx-auto text-slate-300 mb-4" />
                   <h3 className="text-lg font-semibold mb-2">No Results Found</h3>
-                  <p className="text-slate-600">Try adjusting your search or filters</p>
+                  <p className="text-slate-600">Try adjusting your search or filter</p>
                 </CardContent>
               </Card>
             ) : (
-              filteredResponsibilities.map((item, idx) => (
-                <Card key={idx} className="border-0 shadow-sm hover:shadow-md transition-shadow">
-                  <CardContent className="p-5">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Badge variant="outline" className="font-medium">{item.type}</Badge>
-                          {getResponsibilityBadge(item.responsible)}
+              groupedResponsibilities.map(({ type, groups }) => (
+                <div key={type}>
+                  <h2 className="text-2xl font-bold text-slate-900 mb-4 pb-2 border-b-2 border-slate-200">
+                    {type}
+                  </h2>
+                  <div className="space-y-6">
+                    {Object.entries(groups).map(([responsibility, items]) => {
+                      if (items.length === 0) return null;
+                      return (
+                        <div key={responsibility}>
+                          <div className="flex items-center gap-2 mb-3">
+                            {getResponsibilityBadge(responsibility)}
+                            <h3 className="text-lg font-semibold text-slate-700">
+                              {responsibility}
+                            </h3>
+                            <span className="text-sm text-slate-500">({items.length} items)</span>
+                          </div>
+                          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                            {items.map((item, idx) => (
+                              <Card key={idx} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                                <CardContent className="p-4">
+                                  <h4 className="font-semibold text-base text-slate-900 mb-2">{item.item}</h4>
+                                  {item.additional_info && (
+                                    <div className="mt-3 p-2.5 bg-blue-50 border border-blue-200 rounded-lg">
+                                      <p className="text-xs text-blue-900 leading-relaxed">
+                                        <AlertCircle className="h-3.5 w-3.5 inline mr-1.5 flex-shrink-0" />
+                                        {item.additional_info}
+                                      </p>
+                                    </div>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
                         </div>
-                        <h3 className="font-semibold text-lg text-slate-900">{item.item}</h3>
-                      </div>
-                    </div>
-                    {item.additional_info && (
-                      <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <p className="text-sm text-blue-900">
-                          <AlertCircle className="h-4 w-4 inline mr-2" />
-                          {item.additional_info}
-                        </p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                      );
+                    })}
+                  </div>
+                </div>
               ))
             )}
           </div>
