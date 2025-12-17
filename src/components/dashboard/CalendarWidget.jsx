@@ -320,7 +320,6 @@ export default function CalendarWidget({ workOrders = [], maintenanceSchedules =
             
             const dayContent = (
               <div
-                onClick={() => handleDateClick(day)}
                 className={`
                   text-center text-sm py-2 rounded cursor-pointer transition-colors relative group
                   ${!isSameMonth(day, currentDate) ? 'text-slate-300' : 'text-slate-700'}
@@ -342,7 +341,11 @@ export default function CalendarWidget({ workOrders = [], maintenanceSchedules =
             );
 
             if (!hasEvents) {
-              return <div key={idx}>{dayContent}</div>;
+              return (
+                <div key={idx} onClick={() => handleDateClick(day)}>
+                  {dayContent}
+                </div>
+              );
             }
 
             return (
@@ -352,9 +355,20 @@ export default function CalendarWidget({ workOrders = [], maintenanceSchedules =
                 </PopoverTrigger>
                 <PopoverContent className="w-80 p-3" align="start">
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2 mb-3">
-                      <CalendarIcon className="h-4 w-4 text-slate-600" />
-                      <span className="font-semibold text-sm">{format(day, 'MMM d, yyyy')}</span>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <CalendarIcon className="h-4 w-4 text-slate-600" />
+                        <span className="font-semibold text-sm">{format(day, 'MMM d, yyyy')}</span>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7"
+                        onClick={() => handleDateClick(day)}
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add Event
+                      </Button>
                     </div>
                     <div className="space-y-2 max-h-64 overflow-y-auto">
                       {dayCalendarEvents.length > 0 && (
