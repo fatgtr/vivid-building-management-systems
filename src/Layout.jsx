@@ -23,7 +23,8 @@ import {
   DoorOpen,
   LayoutDashboard,
   Shield,
-  Mail
+  Mail,
+  BarChart3
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
