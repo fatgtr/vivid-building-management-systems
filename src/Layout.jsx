@@ -74,7 +74,7 @@ function LayoutInner({ children, currentPageName }) {
 
   useEffect(() => {
     // Don't require auth for landing page
-    if (currentPageName === 'LandingPage') {
+    if (currentPageName === 'LandingPage' || currentPageName === 'Home') {
       return;
     }
     base44.auth.me().then(setUser).catch(() => {});
@@ -88,7 +88,7 @@ function LayoutInner({ children, currentPageName }) {
   };
 
   // Render landing page without layout wrapper
-  if (currentPageName === 'LandingPage') {
+  if (currentPageName === 'LandingPage' || currentPageName === 'Home') {
     return <>{children}</>;
   }
 
