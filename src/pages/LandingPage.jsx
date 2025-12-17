@@ -38,7 +38,7 @@ export default function LandingPage() {
               Built for building managers who belong on site, not behind a desk.
             </h1>
             <p className="text-xl mb-8 text-blue-100">
-              Vivid is a cloud based building management system designed for strata and BMC building managers. It reduces repetitive admin, streamlines routine tasks, and frees managers to focus on what really matters—the building, the people, and the day to day operation.
+              Vivid is a cloud based building management system designed for strata and BMC building managers. It reduces repetitive admin, streamlines routine tasks, and frees managers to focus on what really matters: the building, the people, and the day to day operation.
             </p>
             <div className="flex flex-wrap gap-4">
               <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8">
@@ -56,7 +56,7 @@ export default function LandingPage() {
       <section className="py-16 bg-white">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-2xl sm:text-3xl font-semibold text-gray-900 leading-relaxed mb-6">
-            Building managers add value by being present—inspecting buildings, meeting contractors, and working with residents and committees.
+            Building managers add value by being present, inspecting buildings, meeting contractors, and working with residents and committees.
           </p>
           <p className="text-xl text-gray-600">
             Vivid is designed to take care of the repetitive desk work so building managers can stay active, engaged, and effective on site.
@@ -71,7 +71,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="space-y-8">
               <p className="text-xl text-gray-700 leading-relaxed">
-                Vivid automates and simplifies the tasks that consume a building manager's time—logging issues, tracking actions, managing records, and keeping communication organised.
+                Vivid automates and simplifies the tasks that consume a building manager's time: logging issues, tracking actions, managing records, and keeping communication organised.
               </p>
               <div>
                 <h3 className="text-2xl font-bold mb-4 text-gray-900">That means:</h3>
@@ -146,7 +146,7 @@ export default function LandingPage() {
                 <Users className="w-12 h-12 text-green-600 mb-4" />
                 <h3 className="text-2xl font-bold mb-4">Strata and owners committees</h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Clear records, structured communication, and visibility of actions taken—without adding admin overhead for the building manager.
+                  Clear records, structured communication, and visibility of actions taken, without adding admin overhead for the building manager.
                 </p>
               </CardContent>
             </Card>
