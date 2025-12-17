@@ -481,10 +481,7 @@ export default function Residents() {
               <TableRow className="bg-slate-50">
                 <TableHead>Resident</TableHead>
                 <TableHead>Contact</TableHead>
-                <TableHead>Building / Unit</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Move In</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Building</TableHead>
                 <TableHead className="w-12"></TableHead>
               </TableRow>
             </TableHeader>
@@ -499,9 +496,55 @@ export default function Residents() {
                           {resident.first_name?.[0]}{resident.last_name?.[0]}
                         </AvatarFallback>
                       </Avatar>
-                      <div>
+                      <div className="space-y-1">
                         <p className="font-medium text-slate-900">{resident.first_name} {resident.last_name}</p>
-                        <p className="text-xs text-slate-500 capitalize">{resident.resident_type}</p>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-slate-500 capitalize">{resident.resident_type}</span>
+                          <span className="h-3 w-px bg-slate-200" />
+                          <StatusBadge status={resident.status} />
+                        </div>
+                        {(() => {
+                          const unit = units.find(u => u.id === resident.unit_id);
+                          if (!unit) return null;
+                          return (
+                            <div className="space-y-0.5 pt-1">
+                              <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                                <Home className="h-3 w-3 text-blue-600" />
+                                <span>Unit {unit.unit_number}</span>
+                                {unit.lot_number && <span className="text-slate-400">(Lot {unit.lot_number})</span>}
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-slate-500">
+                                {unit.bedrooms && (
+                                  <span className="flex items-center gap-1">
+                                    <Bed className="h-3 w-3" /> {unit.bedrooms}
+                                  </span>
+                                )}
+                                {unit.bathrooms && (
+                                  <span className="flex items-center gap-1">
+                                    <Bath className="h-3 w-3" /> {unit.bathrooms}
+                                  </span>
+                                )}
+                                {unit.square_feet && (
+                                  <span className="flex items-center gap-1">
+                                    <Square className="h-3 w-3" /> {unit.square_feet} sqft
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
+                        {resident.move_in_date && (
+                          <div className="flex items-center gap-1.5 text-xs text-slate-500 pt-0.5">
+                            <Calendar className="h-3 w-3" />
+                            Move in: {format(new Date(resident.move_in_date), 'MMM d, yyyy')}
+                          </div>
+                        )}
+                        {resident.move_out_date && (
+                          <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                            <Calendar className="h-3 w-3" />
+                            Move out: {format(new Date(resident.move_out_date), 'MMM d, yyyy')}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </TableCell>
@@ -524,37 +567,7 @@ export default function Residents() {
                   <TableCell>
                     <div className="space-y-0.5">
                       <p className="text-sm text-slate-900">{getBuildingName(resident.building_id)}</p>
-                      <p className="text-xs text-slate-500 flex items-center gap-1">
-                        <Home className="h-3 w-3" /> Unit {getUnitNumber(resident.unit_id)}
-                      </p>
-                      {(() => {
-                        const unit = units.find(u => u.id === resident.unit_id);
-                        if (!unit) return null;
-                        return (
-                          <p className="text-xs text-slate-400">
-                            {unit.bedrooms && `${unit.bedrooms} bed`}
-                            {unit.bathrooms && ` • ${unit.bathrooms} bath`}
-                            {unit.square_feet && ` • ${unit.square_feet} sqft`}
-                          </p>
-                        );
-                      })()}
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="capitalize text-slate-600">{resident.resident_type?.replace(/_/g, ' ')}</span>
-                  </TableCell>
-                  <TableCell>
-                    {resident.move_in_date ? (
-                      <div className="flex items-center gap-1.5 text-sm text-slate-600">
-                        <Calendar className="h-3.5 w-3.5 text-slate-400" />
-                        {format(new Date(resident.move_in_date), 'MMM d, yyyy')}
-                      </div>
-                    ) : (
-                      <span className="text-slate-400">-</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={resident.status} />
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
