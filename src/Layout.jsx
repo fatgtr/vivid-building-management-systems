@@ -22,7 +22,8 @@ import {
   HardHat,
   DoorOpen,
   LayoutDashboard,
-  Shield
+  Shield,
+  Mail
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
@@ -52,6 +53,8 @@ const navItems = [
   { name: 'Amenities', icon: Calendar, page: 'Amenities', requirePermission: { resource: 'amenities', action: 'view' } },
   { name: 'Visitors', icon: DoorOpen, page: 'Visitors', requirePermission: { resource: 'buildings', action: 'view' } },
   { name: 'Announcements', icon: Bell, page: 'Announcements', requirePermission: { resource: 'announcements', action: 'view' } },
+  { name: 'Messages', icon: Mail, page: 'Messages', requirePermission: { resource: 'announcements', action: 'view' } },
+  { name: 'Communication Templates', icon: FileText, page: 'CommunicationTemplates', adminOnly: true },
   { name: 'Documents', icon: FileText, page: 'Documents', requirePermission: { resource: 'documents', action: 'view' } },
   { name: 'Inspections', icon: ClipboardCheck, page: 'Inspections', requirePermission: { resource: 'buildings', action: 'view' } },
   { name: 'Contractors', icon: HardHat, page: 'Contractors', requirePermission: { resource: 'contractors', action: 'view' } },
