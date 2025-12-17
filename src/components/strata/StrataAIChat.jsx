@@ -16,8 +16,10 @@ export default function StrataAIChat({ buildingId }) {
   const scrollRef = useRef(null);
 
   useEffect(() => {
-    initConversation();
-    fetchRelevantDocs();
+    if (buildingId) {
+      initConversation();
+      fetchRelevantDocs();
+    }
   }, [buildingId]);
 
   useEffect(() => {
@@ -37,23 +39,31 @@ export default function StrataAIChat({ buildingId }) {
   }, [messages]);
 
   const initConversation = async () => {
-    const conversation = await base44.agents.createConversation({
-      agent_name: 'strata_expert',
-      metadata: {
-        name: 'Bylaws Q&A',
-        building_id: buildingId
-      }
-    });
-    setConversationId(conversation.id);
+    try {
+      const conversation = await base44.agents.createConversation({
+        agent_name: 'strata_expert',
+        metadata: {
+          name: 'Bylaws Q&A',
+          building_id: buildingId
+        }
+      });
+      setConversationId(conversation.id);
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+    }
   };
 
   const fetchRelevantDocs = async () => {
-    const allDocs = await base44.entities.Document.list();
-    const buildingDocs = allDocs.filter(doc => 
-      doc.building_id === buildingId && 
-      (doc.category === 'bylaws' || doc.category === 'strata_management_statement')
-    );
-    setRelevantDocs(buildingDocs);
+    try {
+      const allDocs = await base44.entities.Document.list();
+      const buildingDocs = allDocs.filter(doc => 
+        doc.building_id === buildingId && 
+        (doc.category === 'bylaws' || doc.category === 'strata_management_statement')
+      );
+      setRelevantDocs(buildingDocs);
+    } catch (error) {
+      console.error('Error fetching documents:', error);
+    }
   };
 
   const handleSend = async () => {
@@ -63,18 +73,23 @@ export default function StrataAIChat({ buildingId }) {
     const userMessage = inputMessage;
     setInputMessage('');
 
-    const conversation = await base44.agents.getConversation(conversationId);
-    
-    let contextMessage = userMessage;
-    if (relevantDocs.length > 0) {
-      const docList = relevantDocs.map(doc => `- ${doc.title} (${doc.category})`).join('\n');
-      contextMessage = `Building has these relevant documents:\n${docList}\n\nUser question: ${userMessage}`;
-    }
+    try {
+      const conversation = await base44.agents.getConversation(conversationId);
+      
+      let contextMessage = userMessage;
+      if (relevantDocs.length > 0) {
+        const docList = relevantDocs.map(doc => `- ${doc.title} (${doc.category})`).join('\n');
+        contextMessage = `Building has these relevant documents:\n${docList}\n\nUser question: ${userMessage}`;
+      }
 
-    await base44.agents.addMessage(conversation, {
-      role: 'user',
-      content: contextMessage
-    });
+      await base44.agents.addMessage(conversation, {
+        role: 'user',
+        content: contextMessage
+      });
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setIsLoading(false);
+    }
   };
 
   return (
