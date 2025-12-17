@@ -111,7 +111,7 @@ function LayoutInner({ children, currentPageName }) {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
               <Building2 className="h-4 w-4 text-white" />
             </div>
-            <span className="font-semibold text-slate-900">PropManage</span>
+            <span className="font-semibold text-slate-900">Vivid BMS</span>
           </div>
         </div>
         {user && (
