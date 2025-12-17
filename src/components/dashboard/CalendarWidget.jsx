@@ -1,13 +1,67 @@
 import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
+import { useBuildingContext } from '@/components/BuildingContext';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ChevronLeft, ChevronRight, Clock, Calendar as CalendarIcon, UserPlus, UserMinus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, Calendar as CalendarIcon, UserPlus, UserMinus, Plus, Filter, Star } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, startOfWeek, endOfWeek, isSameDay } from 'date-fns';
 import StatusBadge from '@/components/common/StatusBadge';
+import { toast } from 'sonner';
 
 export default function CalendarWidget({ workOrders = [], maintenanceSchedules = [], residents = [] }) {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [showEventDialog, setShowEventDialog] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [eventForm, setEventForm] = useState({
+    title: '',
+    description: '',
+    event_date: '',
+    event_type: 'general',
+    building_id: ''
+  });
+  const [eventTypeFilter, setEventTypeFilter] = useState({
+    calendar_events: true,
+    work_orders: true,
+    maintenance: true,
+    residents: true
+  });
+
+  const queryClient = useQueryClient();
+  const { selectedBuildingId } = useBuildingContext();
+
+  const { data: buildings = [] } = useQuery({
+    queryKey: ['buildings'],
+    queryFn: () => base44.entities.Building.list(),
+  });
+
+  const { data: calendarEvents = [] } = useQuery({
+    queryKey: ['calendarEvents'],
+    queryFn: () => base44.entities.CalendarEvent.list(),
+  });
+
+  const createEventMutation = useMutation({
+    mutationFn: (data) => base44.entities.CalendarEvent.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['calendarEvents'] });
+      toast.success('Event created successfully');
+      setShowEventDialog(false);
+      setEventForm({
+        title: '',
+        description: '',
+        event_date: '',
+        event_type: 'general',
+        building_id: ''
+      });
+    },
+  });
   
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -129,21 +183,127 @@ export default function CalendarWidget({ workOrders = [], maintenanceSchedules =
     return [...moveIns, ...moveOuts];
   };
 
+  const getCalendarEventsForDate = (date) => {
+    return calendarEvents.filter(event => {
+      try {
+        if (event.event_date && isSameDay(new Date(event.event_date), date)) {
+          return true;
+        }
+      } catch (e) {
+        // Invalid date format
+      }
+      return false;
+    });
+  };
+
+  const handleDateClick = (date) => {
+    if (!isSameMonth(date, currentDate)) return;
+    
+    setSelectedDate(date);
+    setEventForm({
+      title: '',
+      description: '',
+      event_date: format(date, "yyyy-MM-dd'T'HH:mm"),
+      event_type: 'general',
+      building_id: selectedBuildingId || ''
+    });
+    setShowEventDialog(true);
+  };
+
+  const handleCreateEvent = (e) => {
+    e.preventDefault();
+    createEventMutation.mutate(eventForm);
+  };
+
+  const eventTypeConfig = {
+    maintenance: { color: 'bg-yellow-500', label: 'Maintenance' },
+    inspection: { color: 'bg-purple-500', label: 'Inspection' },
+    meeting: { color: 'bg-blue-500', label: 'Meeting' },
+    move_in: { color: 'bg-green-500', label: 'Move In' },
+    move_out: { color: 'bg-red-500', label: 'Move Out' },
+    emergency: { color: 'bg-red-600', label: 'Emergency' },
+    general: { color: 'bg-slate-500', label: 'General' }
+  };
+
   return (
-    <Card className="border-0 shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-base font-semibold">
-          {format(currentDate, 'MMMM yyyy')}
-        </CardTitle>
-        <div className="flex gap-1">
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={previousMonth}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={nextMonth}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardHeader>
+    <>
+      <Card className="border-0 shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-base font-semibold">
+            {format(currentDate, 'MMMM yyyy')}
+          </CardTitle>
+          <div className="flex gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 gap-1">
+                  <Filter className="h-3 w-3" />
+                  Filter
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64">
+                <div className="space-y-3">
+                  <p className="font-medium text-sm">Show Events</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="calendar_events"
+                        checked={eventTypeFilter.calendar_events}
+                        onCheckedChange={(checked) => 
+                          setEventTypeFilter({ ...eventTypeFilter, calendar_events: checked })
+                        }
+                      />
+                      <label htmlFor="calendar_events" className="text-sm cursor-pointer">
+                        Calendar Events
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="work_orders"
+                        checked={eventTypeFilter.work_orders}
+                        onCheckedChange={(checked) => 
+                          setEventTypeFilter({ ...eventTypeFilter, work_orders: checked })
+                        }
+                      />
+                      <label htmlFor="work_orders" className="text-sm cursor-pointer">
+                        Work Orders
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="maintenance"
+                        checked={eventTypeFilter.maintenance}
+                        onCheckedChange={(checked) => 
+                          setEventTypeFilter({ ...eventTypeFilter, maintenance: checked })
+                        }
+                      />
+                      <label htmlFor="maintenance" className="text-sm cursor-pointer">
+                        Maintenance Schedule
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="residents"
+                        checked={eventTypeFilter.residents}
+                        onCheckedChange={(checked) => 
+                          setEventTypeFilter({ ...eventTypeFilter, residents: checked })
+                        }
+                      />
+                      <label htmlFor="residents" className="text-sm cursor-pointer">
+                        Resident Activity
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={previousMonth}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={nextMonth}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardHeader>
       <CardContent>
         <div className="grid grid-cols-7 gap-1">
           {weekDays.map(day => (
@@ -152,15 +312,17 @@ export default function CalendarWidget({ workOrders = [], maintenanceSchedules =
             </div>
           ))}
           {days.map((day, idx) => {
-            const dayWorkOrders = getWorkOrdersForDate(day);
-            const dayMaintenance = getMaintenanceForDate(day);
-            const dayResidents = getResidentsForDate(day);
-            const hasEvents = dayWorkOrders.length > 0 || dayMaintenance.length > 0 || dayResidents.length > 0;
+            const dayWorkOrders = eventTypeFilter.work_orders ? getWorkOrdersForDate(day) : [];
+            const dayMaintenance = eventTypeFilter.maintenance ? getMaintenanceForDate(day) : [];
+            const dayResidents = eventTypeFilter.residents ? getResidentsForDate(day) : [];
+            const dayCalendarEvents = eventTypeFilter.calendar_events ? getCalendarEventsForDate(day) : [];
+            const hasEvents = dayWorkOrders.length > 0 || dayMaintenance.length > 0 || dayResidents.length > 0 || dayCalendarEvents.length > 0;
             
             const dayContent = (
               <div
+                onClick={() => handleDateClick(day)}
                 className={`
-                  text-center text-sm py-2 rounded cursor-pointer transition-colors relative
+                  text-center text-sm py-2 rounded cursor-pointer transition-colors relative group
                   ${!isSameMonth(day, currentDate) ? 'text-slate-300' : 'text-slate-700'}
                   ${isToday(day) ? 'bg-blue-600 text-white font-semibold' : 'hover:bg-slate-100'}
                 `}
@@ -168,10 +330,13 @@ export default function CalendarWidget({ workOrders = [], maintenanceSchedules =
                 {format(day, 'd')}
                 {hasEvents && !isToday(day) && (
                   <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 flex gap-0.5">
-                    {[...Array(Math.min(3, dayWorkOrders.length + dayMaintenance.length + dayResidents.length))].map((_, i) => (
+                    {[...Array(Math.min(3, dayWorkOrders.length + dayMaintenance.length + dayResidents.length + dayCalendarEvents.length))].map((_, i) => (
                       <div key={i} className="w-1 h-1 rounded-full bg-orange-500" />
                     ))}
                   </div>
+                )}
+                {isSameMonth(day, currentDate) && (
+                  <Plus className="h-3 w-3 absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 transition-opacity" />
                 )}
               </div>
             );
@@ -192,6 +357,35 @@ export default function CalendarWidget({ workOrders = [], maintenanceSchedules =
                       <span className="font-semibold text-sm">{format(day, 'MMM d, yyyy')}</span>
                     </div>
                     <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {dayCalendarEvents.length > 0 && (
+                        <>
+                          <p className="text-xs font-semibold text-slate-500 uppercase">Events</p>
+                          {dayCalendarEvents.map((event) => {
+                            const typeConfig = eventTypeConfig[event.event_type] || eventTypeConfig.general;
+                            return (
+                              <div key={event.id} className="p-2 bg-slate-50 rounded border border-slate-200">
+                                <div className="flex items-start justify-between gap-2 mb-1">
+                                  <div className="flex items-center gap-2 flex-1">
+                                    <div className={`w-2 h-2 rounded-full ${typeConfig.color}`} />
+                                    <p className="text-sm font-medium text-slate-900 line-clamp-1">{event.title}</p>
+                                  </div>
+                                  <StatusBadge status={event.status} className="text-xs" />
+                                </div>
+                                {event.description && (
+                                  <p className="text-xs text-slate-600 line-clamp-2 mb-2">{event.description}</p>
+                                )}
+                                <div className="flex items-center gap-3 text-xs text-slate-500">
+                                  <span className="capitalize">{typeConfig.label}</span>
+                                  {event.event_date && (
+                                    <span>{format(new Date(event.event_date), 'h:mm a')}</span>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </>
+                      )}
+
                       {dayWorkOrders.length > 0 && (
                         <>
                           <p className="text-xs font-semibold text-slate-500 uppercase">Work Orders</p>
@@ -297,6 +491,97 @@ export default function CalendarWidget({ workOrders = [], maintenanceSchedules =
           })}
         </div>
       </CardContent>
-    </Card>
+      </Card>
+
+      {/* Create Event Dialog */}
+      <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Calendar Event</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCreateEvent} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Event Title *</Label>
+              <Input
+                value={eventForm.title}
+                onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
+                placeholder="e.g., Annual Fire Safety Inspection"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Textarea
+                value={eventForm.description}
+                onChange={(e) => setEventForm({ ...eventForm, description: e.target.value })}
+                placeholder="Event details..."
+                rows={3}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Event Type *</Label>
+                <Select 
+                  value={eventForm.event_type} 
+                  onValueChange={(v) => setEventForm({ ...eventForm, event_type: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="general">General</SelectItem>
+                    <SelectItem value="maintenance">Maintenance</SelectItem>
+                    <SelectItem value="inspection">Inspection</SelectItem>
+                    <SelectItem value="meeting">Meeting</SelectItem>
+                    <SelectItem value="move_in">Move In</SelectItem>
+                    <SelectItem value="move_out">Move Out</SelectItem>
+                    <SelectItem value="emergency">Emergency</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Building</Label>
+                <Select 
+                  value={eventForm.building_id || ''} 
+                  onValueChange={(v) => setEventForm({ ...eventForm, building_id: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select building" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>All Buildings</SelectItem>
+                    {buildings.map(b => (
+                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Date & Time *</Label>
+              <Input
+                type="datetime-local"
+                value={eventForm.event_date}
+                onChange={(e) => setEventForm({ ...eventForm, event_date: e.target.value })}
+                required
+              />
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowEventDialog(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={createEventMutation.isPending}>
+                {createEventMutation.isPending ? 'Creating...' : 'Create Event'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
