@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Building2, Users, ClipboardCheck, MessageSquare, Shield, FileText, BarChart3, Layers, CheckCircle, Home, UserCog, FolderOpen, Smartphone } from 'lucide-react';
+import { Building2, Users, ClipboardCheck, MessageSquare, Shield, FileText, BarChart3, Layers, CheckCircle, Home as HomeIcon, UserCog, FolderOpen, Smartphone } from 'lucide-react';
 
 export default function Home() {
   return (
@@ -152,7 +152,7 @@ export default function Home() {
             </Card>
             <Card className="hover:shadow-lg transition-shadow border-2">
               <CardContent className="p-8">
-                <Home className="w-12 h-12 text-indigo-600 mb-4" />
+                <HomeIcon className="w-12 h-12 text-indigo-600 mb-4" />
                 <h3 className="text-2xl font-bold mb-4">Residents</h3>
                 <p className="text-gray-600 leading-relaxed">
                   Simple communication and clearer updates, without complex portals or unnecessary features.
