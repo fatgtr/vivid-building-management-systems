@@ -14,7 +14,8 @@ import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
 import SubdivisionPlanExtractor from '@/components/buildings/SubdivisionPlanExtractor';
-import { FileText, Search, Building2, MoreVertical, Pencil, Trash2, Download, Upload, Eye, File, FileImage, FileArchive, Database, Folder, ChevronDown, ChevronRight } from 'lucide-react';
+import { FileText, Search, Building2, MoreVertical, Pencil, Trash2, Download, Upload, Eye, File, FileImage, FileArchive, Database, Folder, ChevronDown, ChevronRight, Scan, History, FileUp, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -77,6 +78,10 @@ export default function Documents() {
   const [uploading, setUploading] = useState(false);
   const [extractingDocument, setExtractingDocument] = useState(null);
   const [expandedCategories, setExpandedCategories] = useState({});
+  const [versionDialog, setVersionDialog] = useState(null);
+  const [versionNotes, setVersionNotes] = useState('');
+  const [uploadingVersion, setUploadingVersion] = useState(false);
+  const [ocrProcessing, setOcrProcessing] = useState({});
 
   const queryClient = useQueryClient();
 
@@ -92,9 +97,23 @@ export default function Documents() {
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Document.create(data),
-    onSuccess: () => {
+    onSuccess: async (newDoc) => {
       queryClient.invalidateQueries({ queryKey: ['documents'] });
       handleCloseDialog();
+      
+      // Trigger OCR processing
+      setOcrProcessing(prev => ({ ...prev, [newDoc.id]: true }));
+      toast.info('Processing document for searchable text...');
+      
+      try {
+        await base44.functions.invoke('processDocumentOCR', { documentId: newDoc.id });
+        queryClient.invalidateQueries({ queryKey: ['documents'] });
+        setOcrProcessing(prev => ({ ...prev, [newDoc.id]: false }));
+        toast.success('Document indexed successfully');
+      } catch (error) {
+        setOcrProcessing(prev => ({ ...prev, [newDoc.id]: false }));
+        toast.error('Failed to index document');
+      }
     },
   });
 
@@ -111,6 +130,23 @@ export default function Documents() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents'] });
       setDeleteDocument(null);
+    },
+  });
+
+  const createVersionMutation = useMutation({
+    mutationFn: async ({ originalDocumentId, newFileUrl, versionNotes }) => {
+      const { data } = await base44.functions.invoke('createDocumentVersion', {
+        originalDocumentId,
+        newFileUrl,
+        versionNotes
+      });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      setVersionDialog(null);
+      setVersionNotes('');
+      toast.success('New version created and processing');
     },
   });
 
@@ -145,6 +181,46 @@ export default function Documents() {
     setUploading(false);
   };
 
+  const handleVersionUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !versionDialog) return;
+    
+    setUploadingVersion(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      await createVersionMutation.mutateAsync({
+        originalDocumentId: versionDialog.id,
+        newFileUrl: file_url,
+        versionNotes
+      });
+    } catch (error) {
+      toast.error('Failed to create version');
+    }
+    setUploadingVersion(false);
+  };
+
+  const getDocumentVersions = (doc) => {
+    const parentId = doc.parent_document_id || doc.id;
+    return documents.filter(d => 
+      d.parent_document_id === parentId || d.id === parentId
+    ).sort((a, b) => (b.version || 1) - (a.version || 1));
+  };
+
+  const retriggerOCR = async (docId) => {
+    setOcrProcessing(prev => ({ ...prev, [docId]: true }));
+    toast.info('Re-processing document...');
+    
+    try {
+      await base44.functions.invoke('processDocumentOCR', { documentId: docId });
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      setOcrProcessing(prev => ({ ...prev, [docId]: false }));
+      toast.success('Document re-indexed successfully');
+    } catch (error) {
+      setOcrProcessing(prev => ({ ...prev, [docId]: false }));
+      toast.error('Failed to re-index document');
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (editingDocument) {
@@ -167,10 +243,13 @@ export default function Documents() {
   };
 
   const filteredDocuments = documents.filter(d => {
-    const matchesSearch = d.title?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = d.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         d.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         d.ocr_content?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesBuilding = filterBuilding === 'all' || d.building_id === filterBuilding;
     const matchesCategory = filterCategory === 'all' || d.category === filterCategory;
-    return matchesSearch && matchesBuilding && matchesCategory;
+    const isLatestVersion = !d.parent_document_id || d.status === 'active';
+    return matchesSearch && matchesBuilding && matchesCategory && isLatestVersion;
   });
 
   const documentsByCategory = filteredDocuments.reduce((acc, doc) => {
@@ -291,12 +370,16 @@ export default function Documents() {
                           <TableHead>Visibility</TableHead>
                           <TableHead>Uploaded</TableHead>
                           <TableHead>Status</TableHead>
+                          <TableHead>OCR</TableHead>
                           <TableHead className="w-24">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {categoryDocs.map((doc) => {
                           const FileIcon = getFileIcon(doc.file_url);
+                          const versions = getDocumentVersions(doc);
+                          const hasVersions = versions.length > 1;
+                          
                           return (
                             <TableRow key={doc.id} className="hover:bg-slate-50/50">
                               <TableCell>
@@ -305,7 +388,14 @@ export default function Documents() {
                                     <FileIcon className="h-5 w-5 text-blue-600" />
                                   </div>
                                   <div>
-                                    <p className="font-medium text-slate-900">{doc.title}</p>
+                                    <div className="flex items-center gap-2">
+                                      <p className="font-medium text-slate-900">{doc.title}</p>
+                                      {hasVersions && (
+                                        <span className="text-xs px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded">
+                                          v{doc.version || 1}
+                                        </span>
+                                      )}
+                                    </div>
                                     {doc.description && (
                                       <p className="text-xs text-slate-500 line-clamp-1">{doc.description}</p>
                                     )}
@@ -325,6 +415,26 @@ export default function Documents() {
                               </TableCell>
                               <TableCell>
                                 <StatusBadge status={doc.status} />
+                              </TableCell>
+                              <TableCell>
+                                {ocrProcessing[doc.id] ? (
+                                  <div className="flex items-center gap-1 text-xs text-blue-600">
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                    <span>Processing</span>
+                                  </div>
+                                ) : doc.ocr_status === 'completed' ? (
+                                  <div className="flex items-center gap-1 text-xs text-emerald-600">
+                                    <CheckCircle2 className="h-3 w-3" />
+                                    <span>Indexed</span>
+                                  </div>
+                                ) : doc.ocr_status === 'failed' ? (
+                                  <div className="flex items-center gap-1 text-xs text-red-600">
+                                    <AlertCircle className="h-3 w-3" />
+                                    <span>Failed</span>
+                                  </div>
+                                ) : (
+                                  <span className="text-xs text-slate-400">Pending</span>
+                                )}
                               </TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-1">
@@ -347,6 +457,20 @@ export default function Documents() {
                                           <a href={doc.file_url} download>
                                             <Download className="mr-2 h-4 w-4" /> Download
                                           </a>
+                                        </DropdownMenuItem>
+                                      )}
+                                      <DropdownMenuItem onClick={() => setVersionDialog(doc)}>
+                                        <FileUp className="mr-2 h-4 w-4" /> Upload New Version
+                                      </DropdownMenuItem>
+                                      {hasVersions && (
+                                        <DropdownMenuItem onClick={() => setVersionDialog({ ...doc, viewMode: true })}>
+                                          <History className="mr-2 h-4 w-4" /> View Versions ({versions.length})
+                                        </DropdownMenuItem>
+                                      )}
+                                      {doc.ocr_status !== 'processing' && (
+                                        <DropdownMenuItem onClick={() => retriggerOCR(doc.id)}>
+                                          <Scan className="mr-2 h-4 w-4" /> 
+                                          {doc.ocr_status === 'completed' ? 'Re-index' : 'Index'} Document
                                         </DropdownMenuItem>
                                       )}
                                       {doc.building_id && isPDF(doc.file_url) && (
@@ -494,6 +618,106 @@ export default function Documents() {
               onComplete={() => setExtractingDocument(null)}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Version Management Dialog */}
+      <Dialog open={!!versionDialog} onOpenChange={() => { setVersionDialog(null); setVersionNotes(''); }}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {versionDialog?.viewMode ? 'Version History' : 'Upload New Version'}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {versionDialog?.viewMode ? (
+            <div className="space-y-4">
+              <p className="text-sm text-slate-600">
+                All versions of "{versionDialog.title}"
+              </p>
+              <div className="space-y-2">
+                {getDocumentVersions(versionDialog).map((version, idx) => (
+                  <Card key={version.id} className="border-0 shadow-sm">
+                    <div className="p-4 flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-semibold text-slate-900">
+                            Version {version.version || 1}
+                          </span>
+                          {idx === 0 && (
+                            <span className="text-xs px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded">
+                              Current
+                            </span>
+                          )}
+                          {version.ocr_status === 'completed' && (
+                            <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                          )}
+                        </div>
+                        <p className="text-sm text-slate-600">
+                          {format(new Date(version.created_date), 'MMM d, yyyy h:mm a')}
+                        </p>
+                        {version.version_notes && (
+                          <p className="text-xs text-slate-500 mt-1">{version.version_notes}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="sm" asChild>
+                          <a href={version.file_url} target="_blank" rel="noopener noreferrer">
+                            <Eye className="h-4 w-4" />
+                          </a>
+                        </Button>
+                        <Button variant="ghost" size="sm" asChild>
+                          <a href={version.file_url} download>
+                            <Download className="h-4 w-4" />
+                          </a>
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-sm text-slate-600">
+                Upload a new version of "{versionDialog?.title}". The previous version will be archived.
+              </p>
+              <div>
+                <Label>New File *</Label>
+                <Input
+                  type="file"
+                  onChange={handleVersionUpload}
+                  disabled={uploadingVersion}
+                  className="cursor-pointer mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="version_notes">Version Notes</Label>
+                <Textarea
+                  id="version_notes"
+                  value={versionNotes}
+                  onChange={(e) => setVersionNotes(e.target.value)}
+                  placeholder="Describe what changed in this version..."
+                  rows={3}
+                />
+              </div>
+              {uploadingVersion && (
+                <div className="flex items-center gap-2 text-sm text-blue-600">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Creating new version and indexing...</span>
+                </div>
+              )}
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => { setVersionDialog(null); setVersionNotes(''); }}
+            >
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
