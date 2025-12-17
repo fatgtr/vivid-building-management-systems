@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -76,6 +77,22 @@ export default function Announcements() {
   // Templates state
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [templateType, setTemplateType] = useState('announcement');
+
+  // Email state
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [emailForm, setEmailForm] = useState({
+    subject: '',
+    body: '',
+    recipients: {
+      all_residents: false,
+      owners: false,
+      tenants: false,
+      managers: false,
+      strata_managers: false,
+      committee: false
+    }
+  });
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   const queryClient = useQueryClient();
   const { selectedBuildingId } = useBuildingContext();
@@ -329,6 +346,114 @@ export default function Announcements() {
     createMessageTemplateMutation.mutate(data);
   };
 
+  const handleSendEmail = async () => {
+    if (!emailForm.subject || !emailForm.body) {
+      toast.error('Please fill in subject and body');
+      return;
+    }
+
+    const recipientEmails = new Set();
+    const selectedBuilding = selectedBuildingId 
+      ? buildings.find(b => b.id === selectedBuildingId) 
+      : null;
+
+    const buildingResidents = selectedBuildingId 
+      ? residents.filter(r => r.building_id === selectedBuildingId)
+      : residents;
+
+    if (emailForm.recipients.all_residents) {
+      buildingResidents.forEach(r => r.email && recipientEmails.add(r.email));
+    }
+    
+    if (emailForm.recipients.owners) {
+      buildingResidents
+        .filter(r => r.resident_type === 'owner')
+        .forEach(r => r.email && recipientEmails.add(r.email));
+      
+      buildingResidents.forEach(r => {
+        if (r.investor_email) recipientEmails.add(r.investor_email);
+      });
+    }
+    
+    if (emailForm.recipients.tenants) {
+      buildingResidents
+        .filter(r => r.resident_type === 'tenant')
+        .forEach(r => r.email && recipientEmails.add(r.email));
+    }
+
+    if (emailForm.recipients.managers) {
+      if (selectedBuilding?.manager_email) {
+        recipientEmails.add(selectedBuilding.manager_email);
+      }
+      
+      buildingResidents.forEach(r => {
+        if (r.managing_agent_email) recipientEmails.add(r.managing_agent_email);
+      });
+    }
+
+    if (emailForm.recipients.strata_managers) {
+      if (selectedBuilding?.strata_managing_agent_email) {
+        recipientEmails.add(selectedBuilding.strata_managing_agent_email);
+      }
+    }
+
+    if (emailForm.recipients.committee) {
+      buildingResidents
+        .filter(r => r.investor_strata_committee_member)
+        .forEach(r => {
+          if (r.investor_email) recipientEmails.add(r.investor_email);
+        });
+    }
+
+    if (recipientEmails.size === 0) {
+      toast.error('Please select at least one recipient group');
+      return;
+    }
+
+    setIsSendingEmail(true);
+    let successCount = 0;
+    let failCount = 0;
+
+    try {
+      for (const email of recipientEmails) {
+        try {
+          await base44.integrations.Core.SendEmail({
+            to: email,
+            subject: emailForm.subject,
+            body: emailForm.body
+          });
+          successCount++;
+        } catch (error) {
+          console.error(`Failed to send to ${email}:`, error);
+          failCount++;
+        }
+      }
+
+      if (successCount > 0) {
+        toast.success(`Email sent to ${successCount} recipient(s)${failCount > 0 ? ` (${failCount} failed)` : ''}`);
+        setShowEmailDialog(false);
+        setEmailForm({
+          subject: '',
+          body: '',
+          recipients: {
+            all_residents: false,
+            owners: false,
+            tenants: false,
+            managers: false,
+            strata_managers: false,
+            committee: false
+          }
+        });
+      } else {
+        toast.error('Failed to send emails');
+      }
+    } catch (error) {
+      toast.error('Error sending emails');
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
+
   const getBuildingName = (buildingId) => buildings.find(b => b.id === buildingId)?.name || 'All Buildings';
   const getTypeConfig = (type) => announcementTypes.find(t => t.value === type) || announcementTypes[0];
 
@@ -391,7 +516,16 @@ export default function Announcements() {
       <PageHeader 
         title="Communications Center" 
         subtitle="Manage announcements, resident messages, and templates"
-      />
+      >
+        <Button 
+          onClick={() => setShowEmailDialog(true)}
+          variant="outline"
+          className="gap-2"
+        >
+          <Mail className="h-4 w-4" />
+          Compose Email
+        </Button>
+      </PageHeader>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
@@ -1182,6 +1316,158 @@ export default function Announcements() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Compose Email Dialog */}
+      <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Compose Email</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Subject</Label>
+              <Input
+                value={emailForm.subject}
+                onChange={(e) => setEmailForm({ ...emailForm, subject: e.target.value })}
+                placeholder="Email subject..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Message</Label>
+              <Textarea
+                value={emailForm.body}
+                onChange={(e) => setEmailForm({ ...emailForm, body: e.target.value })}
+                placeholder="Email message..."
+                rows={8}
+              />
+            </div>
+
+            <div className="space-y-3">
+              <Label>Recipients</Label>
+              <div className="space-y-2 border rounded-lg p-4 bg-slate-50">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="all_residents"
+                    checked={emailForm.recipients.all_residents}
+                    onCheckedChange={(checked) => 
+                      setEmailForm({ 
+                        ...emailForm, 
+                        recipients: { ...emailForm.recipients, all_residents: checked } 
+                      })
+                    }
+                  />
+                  <label htmlFor="all_residents" className="text-sm font-medium cursor-pointer">
+                    All Residents (Owners & Tenants)
+                  </label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="owners"
+                    checked={emailForm.recipients.owners}
+                    onCheckedChange={(checked) => 
+                      setEmailForm({ 
+                        ...emailForm, 
+                        recipients: { ...emailForm.recipients, owners: checked } 
+                      })
+                    }
+                  />
+                  <label htmlFor="owners" className="text-sm font-medium cursor-pointer">
+                    Owners Only
+                  </label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="tenants"
+                    checked={emailForm.recipients.tenants}
+                    onCheckedChange={(checked) => 
+                      setEmailForm({ 
+                        ...emailForm, 
+                        recipients: { ...emailForm.recipients, tenants: checked } 
+                      })
+                    }
+                  />
+                  <label htmlFor="tenants" className="text-sm font-medium cursor-pointer">
+                    Tenants Only
+                  </label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="managers"
+                    checked={emailForm.recipients.managers}
+                    onCheckedChange={(checked) => 
+                      setEmailForm({ 
+                        ...emailForm, 
+                        recipients: { ...emailForm.recipients, managers: checked } 
+                      })
+                    }
+                  />
+                  <label htmlFor="managers" className="text-sm font-medium cursor-pointer">
+                    Building & Property Managers
+                  </label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="strata_managers"
+                    checked={emailForm.recipients.strata_managers}
+                    onCheckedChange={(checked) => 
+                      setEmailForm({ 
+                        ...emailForm, 
+                        recipients: { ...emailForm.recipients, strata_managers: checked } 
+                      })
+                    }
+                  />
+                  <label htmlFor="strata_managers" className="text-sm font-medium cursor-pointer">
+                    Strata Managers
+                  </label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="committee"
+                    checked={emailForm.recipients.committee}
+                    onCheckedChange={(checked) => 
+                      setEmailForm({ 
+                        ...emailForm, 
+                        recipients: { ...emailForm.recipients, committee: checked } 
+                      })
+                    }
+                  />
+                  <label htmlFor="committee" className="text-sm font-medium cursor-pointer">
+                    Committee Members
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowEmailDialog(false)}
+              disabled={isSendingEmail}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSendEmail}
+              disabled={isSendingEmail || !emailForm.subject || !emailForm.body}
+            >
+              {isSendingEmail ? (
+                <>Sending...</>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Send Email
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
