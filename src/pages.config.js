@@ -20,6 +20,7 @@ import ContractorPortal from './pages/ContractorPortal';
 import ResidentProfile from './pages/ResidentProfile';
 import RoleManagement from './pages/RoleManagement';
 import LandingPage from './pages/LandingPage';
+import Reports from './pages/Reports';
 import __Layout from './Layout.jsx';
 
 
@@ -46,6 +47,7 @@ export const PAGES = {
     "ResidentProfile": ResidentProfile,
     "RoleManagement": RoleManagement,
     "LandingPage": LandingPage,
+    "Reports": Reports,
 }
 
 export const pagesConfig = {
