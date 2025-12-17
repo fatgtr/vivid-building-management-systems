@@ -71,8 +71,12 @@ function LayoutInner({ children, currentPageName }) {
   const { can, isAdmin: isPermissionAdmin, hasRole } = usePermissions();
 
   useEffect(() => {
+    // Don't require auth for landing page
+    if (currentPageName === 'LandingPage') {
+      return;
+    }
     base44.auth.me().then(setUser).catch(() => {});
-  }, []);
+  }, [currentPageName]);
 
   // Check if user is a contractor
   const isContractor = user?.contractor_id || hasRole('contractor');
@@ -80,6 +84,11 @@ function LayoutInner({ children, currentPageName }) {
   const handleLogout = () => {
     base44.auth.logout();
   };
+
+  // Render landing page without layout wrapper
+  if (currentPageName === 'LandingPage') {
+    return <>{children}</>;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
