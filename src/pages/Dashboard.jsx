@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
@@ -39,14 +39,6 @@ export default function Dashboard() {
   const [showNumberDialog, setShowNumberDialog] = useState(false);
   const [noteForm, setNoteForm] = useState({ title: '', content: '', category: 'general' });
   const [numberForm, setNumberForm] = useState({ name: '', phone_number: '', category: 'other' });
-
-  useEffect(() => {
-    base44.auth.isAuthenticated().then(authenticated => {
-      if (!authenticated) {
-        base44.auth.redirectToLogin(window.location.pathname);
-      }
-    });
-  }, []);
 
   const { data: buildings = [], isLoading: loadingBuildings } = useQuery({
     queryKey: ['buildings'],
