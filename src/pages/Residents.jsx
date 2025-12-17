@@ -581,8 +581,13 @@ export default function Residents() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link to={createPageUrl(`ResidentProfile?id=${resident.id}`)}>
+                              <User className="mr-2 h-4 w-4" /> View Profile
+                            </Link>
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleEdit(resident)}>
-                            <Pencil className="mr-2 h-4 w-4" /> Edit
+                            <Pencil className="mr-2 h-4 w-4" /> Quick Edit
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
                             <Link to={createPageUrl(`ResidentPortal?residentId=${resident.id}`)}>
