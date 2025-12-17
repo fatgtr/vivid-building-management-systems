@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Building2, Users, ClipboardCheck, MessageSquare, Shield, FileText, BarChart3, Layers, CheckCircle } from 'lucide-react';
+import { Building2, Users, ClipboardCheck, MessageSquare, Shield, FileText, BarChart3, Layers, CheckCircle, Home, UserCog, FolderOpen, Smartphone } from 'lucide-react';
 
 export default function LandingPage() {
   return (
@@ -17,10 +17,10 @@ export default function LandingPage() {
               <span className="text-xl font-bold text-gray-900">Vivid Building Management Systems</span>
             </div>
             <div className="hidden md:flex items-center gap-6">
-              <a href="#features" className="text-gray-600 hover:text-gray-900">Features</a>
-              <a href="#solutions" className="text-gray-600 hover:text-gray-900">Solutions</a>
+              <a href="#features" className="text-gray-600 hover:text-gray-900">How It Works</a>
+              <a href="#solutions" className="text-gray-600 hover:text-gray-900">Who It's For</a>
               <a href="#partners" className="text-gray-600 hover:text-gray-900">Partners</a>
-              <a href="#support" className="text-gray-600 hover:text-gray-900">Support</a>
+              <a href="#whats-next" className="text-gray-600 hover:text-gray-900">What's Next</a>
               <Link to={createPageUrl('Dashboard')}>
                 <Button variant="outline">Login</Button>
               </Link>
@@ -33,98 +33,129 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="max-w-3xl">
+          <div className="max-w-4xl">
             <h1 className="text-5xl sm:text-6xl font-bold leading-tight mb-6">
-              Powerfully simple building management software for strata and building teams.
+              Built for building managers who belong on site, not behind a desk.
             </h1>
             <p className="text-xl mb-8 text-blue-100">
-              Vivid is a cloud based building management system that helps strata managers, building management firms, and residents stay organised, stay compliant, and communicate clearly, across small, medium, and large buildings.
+              Vivid is a cloud based building management system designed for strata and BMC building managers. It reduces repetitive admin, streamlines routine tasks, and frees managers to focus on what really matters—the building, the people, and the day to day operation.
             </p>
             <div className="flex flex-wrap gap-4">
               <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8">
                 Book a Demo
               </Button>
               <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 text-lg px-8">
-                See Features
+                See How It Works
               </Button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Trust Line */}
-      <section className="py-8 bg-gray-50 border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-gray-600 text-lg">
-            Trusted by strata and building management teams who want a modern alternative to complex, expensive platforms.
+      {/* Supporting Statement */}
+      <section className="py-16 bg-white">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-2xl sm:text-3xl font-semibold text-gray-900 leading-relaxed mb-6">
+            Building managers add value by being present—inspecting buildings, meeting contractors, and working with residents and committees.
+          </p>
+          <p className="text-xl text-gray-600">
+            Vivid is designed to take care of the repetitive desk work so building managers can stay active, engaged, and effective on site.
           </p>
         </div>
       </section>
 
-      {/* Three Value Pillars */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
+      {/* Core Value Proposition */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            <div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                <Building2 className="w-6 h-6 text-blue-600" />
-              </div>
-              <h3 className="text-2xl font-bold mb-3">Built for strata, not everything</h3>
-              <p className="text-gray-600 text-lg">
-                Vivid focuses on residential strata and BMC structures. It fits day to day building operations without feature overload.
+          <h2 className="text-4xl font-bold text-center mb-16">Less admin. More building management.</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div className="space-y-8">
+              <p className="text-xl text-gray-700 leading-relaxed">
+                Vivid automates and simplifies the tasks that consume a building manager's time—logging issues, tracking actions, managing records, and keeping communication organised.
               </p>
+              <div>
+                <h3 className="text-2xl font-bold mb-4 text-gray-900">That means:</h3>
+                <ul className="space-y-3 text-lg text-gray-700">
+                  <li className="flex items-start gap-3">
+                    <CheckCircle className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
+                    <span>Less time creating work orders and chasing updates</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
+                    <span>Less time duplicating information across systems</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
+                    <span>Less time stuck at a desk</span>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold mb-4 text-gray-900">And more time:</h3>
+                <ul className="space-y-3 text-lg text-gray-700">
+                  <li className="flex items-start gap-3">
+                    <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span>Walking the building</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span>Meeting contractors</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span>Engaging with residents</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span>Liaising with committees</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span>Proactively managing issues before they escalate</span>
+                  </li>
+                </ul>
+              </div>
             </div>
-            <div>
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                <BarChart3 className="w-6 h-6 text-green-600" />
-              </div>
-              <h3 className="text-2xl font-bold mb-3">Clear oversight in one place</h3>
-              <p className="text-gray-600 text-lg">
-                Track tasks, issues, documents, and building records with real visibility, so teams make better decisions.
-              </p>
-            </div>
-            <div>
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                <Layers className="w-6 h-6 text-purple-600" />
-              </div>
-              <h3 className="text-2xl font-bold mb-3">Partner ready, white label available</h3>
-              <p className="text-gray-600 text-lg">
-                Offer Vivid under your own brand, or co brand it as "powered by Vivid". Ideal for strata managers and building management firms who on charge to owners corporations.
-              </p>
+            <div className="flex justify-center">
+              <img 
+                src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=2073&auto=format&fit=crop" 
+                alt="Building manager on site" 
+                className="rounded-2xl shadow-2xl w-full max-w-lg object-cover"
+              />
             </div>
           </div>
         </div>
       </section>
 
-      {/* Who Vivid is for */}
-      <section id="solutions" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
+      {/* Who Vivid is built for */}
+      <section id="solutions" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-16">Who Vivid is for</h2>
+          <h2 className="text-4xl font-bold text-center mb-16">Who Vivid is built for</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card className="hover:shadow-lg transition-shadow border-2">
               <CardContent className="p-8">
-                <Users className="w-10 h-10 text-blue-600 mb-4" />
-                <h3 className="text-2xl font-bold mb-3">Strata managers</h3>
-                <p className="text-gray-600">
-                  Streamline communication, compliance, and reporting across every building in your portfolio.
+                <UserCog className="w-12 h-12 text-blue-600 mb-4" />
+                <h3 className="text-2xl font-bold mb-4">Building managers (strata and BMC)</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Vivid supports building managers working across small, medium, and large residential buildings, including BMC structures. It fits both on site and portfolio based management models and adapts to how managers actually work day to day.
                 </p>
               </CardContent>
             </Card>
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card className="hover:shadow-lg transition-shadow border-2">
               <CardContent className="p-8">
-                <Building2 className="w-10 h-10 text-green-600 mb-4" />
-                <h3 className="text-2xl font-bold mb-3">Building management firms</h3>
-                <p className="text-gray-600">
-                  Run daily operations from one dashboard, across single sites or multi building portfolios.
+                <Users className="w-12 h-12 text-green-600 mb-4" />
+                <h3 className="text-2xl font-bold mb-4">Strata and owners committees</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Clear records, structured communication, and visibility of actions taken—without adding admin overhead for the building manager.
                 </p>
               </CardContent>
             </Card>
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card className="hover:shadow-lg transition-shadow border-2">
               <CardContent className="p-8">
-                <MessageSquare className="w-10 h-10 text-purple-600 mb-4" />
-                <h3 className="text-2xl font-bold mb-3">Residents and committees</h3>
-                <p className="text-gray-600">
-                  Get clear notices, access key documents, and see progress on issues without messy email chains.
+                <Home className="w-12 h-12 text-indigo-600 mb-4" />
+                <h3 className="text-2xl font-bold mb-4">Residents</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Simple communication and clearer updates, without complex portals or unnecessary features.
                 </p>
               </CardContent>
             </Card>
@@ -132,118 +163,111 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* What you can do with Vivid */}
-      <section id="features" className="py-20 px-4 sm:px-6 lg:px-8">
+      {/* What Vivid helps you do */}
+      <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-16">What you can do with Vivid</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <div className="space-y-8">
-              <div className="flex gap-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <ClipboardCheck className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-2">Tasks and issue tracking</h3>
-                  <p className="text-gray-600">Log, assign, and track tasks in real time. Keep clear ownership, status, and timelines.</p>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <FileText className="w-6 h-6 text-green-600" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-2">Building records and compliance</h3>
-                  <p className="text-gray-600">Store registers, documents, and approvals in one place, with a clear history of changes and actions.</p>
-                </div>
-              </div>
+          <h2 className="text-4xl font-bold text-center mb-16">What Vivid helps you do</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+              <ClipboardCheck className="w-12 h-12 text-blue-600 mb-4" />
+              <h3 className="text-xl font-bold mb-3">Streamline routine tasks</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Log and track issues quickly without heavy work order systems that slow managers down.
+              </p>
             </div>
-            <div className="space-y-8">
-              <div className="flex gap-4">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <MessageSquare className="w-6 h-6 text-purple-600" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-2">Communication that works</h3>
-                  <p className="text-gray-600">Send notices and updates via in app notifications and email, with structured templates that reduce admin time.</p>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <BarChart3 className="w-6 h-6 text-orange-600" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-2">Operational visibility</h3>
-                  <p className="text-gray-600">See what is open, what is overdue, and what is complete, across buildings and teams.</p>
-                </div>
-              </div>
+            <div className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+              <FolderOpen className="w-12 h-12 text-green-600 mb-4" />
+              <h3 className="text-xl font-bold mb-3">Stay organised without micromanagement</h3>
+              <p className="text-gray-600 leading-relaxed">
+                All building records, documents, and actions in one place, easy to access when needed.
+              </p>
+            </div>
+            <div className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+              <MessageSquare className="w-12 h-12 text-indigo-600 mb-4" />
+              <h3 className="text-xl font-bold mb-3">Communicate once, clearly</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Structured updates to residents and committees without endless email chains or follow ups.
+              </p>
+            </div>
+            <div className="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+              <Smartphone className="w-12 h-12 text-orange-600 mb-4" />
+              <h3 className="text-xl font-bold mb-3">Keep moving</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Vivid is designed to support mobile, on site management, not desk based admin work.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Designed to scale */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-blue-50">
+      {/* Designed to scale with real buildings */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white">
         <div className="max-w-5xl mx-auto text-center">
-          <h2 className="text-4xl font-bold mb-8">Designed to scale</h2>
-          <p className="text-xl text-gray-700 mb-12">Vivid works for:</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-            <div className="flex flex-col items-center">
-              <CheckCircle className="w-8 h-8 text-blue-600 mb-3" />
-              <p className="text-lg font-medium">Small schemes that need simple, affordable tools</p>
-            </div>
-            <div className="flex flex-col items-center">
-              <CheckCircle className="w-8 h-8 text-blue-600 mb-3" />
-              <p className="text-lg font-medium">Medium buildings with active committees</p>
-            </div>
-            <div className="flex flex-col items-center">
-              <CheckCircle className="w-8 h-8 text-blue-600 mb-3" />
-              <p className="text-lg font-medium">Large strata and BMC structures that need stronger oversight</p>
-            </div>
-          </div>
-          <p className="text-gray-600 text-lg font-medium">Same platform, same workflow, every size.</p>
-        </div>
-      </section>
-
-      {/* Partner section */}
-      <section id="partners" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-indigo-600 to-purple-700 text-white">
-        <div className="max-w-5xl mx-auto text-center">
-          <h2 className="text-4xl font-bold mb-6">Sell it your way</h2>
-          <p className="text-xl mb-12 text-blue-100">Wholesale options for strata managers and building management firms.</p>
+          <h2 className="text-4xl font-bold mb-8">Designed to scale with real buildings</h2>
+          <p className="text-xl mb-12 opacity-90">Vivid works across:</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
-              <h3 className="text-lg font-bold mb-2">White label branding</h3>
-              <p className="text-blue-100">Your logo, colours, email identity</p>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
+              <Building2 className="w-10 h-10 mx-auto mb-4 opacity-90" />
+              <p className="text-lg font-medium">Small strata schemes</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
-              <h3 className="text-lg font-bold mb-2">Co-branding option</h3>
-              <p className="text-blue-100">"Powered by Vivid"</p>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
+              <Building2 className="w-10 h-10 mx-auto mb-4 opacity-90" />
+              <p className="text-lg font-medium">Medium residential buildings</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
-              <h3 className="text-lg font-bold mb-2">Portfolio rollout tools</h3>
-              <p className="text-blue-100">For faster deployment</p>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
+              <Building2 className="w-10 h-10 mx-auto mb-4 opacity-90" />
+              <p className="text-lg font-medium">Large strata and BMC managed buildings</p>
             </div>
           </div>
-          <Button size="lg" className="bg-white text-indigo-600 hover:bg-gray-100 text-lg px-8">
-            Partner with Vivid
+          <p className="text-xl opacity-90 leading-relaxed max-w-3xl mx-auto">
+            The workflow stays the same as buildings grow, so managers are not forced into more complex systems as portfolios expand.
+          </p>
+        </div>
+      </section>
+
+      {/* What's coming next */}
+      <section id="whats-next" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-4xl font-bold mb-8 text-gray-900">What's coming next</h2>
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-8 mb-6">
+            <Shield className="w-12 h-12 text-blue-600 mx-auto mb-4" />
+            <p className="text-xl font-semibold text-gray-900 mb-3">A dedicated Strata Management plugin is coming soon.</p>
+            <p className="text-lg text-gray-600">
+              For now, Vivid is focused purely on supporting building managers and strengthening on site operations.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Partner and white label note */}
+      <section id="partners" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
+        <div className="max-w-4xl mx-auto text-center">
+          <Layers className="w-16 h-16 text-blue-600 mx-auto mb-6" />
+          <h2 className="text-4xl font-bold mb-6 text-gray-900">Partner with Vivid BMS</h2>
+          <p className="text-xl text-gray-700 mb-8 leading-relaxed">
+            Vivid is available with white label and co-branded options for building management firms who want to offer the platform under their own brand.
+          </p>
+          <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg px-10">
+            Learn More About Partnering
           </Button>
         </div>
       </section>
 
-      {/* Closing CTA */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+      {/* Closing Call to Action */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold mb-6">Ready to see Vivid in action?</h2>
-          <p className="text-xl text-gray-600 mb-10">
-            Book a demo and we will show you how Vivid simplifies building operations, improves communication, and keeps records clean.
+          <h2 className="text-4xl sm:text-5xl font-bold mb-4 leading-tight">
+            Spend less time managing systems.
+          </h2>
+          <h2 className="text-4xl sm:text-5xl font-bold mb-10 leading-tight">
+            Spend more time managing buildings.
+          </h2>
+          <p className="text-xl mb-10 opacity-90 leading-relaxed">
+            Book a demo to see how Vivid supports building managers in strata and BMC environments.
           </p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg px-8">
-              Book a Demo
-            </Button>
-            <Button size="lg" variant="outline" className="text-lg px-8">
-              Contact Us
-            </Button>
-          </div>
+          <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-12 py-6 text-xl font-semibold shadow-xl">
+            Book a Demo
+          </Button>
         </div>
       </section>
 
@@ -261,9 +285,9 @@ export default function LandingPage() {
             <div>
               <h4 className="text-white font-semibold mb-3">Features</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white">Task Management</a></li>
-                <li><a href="#" className="hover:text-white">Compliance</a></li>
-                <li><a href="#" className="hover:text-white">Communications</a></li>
+                <li><a href="#features" className="hover:text-white">How It Works</a></li>
+                <li><a href="#solutions" className="hover:text-white">Who It's For</a></li>
+                <li><a href="#whats-next" className="hover:text-white">What's Next</a></li>
               </ul>
             </div>
             <div>
