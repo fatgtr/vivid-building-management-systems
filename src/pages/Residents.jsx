@@ -16,8 +16,9 @@ import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Users, Search, Pencil, Trash2, Building2, Home, Phone, Mail, MoreVertical, Calendar, Upload, FileText, X, ExternalLink, Send, User } from 'lucide-react';
+import { Users, Search, Pencil, Trash2, Building2, Home, Phone, Mail, MoreVertical, Calendar, Upload, FileText, X, ExternalLink, Send, User, Plus, Bed, Bath, Square, Edit } from 'lucide-react';
 import { toast } from 'sonner';
+import { Card, CardContent } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -81,6 +82,25 @@ export default function Residents() {
   const [deleteResident, setDeleteResident] = useState(null);
   const [uploadingFiles, setUploadingFiles] = useState(false);
   const [user, setUser] = useState(null);
+  const [showUnitDialog, setShowUnitDialog] = useState(false);
+  const [editingUnit, setEditingUnit] = useState(null);
+  const [unitFormData, setUnitFormData] = useState({
+    building_id: '',
+    unit_number: '',
+    lot_number: '',
+    floor: '',
+    bedrooms: '',
+    bathrooms: '',
+    square_feet: '',
+    unit_type: 'apartment',
+    status: 'vacant',
+    monthly_rent: '',
+    owner_name: '',
+    owner_email: '',
+    owner_phone: '',
+  });
+  const [deleteUnit, setDeleteUnit] = useState(null);
+  const [viewUnitsForBuilding, setViewUnitsForBuilding] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -137,10 +157,95 @@ export default function Residents() {
     },
   });
 
+  const createUnitMutation = useMutation({
+    mutationFn: (data) => base44.entities.Unit.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['units'] });
+      handleCloseUnitDialog();
+      toast.success('Unit created successfully');
+    },
+  });
+
+  const updateUnitMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Unit.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['units'] });
+      handleCloseUnitDialog();
+      toast.success('Unit updated successfully');
+    },
+  });
+
+  const deleteUnitMutation = useMutation({
+    mutationFn: (id) => base44.entities.Unit.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['units'] });
+      setDeleteUnit(null);
+      toast.success('Unit deleted successfully');
+    },
+  });
+
   const handleCloseDialog = () => {
     setShowDialog(false);
     setEditingResident(null);
     setFormData(initialFormState);
+  };
+
+  const handleCloseUnitDialog = () => {
+    setShowUnitDialog(false);
+    setEditingUnit(null);
+    setUnitFormData({
+      building_id: '',
+      unit_number: '',
+      lot_number: '',
+      floor: '',
+      bedrooms: '',
+      bathrooms: '',
+      square_feet: '',
+      unit_type: 'apartment',
+      status: 'vacant',
+      monthly_rent: '',
+      owner_name: '',
+      owner_email: '',
+      owner_phone: '',
+    });
+  };
+
+  const handleEditUnit = (unit) => {
+    setEditingUnit(unit);
+    setUnitFormData({
+      building_id: unit.building_id || '',
+      unit_number: unit.unit_number || '',
+      lot_number: unit.lot_number || '',
+      floor: unit.floor || '',
+      bedrooms: unit.bedrooms || '',
+      bathrooms: unit.bathrooms || '',
+      square_feet: unit.square_feet || '',
+      unit_type: unit.unit_type || 'apartment',
+      status: unit.status || 'vacant',
+      monthly_rent: unit.monthly_rent || '',
+      owner_name: unit.owner_name || '',
+      owner_email: unit.owner_email || '',
+      owner_phone: unit.owner_phone || '',
+    });
+    setShowUnitDialog(true);
+  };
+
+  const handleUnitSubmit = (e) => {
+    e.preventDefault();
+    const data = {
+      ...unitFormData,
+      floor: unitFormData.floor ? Number(unitFormData.floor) : null,
+      bedrooms: unitFormData.bedrooms ? Number(unitFormData.bedrooms) : null,
+      bathrooms: unitFormData.bathrooms ? Number(unitFormData.bathrooms) : null,
+      square_feet: unitFormData.square_feet ? Number(unitFormData.square_feet) : null,
+      monthly_rent: unitFormData.monthly_rent ? Number(unitFormData.monthly_rent) : null,
+    };
+
+    if (editingUnit) {
+      updateUnitMutation.mutate({ id: editingUnit.id, data });
+    } else {
+      createUnitMutation.mutate(data);
+    }
   };
 
   const handleEdit = (resident) => {
@@ -241,8 +346,8 @@ export default function Residents() {
   return (
     <div className="space-y-6">
       <PageHeader 
-        title="Residents" 
-        subtitle={`${residents.filter(r => r.status === 'active').length} active residents`}
+        title="Residents & Units" 
+        subtitle={`${residents.filter(r => r.status === 'active').length} active residents • ${units.length} units`}
         action={() => setShowDialog(true)}
         actionLabel="Add Resident"
       >
@@ -292,7 +397,39 @@ export default function Residents() {
             Resident Portal
           </Button>
         </Link>
+        <Button 
+          variant="outline" 
+          onClick={() => setShowUnitDialog(true)}
+          className="border-blue-200"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Add Unit
+        </Button>
       </PageHeader>
+
+      {/* Units Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        {buildings.map(building => {
+          const buildingUnits = units.filter(u => u.building_id === building.id);
+          if (buildingUnits.length === 0) return null;
+          return (
+            <Card 
+              key={building.id} 
+              className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => setViewUnitsForBuilding(building.id)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-medium text-slate-900 text-sm">{building.name}</h4>
+                  <Home className="h-4 w-4 text-blue-600" />
+                </div>
+                <p className="text-2xl font-bold text-slate-900">{buildingUnits.length}</p>
+                <p className="text-xs text-slate-500">units</p>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4">
@@ -828,6 +965,283 @@ export default function Residents() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={() => deleteMutation.mutate(deleteResident.id)} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Unit Add/Edit Dialog */}
+      <Dialog open={showUnitDialog} onOpenChange={setShowUnitDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingUnit ? 'Edit Unit' : 'Add New Unit'}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleUnitSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:col-span-2">
+                <Label htmlFor="unit_building_id">Building *</Label>
+                <Select value={unitFormData.building_id} onValueChange={(v) => setUnitFormData({ ...unitFormData, building_id: v })} required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a building" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {buildings.map(b => (
+                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="unit_number">Unit Number *</Label>
+                <Input
+                  id="unit_number"
+                  value={unitFormData.unit_number}
+                  onChange={(e) => setUnitFormData({ ...unitFormData, unit_number: e.target.value })}
+                  placeholder="e.g., 101, A1"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="lot_number">Lot Number</Label>
+                <Input
+                  id="lot_number"
+                  value={unitFormData.lot_number}
+                  onChange={(e) => setUnitFormData({ ...unitFormData, lot_number: e.target.value })}
+                  placeholder="e.g., PT 58"
+                />
+              </div>
+              <div>
+                <Label htmlFor="unit_floor">Floor</Label>
+                <Input
+                  id="unit_floor"
+                  type="number"
+                  value={unitFormData.floor}
+                  onChange={(e) => setUnitFormData({ ...unitFormData, floor: e.target.value })}
+                  placeholder="Floor number"
+                />
+              </div>
+              <div>
+                <Label htmlFor="unit_type">Unit Type</Label>
+                <Select value={unitFormData.unit_type} onValueChange={(v) => setUnitFormData({ ...unitFormData, unit_type: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="studio">Studio</SelectItem>
+                    <SelectItem value="apartment">Apartment</SelectItem>
+                    <SelectItem value="penthouse">Penthouse</SelectItem>
+                    <SelectItem value="townhouse">Townhouse</SelectItem>
+                    <SelectItem value="commercial">Commercial</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="unit_status">Status</Label>
+                <Select value={unitFormData.status} onValueChange={(v) => setUnitFormData({ ...unitFormData, status: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="vacant">Vacant</SelectItem>
+                    <SelectItem value="occupied">Occupied</SelectItem>
+                    <SelectItem value="maintenance">Maintenance</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="unit_bedrooms">Bedrooms</Label>
+                <Input
+                  id="unit_bedrooms"
+                  type="number"
+                  value={unitFormData.bedrooms}
+                  onChange={(e) => setUnitFormData({ ...unitFormData, bedrooms: e.target.value })}
+                  placeholder="0"
+                />
+              </div>
+              <div>
+                <Label htmlFor="unit_bathrooms">Bathrooms</Label>
+                <Input
+                  id="unit_bathrooms"
+                  type="number"
+                  step="0.5"
+                  value={unitFormData.bathrooms}
+                  onChange={(e) => setUnitFormData({ ...unitFormData, bathrooms: e.target.value })}
+                  placeholder="0"
+                />
+              </div>
+              <div>
+                <Label htmlFor="unit_square_feet">Square Feet</Label>
+                <Input
+                  id="unit_square_feet"
+                  type="number"
+                  value={unitFormData.square_feet}
+                  onChange={(e) => setUnitFormData({ ...unitFormData, square_feet: e.target.value })}
+                  placeholder="Area in sq ft"
+                />
+              </div>
+              <div>
+                <Label htmlFor="unit_monthly_rent">Monthly Rent</Label>
+                <Input
+                  id="unit_monthly_rent"
+                  type="number"
+                  value={unitFormData.monthly_rent}
+                  onChange={(e) => setUnitFormData({ ...unitFormData, monthly_rent: e.target.value })}
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              <h4 className="font-medium text-slate-900 mb-4">Owner Information</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="unit_owner_name">Name</Label>
+                  <Input
+                    id="unit_owner_name"
+                    value={unitFormData.owner_name}
+                    onChange={(e) => setUnitFormData({ ...unitFormData, owner_name: e.target.value })}
+                    placeholder="Owner name"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="unit_owner_email">Email</Label>
+                  <Input
+                    id="unit_owner_email"
+                    type="email"
+                    value={unitFormData.owner_email}
+                    onChange={(e) => setUnitFormData({ ...unitFormData, owner_email: e.target.value })}
+                    placeholder="Email"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="unit_owner_phone">Phone</Label>
+                  <Input
+                    id="unit_owner_phone"
+                    value={unitFormData.owner_phone}
+                    onChange={(e) => setUnitFormData({ ...unitFormData, owner_phone: e.target.value })}
+                    placeholder="Phone"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={handleCloseUnitDialog}>Cancel</Button>
+              <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={createUnitMutation.isPending || updateUnitMutation.isPending}>
+                {createUnitMutation.isPending || updateUnitMutation.isPending ? 'Saving...' : (editingUnit ? 'Update' : 'Create')}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Units List Dialog */}
+      <Dialog open={!!viewUnitsForBuilding} onOpenChange={() => setViewUnitsForBuilding(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {viewUnitsForBuilding && getBuildingName(viewUnitsForBuilding)} - Units
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex justify-end">
+              <Button onClick={() => {
+                setUnitFormData({ ...unitFormData, building_id: viewUnitsForBuilding });
+                setShowUnitDialog(true);
+              }} size="sm">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Unit
+              </Button>
+            </div>
+            <Card className="border-0 shadow-sm">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-slate-50">
+                    <TableHead>Unit</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Details</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="w-12"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {units.filter(u => u.building_id === viewUnitsForBuilding).map((unit) => (
+                    <TableRow key={unit.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-blue-50 rounded-lg">
+                            <Home className="h-4 w-4 text-blue-600" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-slate-900">{unit.unit_number}</p>
+                            {unit.lot_number && <p className="text-xs text-slate-500">Lot {unit.lot_number}</p>}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="capitalize text-slate-600">{unit.unit_type?.replace(/_/g, ' ')}</span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3 text-sm text-slate-500">
+                          {unit.bedrooms && (
+                            <span className="flex items-center gap-1">
+                              <Bed className="h-3.5 w-3.5" /> {unit.bedrooms}
+                            </span>
+                          )}
+                          {unit.bathrooms && (
+                            <span className="flex items-center gap-1">
+                              <Bath className="h-3.5 w-3.5" /> {unit.bathrooms}
+                            </span>
+                          )}
+                          {unit.square_feet && (
+                            <span className="flex items-center gap-1">
+                              <Square className="h-3.5 w-3.5" /> {unit.square_feet} sqft
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge status={unit.status} />
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEditUnit(unit)}>
+                              <Pencil className="mr-2 h-4 w-4" /> Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setDeleteUnit(unit)} className="text-red-600">
+                              <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Unit Confirmation */}
+      <AlertDialog open={!!deleteUnit} onOpenChange={() => setDeleteUnit(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Unit</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete unit "{deleteUnit?.unit_number}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteUnitMutation.mutate(deleteUnit.id)} className="bg-red-600 hover:bg-red-700">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
