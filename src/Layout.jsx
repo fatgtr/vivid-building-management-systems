@@ -43,6 +43,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const navItems = [
+  { name: 'Home', icon: Home, page: 'LandingPage', adminOnly: false },
   { name: 'Dashboard', icon: LayoutDashboard, page: 'Dashboard', adminOnly: false },
   { name: 'Buildings', icon: Building2, page: 'Buildings', requirePermission: { resource: 'buildings', action: 'view' } },
   { name: 'Residents', icon: Users, page: 'Residents', requirePermission: { resource: 'residents', action: 'view' } },
@@ -152,8 +153,8 @@ function LayoutInner({ children, currentPageName }) {
             </div>
             {!collapsed && (
               <div>
-                <h1 className="font-bold text-slate-900 tracking-tight">PropManage</h1>
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider">Building Management</p>
+                <h1 className="font-bold text-slate-900 tracking-tight">Vivid BMS</h1>
+                <p className="text-[10px] text-slate-500 uppercase tracking-wider">Building Management Systems</p>
               </div>
             )}
           </div>
