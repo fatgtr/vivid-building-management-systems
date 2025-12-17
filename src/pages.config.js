@@ -19,8 +19,6 @@ import AssetRegister from './pages/AssetRegister';
 import ContractorPortal from './pages/ContractorPortal';
 import ResidentProfile from './pages/ResidentProfile';
 import RoleManagement from './pages/RoleManagement';
-import Messages from './pages/Messages';
-import CommunicationTemplates from './pages/CommunicationTemplates';
 import __Layout from './Layout.jsx';
 
 
@@ -46,8 +44,6 @@ export const PAGES = {
     "ContractorPortal": ContractorPortal,
     "ResidentProfile": ResidentProfile,
     "RoleManagement": RoleManagement,
-    "Messages": Messages,
-    "CommunicationTemplates": CommunicationTemplates,
 }
 
 export const pagesConfig = {
