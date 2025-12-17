@@ -5,9 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Bot, Send, Loader2, FileText, X, Star, ExternalLink, Bookmark } from 'lucide-react';
+import { Bot, Send, Loader2, FileText, X, Star, ExternalLink, Bookmark, Lightbulb, MessagesSquare, FileDown, Copy, Check } from 'lucide-react';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 
 export default function StrataAIChat({ buildingId }) {
   const [conversationId, setConversationId] = useState(null);
@@ -16,6 +19,7 @@ export default function StrataAIChat({ buildingId }) {
   const [isLoading, setIsLoading] = useState(false);
   const [relevantDocs, setRelevantDocs] = useState([]);
   const [user, setUser] = useState(null);
+  const [copiedText, setCopiedText] = useState(null);
   const scrollRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -119,6 +123,40 @@ export default function StrataAIChat({ buildingId }) {
     }
   };
 
+  const parseSuggestedDocs = (text) => {
+    const regex = /\[SUGGEST_DOCS\](.*?)\[\/SUGGEST_DOCS\]/g;
+    const match = regex.exec(text);
+    if (!match) return { suggestions: [], cleanText: text };
+    
+    const docNames = match[1].split(',').map(name => name.trim());
+    const suggestions = docNames
+      .map(name => allDocuments.find(d => d.title.toLowerCase().includes(name.toLowerCase())))
+      .filter(Boolean);
+    
+    const cleanText = text.replace(regex, '');
+    return { suggestions, cleanText };
+  };
+
+  const parseDraft = (text) => {
+    const regex = /\[DRAFT_START\](.*?)\[DRAFT_END\]/s;
+    const match = regex.exec(text);
+    if (!match) return { draft: null, cleanText: text };
+    
+    const draft = match[1].trim();
+    const cleanText = text.replace(regex, '');
+    return { draft, cleanText };
+  };
+
+  const parseSummary = (text) => {
+    const regex = /\[SUMMARY_START\](.*?)\[SUMMARY_END\]/s;
+    const match = regex.exec(text);
+    if (!match) return { summary: null, cleanText: text };
+    
+    const summary = match[1].trim();
+    const cleanText = text.replace(regex, '');
+    return { summary, cleanText };
+  };
+
   const parseDocumentReferences = (text) => {
     const regex = /\[DOC:(.*?)\|SECTION:(.*?)\]/g;
     const references = [];
@@ -145,13 +183,24 @@ export default function StrataAIChat({ buildingId }) {
 
   const formatMessageWithLinks = (text) => {
     const references = parseDocumentReferences(text);
-    let formattedText = text;
+    const { suggestions, cleanText: textAfterSuggestions } = parseSuggestedDocs(text);
+    const { draft, cleanText: textAfterDraft } = parseDraft(textAfterSuggestions);
+    const { summary, cleanText: textAfterSummary } = parseSummary(textAfterDraft);
+    
+    let formattedText = textAfterSummary;
     
     references.forEach((ref, idx) => {
       formattedText = formattedText.replace(ref.fullMatch, `[REF_${idx}]`);
     });
     
-    return { text: formattedText, references };
+    return { text: formattedText, references, suggestions, draft, summary };
+  };
+
+  const handleCopy = async (text) => {
+    await navigator.clipboard.writeText(text);
+    setCopiedText(text);
+    toast.success('Copied to clipboard');
+    setTimeout(() => setCopiedText(null), 2000);
   };
 
   const handleSaveResponse = (question, answer) => {
@@ -281,7 +330,7 @@ export default function StrataAIChat({ buildingId }) {
               }
               
               if (isAssistantResponse) {
-                const { text, references } = formatMessageWithLinks(msg.content);
+                const { text, references, suggestions, draft, summary } = formatMessageWithLinks(msg.content);
                 
                 return (
                   <div key={idx} className="flex justify-start">
@@ -315,6 +364,93 @@ export default function StrataAIChat({ buildingId }) {
                           })}
                         </div>
                       </div>
+
+                      {/* Suggested Documents */}
+                      {suggestions && suggestions.length > 0 && (
+                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Lightbulb className="h-4 w-4 text-amber-600" />
+                            <span className="text-xs font-semibold text-amber-900">Suggested Documents</span>
+                          </div>
+                          <div className="space-y-1">
+                            {suggestions.map((doc, i) => (
+                              <a
+                                key={i}
+                                href={doc.file_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 text-xs text-amber-800 hover:text-amber-900 hover:underline"
+                              >
+                                <FileText className="h-3 w-3" />
+                                {doc.title}
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Draft Communication */}
+                      {draft && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <MessagesSquare className="h-4 w-4 text-blue-600" />
+                              <span className="text-xs font-semibold text-blue-900">Draft Communication</span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleCopy(draft)}
+                              className="h-6 text-xs"
+                            >
+                              {copiedText === draft ? (
+                                <Check className="h-3 w-3 text-green-600" />
+                              ) : (
+                                <Copy className="h-3 w-3" />
+                              )}
+                            </Button>
+                          </div>
+                          <div className="text-xs text-blue-900 whitespace-pre-wrap font-mono bg-white p-2 rounded border border-blue-100">
+                            {draft}
+                          </div>
+                          <div className="mt-2">
+                            <Link to={createPageUrl('Announcements')}>
+                              <Button variant="outline" size="sm" className="w-full text-xs">
+                                <FileDown className="h-3 w-3 mr-1" />
+                                Create Announcement from Draft
+                              </Button>
+                            </Link>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Summary */}
+                      {summary && (
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <FileDown className="h-4 w-4 text-green-600" />
+                              <span className="text-xs font-semibold text-green-900">Summary</span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleCopy(summary)}
+                              className="h-6 text-xs"
+                            >
+                              {copiedText === summary ? (
+                                <Check className="h-3 w-3 text-green-600" />
+                              ) : (
+                                <Copy className="h-3 w-3" />
+                              )}
+                            </Button>
+                          </div>
+                          <div className="text-xs text-green-900 whitespace-pre-wrap">
+                            {summary}
+                          </div>
+                        </div>
+                      )}
                       
                       {references.length > 0 && (
                         <div className="flex items-center gap-2 text-xs text-slate-500 px-1">
