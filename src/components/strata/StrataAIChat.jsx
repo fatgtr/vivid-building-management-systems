@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Bot, Send, Loader2, FileText, X } from 'lucide-react';
+import { Bot, Send, Loader2, FileText, X, Star, ExternalLink, Bookmark } from 'lucide-react';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { toast } from 'sonner';
 
 export default function StrataAIChat({ buildingId }) {
   const [conversationId, setConversationId] = useState(null);
@@ -13,7 +15,32 @@ export default function StrataAIChat({ buildingId }) {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [relevantDocs, setRelevantDocs] = useState([]);
+  const [user, setUser] = useState(null);
   const scrollRef = useRef(null);
+  const queryClient = useQueryClient();
+
+  const { data: allDocuments = [] } = useQuery({
+    queryKey: ['documents'],
+    queryFn: () => base44.entities.Document.list(),
+  });
+
+  const { data: savedResponses = [] } = useQuery({
+    queryKey: ['savedResponses', user?.email],
+    queryFn: () => base44.entities.SavedResponse.filter({ user_email: user?.email }),
+    enabled: !!user?.email,
+  });
+
+  const saveResponseMutation = useMutation({
+    mutationFn: (data) => base44.entities.SavedResponse.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['savedResponses'] });
+      toast.success('Response saved for quick reference');
+    },
+  });
+
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (buildingId) {
@@ -92,6 +119,80 @@ export default function StrataAIChat({ buildingId }) {
     }
   };
 
+  const parseDocumentReferences = (text) => {
+    const regex = /\[DOC:(.*?)\|SECTION:(.*?)\]/g;
+    const references = [];
+    let match;
+    
+    while ((match = regex.exec(text)) !== null) {
+      const docTitle = match[1];
+      const section = match[2];
+      const doc = allDocuments.find(d => d.title.toLowerCase().includes(docTitle.toLowerCase()));
+      
+      if (doc) {
+        references.push({
+          document_id: doc.id,
+          document_title: doc.title,
+          document_url: doc.file_url,
+          section: section,
+          fullMatch: match[0]
+        });
+      }
+    }
+    
+    return references;
+  };
+
+  const formatMessageWithLinks = (text) => {
+    const references = parseDocumentReferences(text);
+    let formattedText = text;
+    
+    references.forEach((ref, idx) => {
+      formattedText = formattedText.replace(ref.fullMatch, `[REF_${idx}]`);
+    });
+    
+    return { text: formattedText, references };
+  };
+
+  const handleSaveResponse = (question, answer) => {
+    const { references } = formatMessageWithLinks(answer);
+    
+    saveResponseMutation.mutate({
+      user_email: user?.email,
+      building_id: buildingId,
+      question,
+      answer,
+      document_references: references.map(ref => ({
+        document_id: ref.document_id,
+        document_title: ref.document_title,
+        section: ref.section
+      })),
+      tags: extractTags(question)
+    });
+  };
+
+  const extractTags = (question) => {
+    const tagKeywords = {
+      'pet': ['pet', 'dog', 'cat', 'animal'],
+      'noise': ['noise', 'loud', 'quiet', 'sound'],
+      'renovation': ['renovate', 'construction', 'modify', 'change'],
+      'parking': ['park', 'car', 'vehicle', 'garage'],
+      'balcony': ['balcony', 'deck', 'terrace'],
+      'common_area': ['common', 'shared', 'pool', 'gym', 'lift']
+    };
+    
+    const tags = [];
+    const lowerQuestion = question.toLowerCase();
+    
+    Object.entries(tagKeywords).forEach(([tag, keywords]) => {
+      if (keywords.some(keyword => lowerQuestion.includes(keyword))) {
+        tags.push(tag);
+      }
+    });
+    
+    return tags;
+  };
+
   return (
     <Card className="border-0 shadow-sm h-[600px] flex flex-col">
       <CardHeader className="border-b">
@@ -105,12 +206,20 @@ export default function StrataAIChat({ buildingId }) {
               <p className="text-xs text-slate-500 mt-1">Ask about building rules and bylaws</p>
             </div>
           </div>
-          {relevantDocs.length > 0 && (
-            <Badge variant="outline" className="flex items-center gap-1">
-              <FileText className="h-3 w-3" />
-              {relevantDocs.length} docs
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {relevantDocs.length > 0 && (
+              <Badge variant="outline" className="flex items-center gap-1">
+                <FileText className="h-3 w-3" />
+                {relevantDocs.length} docs
+              </Badge>
+            )}
+            {savedResponses.length > 0 && (
+              <Badge variant="outline" className="flex items-center gap-1 bg-amber-50 border-amber-200 text-amber-700">
+                <Bookmark className="h-3 w-3" />
+                {savedResponses.length} saved
+              </Badge>
+            )}
+          </div>
         </div>
       </CardHeader>
 
@@ -155,23 +264,83 @@ export default function StrataAIChat({ buildingId }) {
                 </div>
               </div>
             )}
-            {messages.map((msg, idx) => (
-              <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] rounded-lg p-3 ${
-                  msg.role === 'user' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-slate-100 text-slate-900'
-                }`}>
-                  {msg.role === 'assistant' && (
-                    <div className="flex items-center gap-2 mb-1">
-                      <Bot className="h-4 w-4 text-blue-600" />
-                      <span className="text-xs font-medium text-slate-600">AI Assistant</span>
+            {messages.map((msg, idx) => {
+              const prevMsg = idx > 0 ? messages[idx - 1] : null;
+              const isUserQuestion = msg.role === 'user';
+              const isAssistantResponse = msg.role === 'assistant';
+              const userQuestion = isAssistantResponse && prevMsg?.role === 'user' ? prevMsg.content : null;
+              
+              if (isUserQuestion) {
+                return (
+                  <div key={idx} className="flex justify-end">
+                    <div className="max-w-[80%] rounded-lg p-3 bg-blue-600 text-white">
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                     </div>
-                  )}
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                </div>
-              </div>
-            ))}
+                  </div>
+                );
+              }
+              
+              if (isAssistantResponse) {
+                const { text, references } = formatMessageWithLinks(msg.content);
+                
+                return (
+                  <div key={idx} className="flex justify-start">
+                    <div className="max-w-[80%] space-y-2">
+                      <div className="bg-slate-100 text-slate-900 rounded-lg p-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Bot className="h-4 w-4 text-blue-600" />
+                          <span className="text-xs font-medium text-slate-600">AI Assistant</span>
+                        </div>
+                        <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                          {text.split(/(\[REF_\d+\])/).map((part, i) => {
+                            const refMatch = part.match(/\[REF_(\d+)\]/);
+                            if (refMatch) {
+                              const refIdx = parseInt(refMatch[1]);
+                              const ref = references[refIdx];
+                              return (
+                                <a
+                                  key={i}
+                                  href={ref.document_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium hover:bg-blue-200 transition-colors"
+                                >
+                                  <FileText className="h-3 w-3" />
+                                  {ref.document_title} § {ref.section}
+                                  <ExternalLink className="h-3 w-3" />
+                                </a>
+                              );
+                            }
+                            return part;
+                          })}
+                        </div>
+                      </div>
+                      
+                      {references.length > 0 && (
+                        <div className="flex items-center gap-2 text-xs text-slate-500 px-1">
+                          <FileText className="h-3 w-3" />
+                          <span>{references.length} document{references.length > 1 ? 's' : ''} referenced</span>
+                        </div>
+                      )}
+                      
+                      <div className="flex justify-end">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleSaveResponse(userQuestion, msg.content)}
+                          className="h-7 text-xs"
+                        >
+                          <Bookmark className="h-3 w-3 mr-1" />
+                          Save Response
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+              
+              return null;
+            })}
             {isLoading && (
               <div className="flex justify-start">
                 <div className="bg-slate-100 rounded-lg p-3 flex items-center gap-2">

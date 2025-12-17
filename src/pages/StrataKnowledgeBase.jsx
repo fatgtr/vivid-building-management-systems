@@ -20,12 +20,18 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useBuildingContext } from '@/components/BuildingContext';
 import StrataAIChat from '@/components/strata/StrataAIChat';
+import SavedResponsesPanel from '@/components/strata/SavedResponsesPanel';
 
 export default function StrataKnowledgeBase() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [user, setUser] = useState(null);
   const { selectedBuildingId } = useBuildingContext();
+
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
 
   // Fetch Responsibility Guide
   const { data: responsibilities = [] } = useQuery({
@@ -233,7 +239,14 @@ export default function StrataKnowledgeBase() {
         {/* AI Assistant Tab */}
         <TabsContent value="ai" className="space-y-4">
           {selectedBuildingId ? (
-            <StrataAIChat buildingId={selectedBuildingId} />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <StrataAIChat buildingId={selectedBuildingId} />
+              </div>
+              <div>
+                <SavedResponsesPanel userEmail={user?.email} />
+              </div>
+            </div>
           ) : (
             <Card className="border-0 shadow-sm">
               <CardContent className="p-12 text-center">
