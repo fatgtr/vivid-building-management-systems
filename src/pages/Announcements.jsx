@@ -91,6 +91,16 @@ export default function Announcements() {
     queryFn: () => base44.entities.Building.list(),
   });
 
+  const { data: residents = [] } = useQuery({
+    queryKey: ['residents'],
+    queryFn: () => base44.entities.Resident.list(),
+  });
+
+  const { data: users = [] } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => base44.entities.User.list(),
+  });
+
   const { data: messages = [] } = useQuery({
     queryKey: ['messages', selectedBuildingId],
     queryFn: () => {
