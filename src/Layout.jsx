@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
 import { BuildingProvider, useBuildingContext } from '@/components/BuildingContext';
+import { PermissionsProvider, usePermissions } from '@/components/permissions/PermissionsContext';
 import { 
   Building2, 
   Home, 
@@ -20,7 +21,8 @@ import {
   Settings,
   HardHat,
   DoorOpen,
-  LayoutDashboard
+  LayoutDashboard,
+  Shield
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
@@ -40,22 +42,23 @@ import {
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { name: 'Dashboard', icon: LayoutDashboard, page: 'Dashboard' },
-  { name: 'Buildings', icon: Building2, page: 'Buildings' },
-  { name: 'Residents', icon: Users, page: 'Residents' },
-  { name: 'Managing Agent Portal', icon: Users, page: 'ManagingAgentPortal' },
-  { name: 'Work Orders', icon: Wrench, page: 'WorkOrders' },
-  { name: 'Asset Register', icon: Settings, page: 'AssetRegister' },
-  { name: 'Maintenance Schedule', icon: Calendar, page: 'MaintenanceSchedule' },
-  { name: 'Amenities', icon: Calendar, page: 'Amenities' },
-  { name: 'Visitors', icon: DoorOpen, page: 'Visitors' },
-  { name: 'Announcements', icon: Bell, page: 'Announcements' },
-  { name: 'Documents', icon: FileText, page: 'Documents' },
-  { name: 'Inspections', icon: ClipboardCheck, page: 'Inspections' },
-  { name: 'Contractors', icon: HardHat, page: 'Contractors' },
-  { name: 'Contractor Portal', icon: HardHat, page: 'ContractorPortal' },
-  { name: 'Smart Devices', icon: Settings, page: 'SmartDevices' },
-  { name: 'Strata Knowledge Base', icon: FileText, page: 'StrataKnowledgeBase' },
+  { name: 'Dashboard', icon: LayoutDashboard, page: 'Dashboard', adminOnly: false },
+  { name: 'Buildings', icon: Building2, page: 'Buildings', requirePermission: { resource: 'buildings', action: 'view' } },
+  { name: 'Residents', icon: Users, page: 'Residents', requirePermission: { resource: 'residents', action: 'view' } },
+  { name: 'Managing Agent Portal', icon: Users, page: 'ManagingAgentPortal', adminOnly: true },
+  { name: 'Work Orders', icon: Wrench, page: 'WorkOrders', requirePermission: { resource: 'work_orders', action: 'view' } },
+  { name: 'Asset Register', icon: Settings, page: 'AssetRegister', requirePermission: { resource: 'buildings', action: 'view' } },
+  { name: 'Maintenance Schedule', icon: Calendar, page: 'MaintenanceSchedule', requirePermission: { resource: 'work_orders', action: 'view' } },
+  { name: 'Amenities', icon: Calendar, page: 'Amenities', requirePermission: { resource: 'amenities', action: 'view' } },
+  { name: 'Visitors', icon: DoorOpen, page: 'Visitors', requirePermission: { resource: 'buildings', action: 'view' } },
+  { name: 'Announcements', icon: Bell, page: 'Announcements', requirePermission: { resource: 'announcements', action: 'view' } },
+  { name: 'Documents', icon: FileText, page: 'Documents', requirePermission: { resource: 'documents', action: 'view' } },
+  { name: 'Inspections', icon: ClipboardCheck, page: 'Inspections', requirePermission: { resource: 'buildings', action: 'view' } },
+  { name: 'Contractors', icon: HardHat, page: 'Contractors', requirePermission: { resource: 'contractors', action: 'view' } },
+  { name: 'Contractor Portal', icon: HardHat, page: 'ContractorPortal', contractorOnly: true },
+  { name: 'Smart Devices', icon: Settings, page: 'SmartDevices', requirePermission: { resource: 'buildings', action: 'view' } },
+  { name: 'Strata Knowledge Base', icon: FileText, page: 'StrataKnowledgeBase', requirePermission: { resource: 'documents', action: 'view' } },
+  { name: 'Role Management', icon: Shield, page: 'RoleManagement', adminOnly: true },
 ];
 
 function LayoutInner({ children, currentPageName }) {
@@ -63,13 +66,14 @@ function LayoutInner({ children, currentPageName }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const { selectedBuildingId, setSelectedBuildingId, managedBuildings, isAdmin } = useBuildingContext();
+  const { can, isAdmin: isPermissionAdmin, hasRole } = usePermissions();
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
   // Check if user is a contractor
-  const isContractor = user?.contractor_id;
+  const isContractor = user?.contractor_id || hasRole('contractor');
 
   const handleLogout = () => {
     base44.auth.logout();
@@ -192,16 +196,20 @@ function LayoutInner({ children, currentPageName }) {
         <nav className="p-3 space-y-1 overflow-y-auto h-[calc(100vh-8rem)]">
           {navItems.map((item) => {
             const isActive = currentPageName === item.page;
-            
-            // Hide navigation items based on user type
-            if (isContractor) {
-              // For contractors, only show Contractor Portal
-              if (item.page !== 'ContractorPortal') return null;
-            } else {
-              // For non-contractors, hide Contractor Portal
-              if (item.page === 'ContractorPortal') return null;
+
+            // Check admin-only pages
+            if (item.adminOnly && !isAdmin && !isPermissionAdmin()) return null;
+
+            // Check contractor-only pages
+            if (item.contractorOnly && !isContractor) return null;
+            if (!item.contractorOnly && isContractor && item.page !== 'Dashboard') return null;
+
+            // Check permission-based pages
+            if (item.requirePermission && !isPermissionAdmin()) {
+              const { resource, action } = item.requirePermission;
+              if (!can(resource, action)) return null;
             }
-            
+
             return (
               <Link
                 key={item.page}
@@ -289,8 +297,10 @@ function LayoutInner({ children, currentPageName }) {
 
 export default function Layout({ children, currentPageName }) {
   return (
-    <BuildingProvider>
-      <LayoutInner children={children} currentPageName={currentPageName} />
-    </BuildingProvider>
+    <PermissionsProvider>
+      <BuildingProvider>
+        <LayoutInner children={children} currentPageName={currentPageName} />
+      </BuildingProvider>
+    </PermissionsProvider>
   );
 }

@@ -18,6 +18,7 @@ import BuildingProfile from './pages/BuildingProfile';
 import AssetRegister from './pages/AssetRegister';
 import ContractorPortal from './pages/ContractorPortal';
 import ResidentProfile from './pages/ResidentProfile';
+import RoleManagement from './pages/RoleManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -42,6 +43,7 @@ export const PAGES = {
     "AssetRegister": AssetRegister,
     "ContractorPortal": ContractorPortal,
     "ResidentProfile": ResidentProfile,
+    "RoleManagement": RoleManagement,
 }
 
 export const pagesConfig = {
