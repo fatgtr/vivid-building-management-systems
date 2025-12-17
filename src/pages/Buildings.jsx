@@ -17,7 +17,6 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import StrataRollUploader from '@/components/buildings/StrataRollUploader';
 import SubdivisionPlanExtractor from '@/components/buildings/SubdivisionPlanExtractor';
-import ReportGenerator from '@/components/buildings/ReportGenerator';
 import { toast } from 'sonner';
 import {
   DropdownMenu,
@@ -355,14 +354,10 @@ export default function Buildings() {
                    </div>
                    </div>
                     <div className="space-y-2">
-                      <StrataRollUploader 
-                        buildingId={building.id}
-                        onUnitsCreated={() => queryClient.invalidateQueries({ queryKey: ['units'] })}
-                      />
-                      <ReportGenerator 
-                        buildingId={building.id}
-                        buildingName={building.name}
-                      />
+                     <StrataRollUploader 
+                       buildingId={building.id}
+                       onUnitsCreated={() => queryClient.invalidateQueries({ queryKey: ['units'] })}
+                     />
                     </div>
                    </div>
                 {building.building_type && (

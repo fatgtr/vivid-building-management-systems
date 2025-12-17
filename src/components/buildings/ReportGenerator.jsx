@@ -75,8 +75,8 @@ export default function ReportGenerator({ buildingId, buildingName }) {
   };
 
   return (
-    <Card className="border-2 border-blue-100">
-      <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
+    <>
+      <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5 text-blue-600" />
           Generate Building Managers Report
@@ -189,6 +189,6 @@ export default function ReportGenerator({ buildingId, buildingName }) {
           </div>
         )}
       </CardContent>
-    </Card>
+    </>
   );
 }

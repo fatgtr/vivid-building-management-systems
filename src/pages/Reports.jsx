@@ -27,6 +27,7 @@ import {
 import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import PageHeader from '@/components/common/PageHeader';
+import ReportGenerator from '@/components/buildings/ReportGenerator';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
@@ -364,6 +365,7 @@ export default function Reports() {
           <TabsTrigger value="compliance">Compliance</TabsTrigger>
           <TabsTrigger value="tenant-issues">Tenant Issues</TabsTrigger>
           <TabsTrigger value="communications">Communications</TabsTrigger>
+          <TabsTrigger value="manager-report">Manager Report</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -686,6 +688,24 @@ export default function Reports() {
                 <p className="text-gray-500 text-center py-8">No messages in this period</p>
               )}
             </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Manager Report Tab */}
+        <TabsContent value="manager-report" className="space-y-4">
+          <Card className="border-2 border-blue-100">
+            {selectedBuilding !== 'all' ? (
+              <ReportGenerator 
+                buildingId={selectedBuilding} 
+                buildingName={managedBuildings.find(b => b.id === selectedBuilding)?.name} 
+              />
+            ) : (
+              <CardContent className="pt-6">
+                <p className="text-gray-500 text-center py-8">
+                  Please select a specific building to generate the manager report.
+                </p>
+              </CardContent>
+            )}
           </Card>
         </TabsContent>
       </Tabs>
