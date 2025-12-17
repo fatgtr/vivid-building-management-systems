@@ -44,7 +44,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { name: 'Home', icon: Home, page: 'LandingPage', adminOnly: false },
+  { name: 'Home', icon: Home, page: 'Home', adminOnly: false },
   { name: 'Dashboard', icon: LayoutDashboard, page: 'Dashboard', adminOnly: false },
   { name: 'Reports', icon: BarChart3, page: 'Reports', requirePermission: { resource: 'reports', action: 'view' } },
   { name: 'Buildings', icon: Building2, page: 'Buildings', requirePermission: { resource: 'buildings', action: 'view' } },
