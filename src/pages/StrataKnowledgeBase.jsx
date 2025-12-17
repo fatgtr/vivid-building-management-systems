@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { 
   Search, 
   BookOpen, 
@@ -13,14 +14,18 @@ import {
   AlertCircle,
   Filter,
   FileText,
-  Building2
+  Building2,
+  MessageSquare
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useBuildingContext } from '@/components/BuildingContext';
+import StrataAIChat from '@/components/strata/StrataAIChat';
 
 export default function StrataKnowledgeBase() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const { selectedBuildingId } = useBuildingContext();
 
   // Fetch Responsibility Guide
   const { data: responsibilities = [] } = useQuery({
@@ -134,10 +139,14 @@ export default function StrataKnowledgeBase() {
 
       {/* Content Tabs */}
       <Tabs defaultValue="guide" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="guide">
             <Building2 className="h-4 w-4 mr-2" />
             Who's Responsible Guide
+          </TabsTrigger>
+          <TabsTrigger value="ai">
+            <MessageSquare className="h-4 w-4 mr-2" />
+            AI Assistant
           </TabsTrigger>
           <TabsTrigger value="legislation">
             <Scale className="h-4 w-4 mr-2" />
@@ -159,58 +168,81 @@ export default function StrataKnowledgeBase() {
             </SelectContent>
           </Select>
 
-          <div className="space-y-6">
-            {groupedResponsibilities.length === 0 ? (
-              <Card className="border-0 shadow-sm">
-                <CardContent className="p-12 text-center">
-                  <FileText className="h-12 w-12 mx-auto text-slate-300 mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No Results Found</h3>
-                  <p className="text-slate-600">Try adjusting your search or filter</p>
-                </CardContent>
-              </Card>
-            ) : (
-              groupedResponsibilities.map(({ type, groups }) => (
-                <div key={type}>
-                  <h2 className="text-2xl font-bold text-slate-900 mb-4 pb-2 border-b-2 border-slate-200">
-                    {type}
-                  </h2>
-                  <div className="space-y-6">
-                    {Object.entries(groups).map(([responsibility, items]) => {
-                      if (items.length === 0) return null;
-                      return (
-                        <div key={responsibility}>
-                          <div className="flex items-center gap-2 mb-3">
-                            {getResponsibilityBadge(responsibility)}
-                            <h3 className="text-lg font-semibold text-slate-700">
-                              {responsibility}
-                            </h3>
-                            <span className="text-sm text-slate-500">({items.length} items)</span>
-                          </div>
-                          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                            {items.map((item, idx) => (
-                              <Card key={idx} className="border-0 shadow-sm hover:shadow-md transition-shadow">
-                                <CardContent className="p-4">
-                                  <h4 className="font-semibold text-base text-slate-900 mb-2">{item.item}</h4>
-                                  {item.additional_info && (
-                                    <div className="mt-3 p-2.5 bg-blue-50 border border-blue-200 rounded-lg">
-                                      <p className="text-xs text-blue-900 leading-relaxed">
-                                        <AlertCircle className="h-3.5 w-3.5 inline mr-1.5 flex-shrink-0" />
-                                        {item.additional_info}
-                                      </p>
-                                    </div>
-                                  )}
-                                </CardContent>
-                              </Card>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+          {groupedResponsibilities.length === 0 ? (
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-12 text-center">
+                <FileText className="h-12 w-12 mx-auto text-slate-300 mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No Results Found</h3>
+                <p className="text-slate-600">Try adjusting your search or filter</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <Accordion type="multiple" className="space-y-3">
+              {groupedResponsibilities.map(({ type, groups }) => {
+                const totalItems = Object.values(groups).flat().length;
+                return (
+                  <AccordionItem key={type} value={type} className="border-0 shadow-sm rounded-lg overflow-hidden bg-white">
+                    <AccordionTrigger className="px-6 py-4 hover:bg-slate-50 hover:no-underline">
+                      <div className="flex items-center justify-between w-full pr-2">
+                        <span className="text-lg font-bold text-slate-900">{type}</span>
+                        <Badge variant="outline" className="ml-2">{totalItems} items</Badge>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-6 pb-6">
+                      <div className="space-y-5 pt-2">
+                        {Object.entries(groups).map(([responsibility, items]) => {
+                          if (items.length === 0) return null;
+                          return (
+                            <div key={responsibility}>
+                              <div className="flex items-center gap-2 mb-3">
+                                {getResponsibilityBadge(responsibility)}
+                                <h3 className="text-base font-semibold text-slate-700">
+                                  {responsibility}
+                                </h3>
+                                <span className="text-xs text-slate-500">({items.length})</span>
+                              </div>
+                              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                                {items.map((item, idx) => (
+                                  <Card key={idx} className="border border-slate-200 shadow-none hover:shadow-sm transition-shadow">
+                                    <CardContent className="p-4">
+                                      <h4 className="font-medium text-sm text-slate-900 mb-2">{item.item}</h4>
+                                      {item.additional_info && (
+                                        <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
+                                          <p className="text-xs text-blue-900 leading-relaxed">
+                                            <AlertCircle className="h-3 w-3 inline mr-1 flex-shrink-0" />
+                                            {item.additional_info}
+                                          </p>
+                                        </div>
+                                      )}
+                                    </CardContent>
+                                  </Card>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
+          )}
+        </TabsContent>
+
+        {/* AI Assistant Tab */}
+        <TabsContent value="ai" className="space-y-4">
+          {selectedBuildingId ? (
+            <StrataAIChat buildingId={selectedBuildingId} />
+          ) : (
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-12 text-center">
+                <MessageSquare className="h-12 w-12 mx-auto text-slate-300 mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Select a Building</h3>
+                <p className="text-slate-600">Please select a building to access the AI assistant</p>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         {/* Legislation Tab */}
