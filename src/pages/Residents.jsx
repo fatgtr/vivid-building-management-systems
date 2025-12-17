@@ -16,7 +16,7 @@ import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Users, Search, Pencil, Trash2, Building2, Home, Phone, Mail, MoreVertical, Calendar, Upload, FileText, X, ExternalLink, Send, User, Plus, Bed, Bath, Square, Edit } from 'lucide-react';
+import { Users, Search, Pencil, Trash2, Building2, Home, Phone, Mail, MoreVertical, Calendar, Upload, FileText, X, ExternalLink, Send, User, Plus, Bed, Bath, Square, Edit, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   DropdownMenu,
@@ -100,6 +100,7 @@ export default function Residents() {
   });
   const [deleteUnit, setDeleteUnit] = useState(null);
   const [viewUnitsForBuilding, setViewUnitsForBuilding] = useState(null);
+  const [activeTab, setActiveTab] = useState('residents');
 
   const queryClient = useQueryClient();
 
@@ -406,28 +407,30 @@ export default function Residents() {
         </Button>
       </PageHeader>
 
-      {/* Units Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        {buildings.map(building => {
-          const buildingUnits = units.filter(u => u.building_id === building.id);
-          if (buildingUnits.length === 0) return null;
-          return (
-            <Card 
-              key={building.id} 
-              className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => setViewUnitsForBuilding(building.id)}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium text-slate-900 text-sm">{building.name}</h4>
-                  <Home className="h-4 w-4 text-blue-600" />
-                </div>
-                <p className="text-2xl font-bold text-slate-900">{buildingUnits.length}</p>
-                <p className="text-xs text-slate-500">units</p>
-              </CardContent>
-            </Card>
-          );
-        })}
+      {/* Tabs */}
+      <div className="border-b border-slate-200 mb-6">
+        <div className="flex gap-6">
+          <button
+            onClick={() => setActiveTab('residents')}
+            className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'residents'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            Residents
+          </button>
+          <button
+            onClick={() => setActiveTab('units')}
+            className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'units'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            Units
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -466,141 +469,252 @@ export default function Residents() {
         </Select>
       </div>
 
-      {filteredResidents.length === 0 ? (
-        <EmptyState
-          icon={Users}
-          title="No residents found"
-          description="Add residents to your properties to manage them"
-          action={() => setShowDialog(true)}
-          actionLabel="Add Resident"
-        />
-      ) : (
-        <Card className="border-0 shadow-sm overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-slate-50">
-                <TableHead>Resident</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Building</TableHead>
-                <TableHead className="w-12"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredResidents.map((resident) => (
-                <TableRow key={resident.id} className="hover:bg-slate-50/50">
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={resident.avatar_url} />
-                        <AvatarFallback className="bg-blue-100 text-blue-600 font-medium">
-                          {resident.first_name?.[0]}{resident.last_name?.[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="space-y-1">
-                        <p className="font-medium text-slate-900">{resident.first_name} {resident.last_name}</p>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-slate-500 capitalize">{resident.resident_type}</span>
-                          <span className="h-3 w-px bg-slate-200" />
-                          <StatusBadge status={resident.status} />
-                        </div>
-                        {(() => {
-                          const unit = units.find(u => u.id === resident.unit_id);
-                          if (!unit) return null;
-                          return (
-                            <div className="space-y-0.5 pt-1">
-                              <div className="flex items-center gap-1.5 text-xs text-slate-600">
-                                <Home className="h-3 w-3 text-blue-600" />
-                                <span>Unit {unit.unit_number}</span>
-                                {unit.lot_number && <span className="text-slate-400">(Lot {unit.lot_number})</span>}
+      {activeTab === 'residents' ? (
+        filteredResidents.length === 0 ? (
+          <EmptyState
+            icon={Users}
+            title="No residents found"
+            description="Add residents to your properties to manage them"
+            action={() => setShowDialog(true)}
+            actionLabel="Add Resident"
+          />
+        ) : (
+          <Card className="border-0 shadow-sm overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-slate-50">
+                  <TableHead>Resident</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Building</TableHead>
+                  <TableHead className="w-12"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredResidents.map((resident) => (
+                  <TableRow key={resident.id} className="hover:bg-slate-50/50">
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={resident.avatar_url} />
+                          <AvatarFallback className="bg-blue-100 text-blue-600 font-medium">
+                            {resident.first_name?.[0]}{resident.last_name?.[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="space-y-1">
+                          <p className="font-medium text-slate-900">{resident.first_name} {resident.last_name}</p>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-slate-500 capitalize">{resident.resident_type}</span>
+                            <span className="h-3 w-px bg-slate-200" />
+                            <StatusBadge status={resident.status} />
+                          </div>
+                          {(() => {
+                            const unit = units.find(u => u.id === resident.unit_id);
+                            if (!unit) return null;
+                            return (
+                              <div className="space-y-0.5 pt-1">
+                                <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                                  <Home className="h-3 w-3 text-blue-600" />
+                                  <span>Unit {unit.unit_number}</span>
+                                  {unit.lot_number && <span className="text-slate-400">(Lot {unit.lot_number})</span>}
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-slate-500">
+                                  {unit.bedrooms && (
+                                    <span className="flex items-center gap-1">
+                                      <Bed className="h-3 w-3" /> {unit.bedrooms}
+                                    </span>
+                                  )}
+                                  {unit.bathrooms && (
+                                    <span className="flex items-center gap-1">
+                                      <Bath className="h-3 w-3" /> {unit.bathrooms}
+                                    </span>
+                                  )}
+                                  {unit.square_feet && (
+                                    <span className="flex items-center gap-1">
+                                      <Square className="h-3 w-3" /> {unit.square_feet} sqft
+                                    </span>
+                                  )}
+                                </div>
                               </div>
-                              <div className="flex items-center gap-2 text-xs text-slate-500">
-                                {unit.bedrooms && (
-                                  <span className="flex items-center gap-1">
-                                    <Bed className="h-3 w-3" /> {unit.bedrooms}
-                                  </span>
-                                )}
-                                {unit.bathrooms && (
-                                  <span className="flex items-center gap-1">
-                                    <Bath className="h-3 w-3" /> {unit.bathrooms}
-                                  </span>
-                                )}
-                                {unit.square_feet && (
-                                  <span className="flex items-center gap-1">
-                                    <Square className="h-3 w-3" /> {unit.square_feet} sqft
-                                  </span>
-                                )}
-                              </div>
+                            );
+                          })()}
+                          {resident.move_in_date && (
+                            <div className="flex items-center gap-1.5 text-xs text-slate-500 pt-0.5">
+                              <Calendar className="h-3 w-3" />
+                              Move in: {format(new Date(resident.move_in_date), 'MMM d, yyyy')}
                             </div>
-                          );
-                        })()}
-                        {resident.move_in_date && (
-                          <div className="flex items-center gap-1.5 text-xs text-slate-500 pt-0.5">
-                            <Calendar className="h-3 w-3" />
-                            Move in: {format(new Date(resident.move_in_date), 'MMM d, yyyy')}
+                          )}
+                          {resident.move_out_date && (
+                            <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                              <Calendar className="h-3 w-3" />
+                              Move out: {format(new Date(resident.move_out_date), 'MMM d, yyyy')}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        {resident.email && (
+                          <div className="flex items-center gap-1.5 text-sm text-slate-600">
+                            <Mail className="h-3.5 w-3.5 text-slate-400" />
+                            <span className="truncate max-w-[180px]">{resident.email}</span>
                           </div>
                         )}
-                        {resident.move_out_date && (
-                          <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                            <Calendar className="h-3 w-3" />
-                            Move out: {format(new Date(resident.move_out_date), 'MMM d, yyyy')}
+                        {resident.phone && (
+                          <div className="flex items-center gap-1.5 text-sm text-slate-600">
+                            <Phone className="h-3.5 w-3.5 text-slate-400" />
+                            {resident.phone}
                           </div>
                         )}
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      {resident.email && (
-                        <div className="flex items-center gap-1.5 text-sm text-slate-600">
-                          <Mail className="h-3.5 w-3.5 text-slate-400" />
-                          <span className="truncate max-w-[180px]">{resident.email}</span>
-                        </div>
-                      )}
-                      {resident.phone && (
-                        <div className="flex items-center gap-1.5 text-sm text-slate-600">
-                          <Phone className="h-3.5 w-3.5 text-slate-400" />
-                          {resident.phone}
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-0.5">
-                      <p className="text-sm text-slate-900">{getBuildingName(resident.building_id)}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(resident)}>
-                          <Pencil className="mr-2 h-4 w-4" /> Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link to={createPageUrl(`ResidentPortal?residentId=${resident.id}`)}>
-                            <ExternalLink className="mr-2 h-4 w-4" /> View Portal
-                          </Link>
-                        </DropdownMenuItem>
-                        {resident.managing_agent_email && (
-                          <DropdownMenuItem onClick={() => sendInviteMutation.mutate(resident.id)}>
-                            <Send className="mr-2 h-4 w-4" /> Send Portal Invite
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-0.5">
+                        <p className="text-sm text-slate-900">{getBuildingName(resident.building_id)}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleEdit(resident)}>
+                            <Pencil className="mr-2 h-4 w-4" /> Edit
                           </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link to={createPageUrl(`ResidentPortal?residentId=${resident.id}`)}>
+                              <ExternalLink className="mr-2 h-4 w-4" /> View Portal
+                            </Link>
+                          </DropdownMenuItem>
+                          {resident.managing_agent_email && (
+                            <DropdownMenuItem onClick={() => sendInviteMutation.mutate(resident.id)}>
+                              <Send className="mr-2 h-4 w-4" /> Send Portal Invite
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem onClick={() => setDeleteResident(resident)} className="text-red-600">
+                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        )
+      ) : (
+        units.length === 0 ? (
+          <EmptyState
+            icon={Home}
+            title="No units found"
+            description="Add units to your buildings to manage them"
+            action={() => setShowUnitDialog(true)}
+            actionLabel="Add Unit"
+          />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {units
+              .filter(u => filterBuilding === 'all' || u.building_id === filterBuilding)
+              .map((unit) => {
+                const unitResidents = residents.filter(r => r.unit_id === unit.id && r.status === 'active');
+                const building = buildings.find(b => b.id === unit.building_id);
+                return (
+                  <Card 
+                    key={unit.id} 
+                    className="border-0 shadow-sm hover:shadow-md transition-all overflow-hidden group"
+                  >
+                    <div className={`h-2 ${unit.status === 'occupied' ? 'bg-green-500' : unit.status === 'maintenance' ? 'bg-orange-500' : 'bg-blue-500'}`} />
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <h3 className="text-lg font-bold text-slate-900">{unit.unit_number}</h3>
+                          {unit.lot_number && (
+                            <p className="text-xs text-slate-500">Lot {unit.lot_number}</p>
+                          )}
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEditUnit(unit)}>
+                              <Pencil className="mr-2 h-4 w-4" /> Edit Unit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setDeleteUnit(unit)} className="text-red-600">
+                              <Trash2 className="mr-2 h-4 w-4" /> Delete Unit
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                      
+                      <div className="space-y-2 mb-3">
+                        {building && (
+                          <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                            <MapPin className="h-3 w-3 text-slate-400" />
+                            <span>{building.name}</span>
+                          </div>
                         )}
-                        <DropdownMenuItem onClick={() => setDeleteResident(resident)} className="text-red-600">
-                          <Trash2 className="mr-2 h-4 w-4" /> Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
+                        <div className="flex items-center gap-3 text-xs text-slate-500">
+                          {unit.bedrooms && (
+                            <span className="flex items-center gap-1">
+                              <Bed className="h-3.5 w-3.5" /> {unit.bedrooms} bed
+                            </span>
+                          )}
+                          {unit.bathrooms && (
+                            <span className="flex items-center gap-1">
+                              <Bath className="h-3.5 w-3.5" /> {unit.bathrooms} bath
+                            </span>
+                          )}
+                        </div>
+                        {unit.square_feet && (
+                          <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                            <Square className="h-3.5 w-3.5" /> {unit.square_feet} sqft
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="pt-3 border-t border-slate-100">
+                        {unitResidents.length > 0 ? (
+                          <div className="space-y-2">
+                            {unitResidents.map((resident) => (
+                              <div key={resident.id} className="flex items-center gap-2">
+                                <Avatar className="h-6 w-6">
+                                  <AvatarImage src={resident.avatar_url} />
+                                  <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
+                                    {resident.first_name?.[0]}{resident.last_name?.[0]}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-medium text-slate-900 truncate">
+                                    {resident.first_name} {resident.last_name}
+                                  </p>
+                                  <p className="text-xs text-slate-500 capitalize">{resident.resident_type}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center py-2">
+                            <p className="text-xs text-slate-400">No residents</p>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mt-3 pt-3 border-t border-slate-100">
+                        <StatusBadge status={unit.status} />
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+          </div>
+        )
       )}
 
       {/* Add/Edit Dialog */}
