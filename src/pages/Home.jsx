@@ -1,41 +1,117 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Building2, Users, ClipboardCheck, MessageSquare, Shield, FileText, BarChart3, Layers, CheckCircle, Home as HomeIcon, UserCog, FolderOpen, Smartphone, X } from 'lucide-react';
+import { Building2, Users, ClipboardCheck, MessageSquare, Shield, FileText, BarChart3, Layers, CheckCircle, Home as HomeIcon, UserCog, FolderOpen, Smartphone, X, Menu, ArrowUp, LogIn, Zap, Target, UsersRound, AlertCircle, Repeat, LayoutGrid, ChevronDown } from 'lucide-react';
 import DemoRequestModal from '@/components/marketing/DemoRequestModal';
+import VividLogo from '@/components/marketing/VividLogo';
 
 export default function Home() {
   const [showDemoModal, setShowDemoModal] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 500);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const offset = 80;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+      setMobileMenuOpen(false);
+    }
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
   return (
     <div className="min-h-screen bg-white">
+      <style>{`
+        html {
+          scroll-behavior: smooth;
+        }
+      `}</style>
+
       {/* Top Navigation */}
       <nav className="bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl">
-                <Building2 className="h-6 w-6 text-white" />
-              </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Vivid BMS</span>
-            </div>
+            <button onClick={() => scrollToTop()} className="focus:outline-none">
+              <VividLogo />
+            </button>
+
             <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">Features</a>
-              <a href="#solutions" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">Solutions</a>
-              <a href="#partners" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">Partners</a>
-              <Link to={createPageUrl('Dashboard')}>
-                <Button variant="outline" className="border-gray-300 hover:border-blue-600">Login</Button>
-              </Link>
+              <button onClick={() => scrollToSection('benefits')} className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+                Benefits
+              </button>
+              <button onClick={() => scrollToSection('for-teams')} className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+                For Teams
+              </button>
+              <button onClick={() => scrollToSection('features')} className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+                Features
+              </button>
+              <button onClick={() => scrollToSection('demo')} className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+                Demo
+              </button>
+              <button onClick={() => scrollToSection('login')} className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+                Login
+              </button>
               <Button 
                 onClick={() => setShowDemoModal(true)}
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 hover:scale-105 transition-all duration-200 font-semibold"
               >
-                Book a Demo
+                Get Started
+              </Button>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button 
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 text-gray-700 hover:text-blue-600"
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-200 bg-white">
+            <div className="px-4 py-4 space-y-3">
+              <button onClick={() => scrollToSection('benefits')} className="block w-full text-left py-2 text-gray-700 hover:text-blue-600 font-medium">
+                Benefits
+              </button>
+              <button onClick={() => scrollToSection('for-teams')} className="block w-full text-left py-2 text-gray-700 hover:text-blue-600 font-medium">
+                For Teams
+              </button>
+              <button onClick={() => scrollToSection('features')} className="block w-full text-left py-2 text-gray-700 hover:text-blue-600 font-medium">
+                Features
+              </button>
+              <button onClick={() => scrollToSection('demo')} className="block w-full text-left py-2 text-gray-700 hover:text-blue-600 font-medium">
+                Demo
+              </button>
+              <button onClick={() => scrollToSection('login')} className="block w-full text-left py-2 text-gray-700 hover:text-blue-600 font-medium">
+                Login
+              </button>
+              <Button 
+                onClick={() => setShowDemoModal(true)}
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
+              >
+                Get Started
               </Button>
             </div>
           </div>
-        </div>
+        )}
       </nav>
 
       {/* Hero Section */}
@@ -79,8 +155,8 @@ export default function Home() {
 
 
 
-      {/* Problem / Solution */}
-      <section className="py-24 bg-gradient-to-b from-gray-50 to-white">
+      {/* Benefits / Value Proposition */}
+      <section id="benefits" className="py-24 bg-gradient-to-b from-gray-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center mb-20">
             <h2 className="text-4xl sm:text-5xl font-bold mb-6 text-gray-900">
@@ -151,8 +227,8 @@ export default function Home() {
 
 
 
-      {/* Who Uses Vivid */}
-      <section id="solutions" className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
+      {/* For Teams */}
+      <section id="for-teams" className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl font-bold mb-4 text-gray-900">Built for your entire team</h2>
@@ -242,7 +318,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features Grid */}
+      {/* Features Showcase */}
       <section id="features" className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20">
@@ -327,8 +403,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white relative overflow-hidden">
+      {/* Demo Request Section */}
+      <section id="demo" className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=2070')] opacity-5 bg-cover bg-center"></div>
         <div className="relative max-w-4xl mx-auto text-center">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
@@ -358,7 +434,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Partners Section */}
+      {/* White Label Partnership Section */}
       <section id="partners" className="py-24 px-4 sm:px-6 lg:px-8 bg-gray-50">
         <div className="max-w-5xl mx-auto text-center">
           <div className="inline-flex p-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mb-6">
@@ -376,18 +452,40 @@ export default function Home() {
             Explore Partnership Options
           </Button>
         </div>
-      </section>
+        </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-16 px-4 sm:px-6 lg:px-8">
+        {/* Login Section */}
+        <section id="login" className="py-24 px-4 sm:px-6 lg:px-8 bg-white border-t border-gray-200">
+        <div className="max-w-2xl mx-auto text-center">
+          <div className="mb-6 flex justify-center">
+            <VividLogo />
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-gray-900">Access Your Dashboard</h2>
+          <p className="text-lg text-gray-600 mb-8 max-w-xl mx-auto">
+            Already a Vivid BMS user? Access your building management platform
+          </p>
+          <Link to={createPageUrl('Dashboard')}>
+            <Button 
+              size="lg"
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 hover:scale-105 text-lg px-12 py-6 font-semibold shadow-lg transition-all duration-200"
+            >
+              <LogIn className="mr-2 h-5 w-5" />
+              Login to Dashboard
+            </Button>
+          </Link>
+          <p className="mt-6 text-sm text-gray-500">
+            Need help? Contact <a href="mailto:support@vividbms.com" className="text-blue-600 hover:underline">support@vividbms.com</a>
+          </p>
+        </div>
+        </section>
+
+        {/* Footer */}
+        <footer className="bg-gray-900 text-gray-400 py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
             <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl">
-                  <Building2 className="h-5 w-5 text-white" />
-                </div>
-                <span className="text-white font-bold text-lg">Vivid BMS</span>
+              <div className="mb-4">
+                <VividLogo className="opacity-80" />
               </div>
               <p className="text-sm text-gray-400 leading-relaxed mb-4">Building management made simple for strata and BMC managers.</p>
               <Button 
@@ -400,19 +498,19 @@ export default function Home() {
             <div>
               <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Product</h4>
               <ul className="space-y-3 text-sm">
-                <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#solutions" className="hover:text-white transition-colors">Solutions</a></li>
-                <li><a href="#partners" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><Link to={createPageUrl('Dashboard')} className="hover:text-white transition-colors">Login</Link></li>
+                <li><button onClick={() => scrollToSection('features')} className="hover:text-white transition-colors">Features</button></li>
+                <li><button onClick={() => scrollToSection('for-teams')} className="hover:text-white transition-colors">For Teams</button></li>
+                <li><button onClick={() => scrollToSection('demo')} className="hover:text-white transition-colors">Demo</button></li>
+                <li><button onClick={() => scrollToSection('login')} className="hover:text-white transition-colors">Login</button></li>
               </ul>
             </div>
             <div>
               <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Company</h4>
               <ul className="space-y-3 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-                <li><a href="#partners" className="hover:text-white transition-colors">Partners</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
+                <li><button onClick={() => scrollToSection('benefits')} className="hover:text-white transition-colors">About</button></li>
+                <li><button onClick={() => scrollToSection('partners')} className="hover:text-white transition-colors">Partners</button></li>
+                <li><a href="mailto:careers@vividbms.com" className="hover:text-white transition-colors">Careers</a></li>
+                <li><a href="mailto:contact@vividbms.com" className="hover:text-white transition-colors">Contact</a></li>
               </ul>
             </div>
             <div>
@@ -435,7 +533,18 @@ export default function Home() {
         </div>
       </footer>
 
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 p-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full shadow-2xl hover:scale-110 transition-all duration-200 z-40"
+          aria-label="Scroll to top"
+        >
+          <ArrowUp className="h-5 w-5" />
+        </button>
+      )}
+
       <DemoRequestModal open={showDemoModal} onOpenChange={setShowDemoModal} />
-    </div>
-  );
-}
+      </div>
+      );
+      }

@@ -19,25 +19,32 @@ export default function DemoRequestModal({ open, onOpenChange }) {
   });
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Here you would typically send this to your backend or CRM
-    console.log('Demo request submitted:', formData);
-    setSubmitted(true);
-    toast.success('Thank you! We\'ll be in touch shortly.');
     
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({
-        full_name: '',
-        email: '',
-        phone: '',
-        company: '',
-        building_count: '',
-        message: ''
-      });
-      onOpenChange(false);
-    }, 2000);
+    try {
+      const { base44 } = await import('@/api/base44Client');
+      await base44.entities.DemoRequest.create(formData);
+      
+      setSubmitted(true);
+      toast.success('Thank you! We\'ll be in touch shortly.');
+      
+      setTimeout(() => {
+        setSubmitted(false);
+        setFormData({
+          full_name: '',
+          email: '',
+          phone: '',
+          company: '',
+          building_count: '',
+          message: ''
+        });
+        onOpenChange(false);
+      }, 2000);
+    } catch (error) {
+      toast.error('Something went wrong. Please try again.');
+      console.error('Demo request error:', error);
+    }
   };
 
   return (
