@@ -34,14 +34,14 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white overflow-hidden">
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070')] opacity-10 bg-cover bg-center"></div>
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 via-indigo-600/90 to-purple-700/90"></div>
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1486718448742-163732cd1544?q=80&w=2070')] opacity-20 bg-cover bg-center"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/85 via-indigo-600/85 to-purple-700/85"></div>
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 lg:py-40">
           <div className="max-w-4xl mx-auto text-center">
             <div>
 
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold leading-[1.1] mb-6">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-[1.2] mb-6">
                 Our software solutions provide all your property, tenant, and community management in one single platform
               </h1>
               <p className="text-xl lg:text-2xl mb-10 text-white/90 leading-relaxed">
