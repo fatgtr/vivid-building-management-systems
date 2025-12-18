@@ -99,6 +99,12 @@ function LayoutInner({ children, currentPageName }) {
           --primary: 222 47% 11%;
           --primary-foreground: 210 40% 98%;
           --accent: 217 91% 60%;
+          --keyvision-blue-start: #3B82F6;
+          --keyvision-blue-end: #6366F1;
+          --keyvision-text-dark: #1A202C;
+          --keyvision-text-light: #4A5568;
+          --keyvision-bg-light: #F8FAFC;
+          --keyvision-border: #E2E8F0;
         }
         .sidebar-link {
           transition: all 0.2s ease;
@@ -109,6 +115,27 @@ function LayoutInner({ children, currentPageName }) {
         .sidebar-link.active {
           background: linear-gradient(90deg, rgba(59, 130, 246, 0.15) 0%, transparent 100%);
           border-left: 3px solid #3b82f6;
+        }
+        .keyvision-gradient-text {
+          background: linear-gradient(to right, var(--keyvision-blue-start), var(--keyvision-blue-end));
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .keyvision-gradient-bg {
+          background: linear-gradient(to right bottom, var(--keyvision-blue-start), var(--keyvision-blue-end));
+        }
+        .keyvision-card {
+          background: white;
+          border: 1px solid var(--keyvision-border);
+          border-radius: 0.75rem;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+          transition: all 0.3s ease;
+        }
+        .keyvision-card:hover {
+          border-color: rgba(59, 130, 246, 0.4);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+          transform: translateY(-2px);
         }
       `}</style>
 
