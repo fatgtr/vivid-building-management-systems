@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Building2, Users, ClipboardCheck, MessageSquare, Shield, FileText, BarChart3, Layers, CheckCircle, Home as HomeIcon, UserCog, FolderOpen, Smartphone, X } from 'lucide-react';
+import DemoRequestModal from '@/components/marketing/DemoRequestModal';
 
 export default function Home() {
+  const [showDemoModal, setShowDemoModal] = useState(false);
   return (
     <div className="min-h-screen bg-white">
       {/* Top Navigation */}
@@ -23,9 +25,14 @@ export default function Home() {
               <a href="#solutions" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">Solutions</a>
               <a href="#partners" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">Partners</a>
               <Link to={createPageUrl('Dashboard')}>
-                <Button variant="outline" className="border-gray-300">Login</Button>
+                <Button variant="outline" className="border-gray-300 hover:border-blue-600">Login</Button>
               </Link>
-              <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700">Book a Demo</Button>
+              <Button 
+                onClick={() => setShowDemoModal(true)}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 hover:scale-105 transition-all duration-200 font-semibold"
+              >
+                Book a Demo
+              </Button>
             </div>
           </div>
         </div>
@@ -47,11 +54,20 @@ export default function Home() {
               <p className="text-xl lg:text-2xl mb-10 text-white/90 leading-relaxed">
                 Streamline operations, reduce administrative burden, and focus on what matters—your building and your people.
               </p>
-              <div className="flex flex-wrap gap-4">
-                <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-10 py-7 font-bold shadow-2xl text-xl">
+              <div className="flex flex-wrap gap-4 justify-center">
+                <Button 
+                  size="lg" 
+                  onClick={() => setShowDemoModal(true)}
+                  className="bg-white text-blue-600 hover:bg-white hover:scale-105 text-xl px-14 py-8 font-bold shadow-2xl transition-all duration-200"
+                >
                   Let's get started
                 </Button>
-                <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white/10 text-lg px-10 py-7 font-bold backdrop-blur-sm">
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  onClick={() => setShowDemoModal(true)}
+                  className="border-3 border-white text-white hover:bg-white hover:text-blue-600 hover:scale-105 text-xl px-14 py-8 font-bold backdrop-blur-sm transition-all duration-200"
+                >
                   Watch Demo
                 </Button>
               </div>
@@ -322,10 +338,19 @@ export default function Home() {
             Join hundreds of building managers who've reclaimed their time with Vivid BMS
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
-            <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-xl px-12 py-7 font-bold shadow-2xl">
-              Start Free Trial
+            <Button 
+              size="lg" 
+              onClick={() => setShowDemoModal(true)}
+              className="bg-white text-blue-600 hover:bg-white hover:scale-105 text-xl px-14 py-8 font-bold shadow-2xl transition-all duration-200"
+            >
+              Request a Demo
             </Button>
-            <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white/10 text-xl px-12 py-7 font-bold backdrop-blur-sm">
+            <Button 
+              size="lg" 
+              variant="outline"
+              onClick={() => setShowDemoModal(true)}
+              className="border-3 border-white text-white hover:bg-white hover:text-blue-600 hover:scale-105 text-xl px-14 py-8 font-bold backdrop-blur-sm transition-all duration-200"
+            >
               Schedule Demo
             </Button>
           </div>
@@ -343,7 +368,11 @@ export default function Home() {
           <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-2xl mx-auto">
             Building management firms can offer Vivid under their own brand with white-label and co-branded options.
           </p>
-          <Button size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 text-lg px-10 py-6 font-semibold shadow-lg">
+          <Button 
+            size="lg" 
+            onClick={() => setShowDemoModal(true)}
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 hover:scale-105 text-xl px-12 py-7 font-bold shadow-2xl transition-all duration-200"
+          >
             Explore Partnership Options
           </Button>
         </div>
@@ -361,11 +390,12 @@ export default function Home() {
                 <span className="text-white font-bold text-lg">Vivid BMS</span>
               </div>
               <p className="text-sm text-gray-400 leading-relaxed mb-4">Building management made simple for strata and BMC managers.</p>
-              <Link to={createPageUrl('Dashboard')}>
-                <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700">
-                  Get Started
-                </Button>
-              </Link>
+              <Button 
+                onClick={() => setShowDemoModal(true)}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 hover:scale-105 transition-all duration-200 font-semibold"
+              >
+                Get Started
+              </Button>
             </div>
             <div>
               <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Product</h4>
@@ -404,6 +434,8 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      <DemoRequestModal open={showDemoModal} onOpenChange={setShowDemoModal} />
     </div>
   );
 }
