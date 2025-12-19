@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import CalendarWidget from '@/components/dashboard/CalendarWidget';
 import CasesChart from '@/components/dashboard/CasesChart';
+import QueryNotesWidget from '@/components/dashboard/QueryNotesWidget';
 import { 
   Building2, 
   Users, 
@@ -147,6 +148,9 @@ export default function Dashboard() {
           <CasesChart workOrders={filteredWorkOrders} />
         </div>
       </div>
+
+      {/* Abandoned Queries Alert */}
+      <QueryNotesWidget buildingId={selectedBuildingId} />
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

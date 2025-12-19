@@ -144,7 +144,9 @@ export default function FaultReportingWizard({ onProceedToReport, unitId, buildi
                       <Button 
                         onClick={() => onProceedToReport({ 
                           type: selectedType, 
-                          item: selectedItem 
+                          item: selectedItem,
+                          responsibility: responsibility,
+                          bylawAnalysis: bylawAnalysis
                         })}
                         className="mt-3 bg-green-600 hover:bg-green-700"
                       >
@@ -173,7 +175,9 @@ export default function FaultReportingWizard({ onProceedToReport, unitId, buildi
                         onClick={() => onProceedToReport({ 
                           type: selectedType, 
                           item: selectedItem,
-                          requiresAssessment: true
+                          requiresAssessment: true,
+                          responsibility: responsibility,
+                          bylawAnalysis: bylawAnalysis
                         })}
                         className="mt-3 bg-yellow-600 hover:bg-yellow-700"
                       >

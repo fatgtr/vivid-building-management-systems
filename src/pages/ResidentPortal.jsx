@@ -78,6 +78,8 @@ export default function ResidentPortal() {
   const [selectedWorkOrder, setSelectedWorkOrder] = useState(null);
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [deleteDocumentId, setDeleteDocumentId] = useState(null);
+  const [responsibilityData, setResponsibilityData] = useState(null);
+  const [bylawAnalysisData, setBylawAnalysisData] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -260,6 +262,10 @@ export default function ResidentPortal() {
     setWizardData(data);
     setShowWizard(false);
     setShowAIAssistant(true);
+    
+    // Store responsibility and bylaw data for potential query note
+    setResponsibilityData(data.responsibility);
+    setBylawAnalysisData(data.bylawAnalysis);
     
     // Pre-populate form with wizard data if available
     if (data.type && data.item) {
@@ -744,13 +750,38 @@ export default function ResidentPortal() {
       </Dialog>
 
       {/* Submit Request Dialog */}
-      <Dialog open={showRequestDialog} onOpenChange={(open) => {
+      <Dialog open={showRequestDialog} onOpenChange={async (open) => {
+        // If closing the dialog and wizard data exists but no work order was submitted
+        if (!open && wizardData && !createWorkOrderMutation.isPending && resident) {
+          try {
+            // Log the abandoned query
+            await base44.entities.QueryNote.create({
+              building_id: resident.building_id,
+              unit_id: resident.unit_id,
+              resident_email: resident.email,
+              resident_name: `${resident.first_name} ${resident.last_name}`,
+              issue_type: wizardData.type,
+              issue_item: wizardData.item,
+              standard_responsibility: responsibilityData?.responsible || 'Unknown',
+              bylaw_responsibility: bylawAnalysisData?.analysis?.responsibilityParty || null,
+              bylaw_found: bylawAnalysisData?.analysis?.bylawFound || false,
+              lot_number: bylawAnalysisData?.lotNumber || null,
+              severity: 'non_critical',
+              status: 'pending'
+            });
+          } catch (error) {
+            console.error('Error logging query note:', error);
+          }
+        }
+
         setShowRequestDialog(open);
         if (!open) {
           setShowWizard(true);
           setShowAIAssistant(false);
           setWizardData(null);
           setAiData(null);
+          setResponsibilityData(null);
+          setBylawAnalysisData(null);
           setFormData({ title: '', description: '', category: 'other', priority: 'medium' });
           setSelectedPhotos([]);
           setShowOwnerChoice(false);
@@ -764,7 +795,7 @@ export default function ResidentPortal() {
           
           {showWizard ? (
             <FaultReportingWizard 
-              onProceedToReport={handleProceedFromWizard} 
+              onProceedToReport={handleProceedFromWizard}
               unitId={resident?.unit_id}
               buildingId={resident?.building_id}
             />
