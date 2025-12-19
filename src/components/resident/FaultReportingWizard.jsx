@@ -1,17 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, CheckCircle2, Info } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Info, Loader2, Sparkles } from 'lucide-react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-export default function FaultReportingWizard({ onProceedToReport }) {
+export default function FaultReportingWizard({ onProceedToReport, unitId, buildingId }) {
   const [selectedType, setSelectedType] = useState('');
   const [selectedItem, setSelectedItem] = useState('');
   const [responsibility, setResponsibility] = useState(null);
+  const [bylawAnalysis, setBylawAnalysis] = useState(null);
+  const [checkingBylaws, setCheckingBylaws] = useState(false);
 
   const { data: guideData = [] } = useQuery({
     queryKey: ['responsibilityGuide'],
@@ -32,10 +34,29 @@ export default function FaultReportingWizard({ onProceedToReport }) {
     setResponsibility(null);
   };
 
-  const handleItemChange = (itemName) => {
+  const handleItemChange = async (itemName) => {
     setSelectedItem(itemName);
     const guide = guideData.find(g => g.type === selectedType && g.item === itemName);
     setResponsibility(guide);
+    setBylawAnalysis(null);
+
+    // Check bylaws for lot-specific responsibility
+    if (unitId && buildingId && selectedType && itemName) {
+      setCheckingBylaws(true);
+      try {
+        const { data } = await base44.functions.invoke('checkBylawResponsibility', {
+          issueType: selectedType,
+          issueItem: itemName,
+          unitId: unitId,
+          buildingId: buildingId
+        });
+        setBylawAnalysis(data);
+      } catch (error) {
+        console.error('Error checking bylaws:', error);
+      } finally {
+        setCheckingBylaws(false);
+      }
+    }
   };
 
   const getResponsibilityColor = (resp) => {
@@ -93,6 +114,70 @@ export default function FaultReportingWizard({ onProceedToReport }) {
           </div>
         )}
 
+        {/* Bylaw AI Analysis */}
+        {checkingBylaws && (
+          <Alert className="bg-blue-50 border-blue-200">
+            <div className="flex items-start gap-3">
+              <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+              <div className="flex-1">
+                <AlertDescription>
+                  <p className="font-semibold text-slate-900 mb-1">
+                    Checking Building Bylaws...
+                  </p>
+                  <p className="text-sm text-slate-600">
+                    Analyzing bylaws for your specific lot to determine responsibility
+                  </p>
+                </AlertDescription>
+              </div>
+            </div>
+          </Alert>
+        )}
+
+        {bylawAnalysis && bylawAnalysis.success && (
+          <Alert className="bg-purple-50 border-purple-200">
+            <div className="flex items-start gap-3">
+              <Sparkles className="h-5 w-5 text-purple-600" />
+              <div className="flex-1">
+                <AlertDescription>
+                  <p className="font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                    Bylaw Analysis for Lot {bylawAnalysis.lotNumber}
+                  </p>
+                  
+                  {bylawAnalysis.analysis.bylawFound ? (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-purple-900">
+                        Responsibility: {bylawAnalysis.analysis.responsibilityParty}
+                      </p>
+                      <p className="text-sm text-slate-700">
+                        {bylawAnalysis.analysis.explanation}
+                      </p>
+                      
+                      {bylawAnalysis.analysis.relevantBylawReferences && bylawAnalysis.analysis.relevantBylawReferences.length > 0 && (
+                        <div className="mt-2">
+                          <p className="text-xs font-medium text-slate-700 mb-1">Referenced Bylaws:</p>
+                          <ul className="text-xs text-slate-600 list-disc list-inside space-y-1">
+                            {bylawAnalysis.analysis.relevantBylawReferences.map((ref, idx) => (
+                              <li key={idx}>{ref}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      <p className="text-xs text-slate-500 italic mt-2">
+                        Confidence: {bylawAnalysis.analysis.confidence} • Checked {bylawAnalysis.bylawDocumentsChecked} bylaw document(s)
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-700">
+                      No specific bylaw found for Lot {bylawAnalysis.lotNumber}. Standard responsibility guidelines apply.
+                    </p>
+                  )}
+                </AlertDescription>
+              </div>
+            </div>
+          </Alert>
+        )}
+
         {/* Responsibility Result */}
         {responsibility && (
           <Alert className={`${getResponsibilityColor(responsibility.responsible)} border`}>
@@ -101,7 +186,7 @@ export default function FaultReportingWizard({ onProceedToReport }) {
               <div className="flex-1">
                 <AlertDescription>
                   <p className="font-semibold text-slate-900 mb-2">
-                    Responsible Party: {responsibility.responsible}
+                    Standard Responsibility: {responsibility.responsible}
                   </p>
                   
                   {responsibility.responsible === 'Owner' && (

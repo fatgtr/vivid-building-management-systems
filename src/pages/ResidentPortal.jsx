@@ -763,7 +763,11 @@ export default function ResidentPortal() {
           </DialogHeader>
           
           {showWizard ? (
-            <FaultReportingWizard onProceedToReport={handleProceedFromWizard} />
+            <FaultReportingWizard 
+              onProceedToReport={handleProceedFromWizard} 
+              unitId={resident?.unit_id}
+              buildingId={resident?.building_id}
+            />
           ) : showAIAssistant ? (
             <WorkOrderAIAssistant onComplete={handleAIComplete} />
           ) : (
