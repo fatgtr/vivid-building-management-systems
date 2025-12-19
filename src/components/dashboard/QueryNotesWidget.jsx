@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, Eye, CheckCircle2, X } from 'lucide-react';
+import { AlertCircle, Eye, CheckCircle2, X, Wrench } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -39,6 +39,17 @@ export default function QueryNotesWidget({ buildingId }) {
     },
   });
 
+  const createWorkOrderMutation = useMutation({
+    mutationFn: (workOrderData) => base44.entities.WorkOrder.create(workOrderData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workOrders'] });
+      queryClient.invalidateQueries({ queryKey: ['queryNotes'] });
+      toast.success('Work order created successfully');
+      setSelectedNote(null);
+      setManagerNotes('');
+    },
+  });
+
   const handleStatusChange = (status) => {
     if (selectedNote) {
       updateNoteMutation.mutate({
@@ -47,6 +58,32 @@ export default function QueryNotesWidget({ buildingId }) {
           status: status,
           manager_notes: managerNotes,
           contacted_date: status === 'contacted' ? new Date().toISOString() : selectedNote.contacted_date
+        }
+      });
+    }
+  };
+
+  const handleCreateWorkOrder = () => {
+    if (selectedNote) {
+      const priority = selectedNote.severity === 'critical' ? 'high' : selectedNote.severity === 'defect' ? 'medium' : 'low';
+      
+      createWorkOrderMutation.mutate({
+        building_id: selectedNote.building_id,
+        unit_id: selectedNote.unit_id,
+        title: `${selectedNote.issue_type} - ${selectedNote.issue_item}`,
+        description: `Issue reported by ${selectedNote.resident_name} (${selectedNote.resident_email})\n\nIssue: ${selectedNote.issue_item}\n\nResponsibility: ${selectedNote.bylaw_responsibility || selectedNote.standard_responsibility}\n\n${managerNotes ? `Manager Notes: ${managerNotes}` : ''}`,
+        category: 'other',
+        priority: priority,
+        reported_by: selectedNote.resident_email,
+        reported_by_name: selectedNote.resident_name,
+        status: 'open'
+      });
+
+      updateNoteMutation.mutate({
+        id: selectedNote.id,
+        data: {
+          status: 'resolved',
+          manager_notes: `${managerNotes}\n\nWork order created from this query.`,
         }
       });
     }
@@ -224,6 +261,16 @@ export default function QueryNotesWidget({ buildingId }) {
                   <CheckCircle2 className="h-4 w-4 mr-2" />
                   Mark as Contacted
                 </Button>
+                {(selectedNote.standard_responsibility === 'Owners Corporation' || selectedNote.bylaw_responsibility === 'Owners Corporation') && (
+                  <Button 
+                    onClick={handleCreateWorkOrder}
+                    className="bg-blue-600 hover:bg-blue-700"
+                    disabled={createWorkOrderMutation.isPending || updateNoteMutation.isPending}
+                  >
+                    <Wrench className="h-4 w-4 mr-2" />
+                    Create Work Order
+                  </Button>
+                )}
                 <Button 
                   onClick={() => handleStatusChange('resolved')}
                   className="bg-green-600 hover:bg-green-700"
