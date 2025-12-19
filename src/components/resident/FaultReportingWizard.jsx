@@ -114,70 +114,6 @@ export default function FaultReportingWizard({ onProceedToReport, unitId, buildi
           </div>
         )}
 
-        {/* Bylaw AI Analysis */}
-        {checkingBylaws && (
-          <Alert className="bg-blue-50 border-blue-200">
-            <div className="flex items-start gap-3">
-              <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
-              <div className="flex-1">
-                <AlertDescription>
-                  <p className="font-semibold text-slate-900 mb-1">
-                    Checking Building Bylaws...
-                  </p>
-                  <p className="text-sm text-slate-600">
-                    Analyzing bylaws for your specific lot to determine responsibility
-                  </p>
-                </AlertDescription>
-              </div>
-            </div>
-          </Alert>
-        )}
-
-        {bylawAnalysis && bylawAnalysis.success && (
-          <Alert className="bg-purple-50 border-purple-200">
-            <div className="flex items-start gap-3">
-              <Sparkles className="h-5 w-5 text-purple-600" />
-              <div className="flex-1">
-                <AlertDescription>
-                  <p className="font-semibold text-slate-900 mb-2 flex items-center gap-2">
-                    Bylaw Analysis for Lot {bylawAnalysis.lotNumber}
-                  </p>
-                  
-                  {bylawAnalysis.analysis.bylawFound ? (
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-purple-900">
-                        Responsibility: {bylawAnalysis.analysis.responsibilityParty}
-                      </p>
-                      <p className="text-sm text-slate-700">
-                        {bylawAnalysis.analysis.explanation}
-                      </p>
-                      
-                      {bylawAnalysis.analysis.relevantBylawReferences && bylawAnalysis.analysis.relevantBylawReferences.length > 0 && (
-                        <div className="mt-2">
-                          <p className="text-xs font-medium text-slate-700 mb-1">Referenced Bylaws:</p>
-                          <ul className="text-xs text-slate-600 list-disc list-inside space-y-1">
-                            {bylawAnalysis.analysis.relevantBylawReferences.map((ref, idx) => (
-                              <li key={idx}>{ref}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-
-                      <p className="text-xs text-slate-500 italic mt-2">
-                        Confidence: {bylawAnalysis.analysis.confidence} • Checked {bylawAnalysis.bylawDocumentsChecked} bylaw document(s)
-                      </p>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-slate-700">
-                      No specific bylaw found for Lot {bylawAnalysis.lotNumber}. Standard responsibility guidelines apply.
-                    </p>
-                  )}
-                </AlertDescription>
-              </div>
-            </div>
-          </Alert>
-        )}
-
         {/* Responsibility Result */}
         {responsibility && (
           <Alert className={`${getResponsibilityColor(responsibility.responsible)} border`}>
@@ -244,6 +180,86 @@ export default function FaultReportingWizard({ onProceedToReport, unitId, buildi
                         Submit Request for Assessment
                       </Button>
                     </div>
+                  )}
+                </AlertDescription>
+              </div>
+            </div>
+          </Alert>
+        )}
+
+        {/* Bylaw AI Analysis - Always shown after item selection */}
+        {selectedItem && (
+          <Alert className={checkingBylaws ? "bg-blue-50 border-blue-200" : "bg-purple-50 border-purple-200"}>
+            <div className="flex items-start gap-3">
+              {checkingBylaws ? (
+                <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+              ) : (
+                <Sparkles className="h-5 w-5 text-purple-600" />
+              )}
+              <div className="flex-1">
+                <AlertDescription>
+                  {checkingBylaws ? (
+                    <>
+                      <p className="font-semibold text-slate-900 mb-1">
+                        Checking Building Bylaws...
+                      </p>
+                      <p className="text-sm text-slate-600">
+                        Our AI is analyzing bylaws for your specific lot to determine if there are any special provisions
+                      </p>
+                    </>
+                  ) : bylawAnalysis && bylawAnalysis.success ? (
+                    <>
+                      <p className="font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                        🤖 AI Bylaw Analysis for Lot {bylawAnalysis.lotNumber}
+                      </p>
+                      
+                      {bylawAnalysis.analysis.bylawFound ? (
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium text-purple-900">
+                            ✓ Special Bylaw Found: {bylawAnalysis.analysis.responsibilityParty}
+                          </p>
+                          <p className="text-sm text-slate-700">
+                            {bylawAnalysis.analysis.explanation}
+                          </p>
+                          
+                          {bylawAnalysis.analysis.relevantBylawReferences && bylawAnalysis.analysis.relevantBylawReferences.length > 0 && (
+                            <div className="mt-2">
+                              <p className="text-xs font-medium text-slate-700 mb-1">Referenced Bylaws:</p>
+                              <ul className="text-xs text-slate-600 list-disc list-inside space-y-1">
+                                {bylawAnalysis.analysis.relevantBylawReferences.map((ref, idx) => (
+                                  <li key={idx}>{ref}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          <p className="text-xs text-slate-500 italic mt-2">
+                            Confidence: {bylawAnalysis.analysis.confidence} • Checked {bylawAnalysis.bylawDocumentsChecked} bylaw document(s)
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium text-slate-700">
+                            ✓ Bylaw Check Complete
+                          </p>
+                          <p className="text-sm text-slate-700">
+                            We've checked your building's bylaws and found no specific provisions for Lot {bylawAnalysis.lotNumber} regarding this issue. The standard responsibility guidelines above apply - responsibility falls to the <strong>{responsibility?.responsible || 'party indicated above'}</strong>.
+                          </p>
+                          <p className="text-xs text-slate-500 italic mt-2">
+                            Checked {bylawAnalysis.bylawDocumentsChecked} bylaw document(s)
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-semibold text-slate-900 mb-1">
+                        🤖 AI Bylaw Analysis
+                      </p>
+                      <p className="text-sm text-slate-600">
+                        We're checking your building's bylaws to see if there are any special provisions for your lot...
+                      </p>
+                    </>
                   )}
                 </AlertDescription>
               </div>
