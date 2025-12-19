@@ -67,10 +67,6 @@ export default function QueryNotesWidget({ buildingId }) {
 
   const pendingNotes = queryNotes.filter(n => n.status === 'pending');
 
-  if (pendingNotes.length === 0) {
-    return null;
-  }
-
   return (
     <>
       <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-50 to-red-50">
@@ -91,39 +87,49 @@ export default function QueryNotesWidget({ buildingId }) {
           </p>
         </CardHeader>
         <CardContent className="space-y-2">
-          {pendingNotes.slice(0, 5).map((note) => (
-            <div 
-              key={note.id} 
-              className="p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => {
-                setSelectedNote(note);
-                setManagerNotes(note.manager_notes || '');
-              }}
-            >
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-slate-900">
-                    {note.issue_type} - {note.issue_item}
-                  </p>
-                  <p className="text-xs text-slate-600">
-                    Unit {getUnitNumber(note.unit_id)} • {note.resident_name}
-                  </p>
+          {pendingNotes.length > 0 ? (
+            pendingNotes.slice(0, 5).map((note) => (
+              <div 
+                key={note.id} 
+                className="p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => {
+                  setSelectedNote(note);
+                  setManagerNotes(note.manager_notes || '');
+                }}
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-slate-900">
+                      {note.issue_type} - {note.issue_item}
+                    </p>
+                    <p className="text-xs text-slate-600">
+                      Unit {getUnitNumber(note.unit_id)} • {note.resident_name}
+                    </p>
+                  </div>
+                  <Badge className={`text-xs ${getSeverityColor(note.severity)}`}>
+                    {note.severity}
+                  </Badge>
                 </div>
-                <Badge className={`text-xs ${getSeverityColor(note.severity)}`}>
-                  {note.severity}
-                </Badge>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-slate-500">
+                    {format(new Date(note.created_date), 'MMM d, h:mm a')}
+                  </p>
+                  <Button variant="ghost" size="sm" className="h-6 text-xs">
+                    <Eye className="h-3 w-3 mr-1" />
+                    View
+                  </Button>
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <p className="text-xs text-slate-500">
-                  {format(new Date(note.created_date), 'MMM d, h:mm a')}
-                </p>
-                <Button variant="ghost" size="sm" className="h-6 text-xs">
-                  <Eye className="h-3 w-3 mr-1" />
-                  View
-                </Button>
+            ))
+          ) : (
+            <div className="text-center py-8">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-orange-100 rounded-full mb-2">
+                <AlertCircle className="h-6 w-6 text-orange-600" />
               </div>
+              <p className="text-sm font-medium text-slate-700">No abandoned queries</p>
+              <p className="text-xs text-slate-500 mt-1">Residents are submitting their requests!</p>
             </div>
-          ))}
+          )}
         </CardContent>
       </Card>
 
