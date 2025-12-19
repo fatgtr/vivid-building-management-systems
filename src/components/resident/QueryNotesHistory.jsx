@@ -54,88 +54,90 @@ export default function QueryNotesHistory({ residentId }) {
   });
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Query Notes History</h2>
-        <div className="flex gap-2">
-          <Select value={severityFilter} onValueChange={setSeverityFilter}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Filter by Severity" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Severities</SelectItem>
-              <SelectItem value="non_critical">Non-Critical</SelectItem>
-              <SelectItem value="critical">Critical</SelectItem>
-              <SelectItem value="defect">Defect</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Filter by Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="contacted">Contacted</SelectItem>
-              <SelectItem value="resolved">Resolved</SelectItem>
-              <SelectItem value="dismissed">Dismissed</SelectItem>
-            </SelectContent>
-          </Select>
+    <>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold">Query Notes History</h2>
+          <div className="flex gap-2">
+            <Select value={severityFilter} onValueChange={setSeverityFilter}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Filter by Severity" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Severities</SelectItem>
+                <SelectItem value="non_critical">Non-Critical</SelectItem>
+                <SelectItem value="critical">Critical</SelectItem>
+                <SelectItem value="defect">Defect</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Filter by Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="contacted">Contacted</SelectItem>
+                <SelectItem value="resolved">Resolved</SelectItem>
+                <SelectItem value="dismissed">Dismissed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-      </div>
 
-      {isLoading ? (
-        <Card>
-          <CardContent className="p-6 text-center text-slate-500">
-            Loading query notes...
-          </CardContent>
-        </Card>
-      ) : filteredNotes.length === 0 ? (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <History className="h-12 w-12 mx-auto text-slate-300 mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No Query Notes Found</h3>
-            <p className="text-slate-600">No abandoned maintenance queries have been logged for your unit.</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-3">
-          {filteredNotes.map((note) => (
-            <Card 
-              key={note.id} 
-              className="shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => setSelectedNote(note)}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-slate-900">
-                      {note.issue_type} - {note.issue_item}
-                    </p>
-                    <p className="text-xs text-slate-600">
-                      Unit: {getUnitNumber(note.unit_id)}
-                    </p>
+        {isLoading ? (
+          <Card>
+            <CardContent className="p-6 text-center text-slate-500">
+              Loading query notes...
+            </CardContent>
+          </Card>
+        ) : filteredNotes.length === 0 ? (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <History className="h-12 w-12 mx-auto text-slate-300 mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No Query Notes Found</h3>
+              <p className="text-slate-600">No abandoned maintenance queries have been logged for your unit.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {filteredNotes.map((note) => (
+              <Card 
+                key={note.id} 
+                className="shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => setSelectedNote(note)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-slate-900">
+                        {note.issue_type} - {note.issue_item}
+                      </p>
+                      <p className="text-xs text-slate-600">
+                        Unit: {getUnitNumber(note.unit_id)}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Badge className={`text-xs ${getSeverityColor(note.severity)}`}>
+                        {note.severity}
+                      </Badge>
+                      <Badge className={`text-xs ${getStatusColor(note.status)}`}>
+                        {note.status}
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Badge className={`text-xs ${getSeverityColor(note.severity)}`}>
-                      {note.severity}
-                    </Badge>
-                    <Badge className={`text-xs ${getStatusColor(note.status)}`}>
-                      {note.status}
-                    </Badge>
+                  <div className="flex items-center justify-between text-xs text-slate-500">
+                    <span>Queried: {format(new Date(note.created_date), 'MMM d, yyyy h:mm a')}</span>
+                    {note.contacted_date && (
+                      <span>Contacted: {format(new Date(note.contacted_date), 'MMM d, yyyy')}</span>
+                    )}
                   </div>
-                </div>
-                <div className="flex items-center justify-between text-xs text-slate-500">
-                  <span>Queried: {format(new Date(note.created_date), 'MMM d, yyyy h:mm a')}</span>
-                  {note.contacted_date && (
-                    <span>Contacted: {format(new Date(note.contacted_date), 'MMM d, yyyy')}</span>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
 
       <Dialog open={!!selectedNote} onOpenChange={() => setSelectedNote(null)}>
         <DialogContent className="max-w-2xl">
@@ -179,9 +181,9 @@ export default function QueryNotesHistory({ residentId }) {
                 </div>
               )}
             </div>
-          </DialogContent>
-        </Dialog>
-      )}
-    </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
