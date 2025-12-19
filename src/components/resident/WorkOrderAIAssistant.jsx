@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,14 +17,20 @@ import {
   ArrowRight
 } from 'lucide-react';
 
-export default function WorkOrderAIAssistant({ onComplete }) {
-  const [step, setStep] = useState('initial'); // initial, analyzing, clarifying, troubleshooting, complete
-  const [description, setDescription] = useState('');
+export default function WorkOrderAIAssistant({ onComplete, initialIssueType, initialIssueItem }) {
+  const [step, setStep] = useState('initial');
+  const [description, setDescription] = useState(initialIssueType && initialIssueItem ? `${initialIssueType} - ${initialIssueItem}` : '');
   const [analysis, setAnalysis] = useState(null);
   const [conversationHistory, setConversationHistory] = useState([]);
   const [clarifyingAnswer, setClarifyingAnswer] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+
+  useEffect(() => {
+    if (initialIssueType && initialIssueItem && step === 'initial' && description) {
+      handleInitialSubmit();
+    }
+  }, []);
 
   const handleInitialSubmit = async () => {
     if (!description.trim()) return;
@@ -69,7 +75,6 @@ export default function WorkOrderAIAssistant({ onComplete }) {
     setConversationHistory(updatedHistory);
 
     try {
-      // Re-analyze with additional context
       const result = await base44.functions.invoke('analyzeWorkOrderIssue', {
         description: `${description}\n\nAdditional details: ${clarifyingAnswer}`,
         conversationHistory: updatedHistory
@@ -81,7 +86,6 @@ export default function WorkOrderAIAssistant({ onComplete }) {
         { role: 'assistant', content: result.data.assistant_message }
       ]);
       
-      // Move to next question or troubleshooting
       if (currentQuestionIndex < result.data.clarifying_questions.length - 1) {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
         setClarifyingAnswer('');
@@ -128,7 +132,6 @@ export default function WorkOrderAIAssistant({ onComplete }) {
 
   return (
     <div className="space-y-4">
-      {/* Initial Description */}
       {step === 'initial' && (
         <Card>
           <CardHeader>
@@ -173,7 +176,6 @@ export default function WorkOrderAIAssistant({ onComplete }) {
         </Card>
       )}
 
-      {/* Analysis Results */}
       {analysis && (step === 'clarifying' || step === 'troubleshooting' || step === 'complete') && (
         <Alert className="bg-blue-50 border-blue-200">
           <Sparkles className="h-4 w-4 text-blue-600" />
@@ -194,7 +196,6 @@ export default function WorkOrderAIAssistant({ onComplete }) {
         </Alert>
       )}
 
-      {/* Clarifying Questions */}
       {step === 'clarifying' && analysis?.clarifying_questions[currentQuestionIndex] && (
         <Card>
           <CardHeader>
@@ -239,7 +240,6 @@ export default function WorkOrderAIAssistant({ onComplete }) {
         </Card>
       )}
 
-      {/* Troubleshooting Steps */}
       {step === 'troubleshooting' && analysis?.troubleshooting_steps?.length > 0 && (
         <Card className="border-yellow-200 bg-yellow-50">
           <CardHeader>
@@ -282,7 +282,6 @@ export default function WorkOrderAIAssistant({ onComplete }) {
         </Card>
       )}
 
-      {/* Complete */}
       {step === 'complete' && (
         <Card className="border-green-200 bg-green-50">
           <CardContent className="p-6">

@@ -28,6 +28,7 @@ import WorkOrderAIAssistant from '@/components/resident/WorkOrderAIAssistant';
 import LeaseAnalyzer from '@/components/resident/LeaseAnalyzer';
 import LeaseAgreementView from '@/components/resident/LeaseAgreementView';
 import RentalAgreementExtractor from '@/components/resident/RentalAgreementExtractor';
+import QueryNotesHistory from '@/components/resident/QueryNotesHistory';
 import { 
   Home, 
   Wrench, 
@@ -44,7 +45,8 @@ import {
   CheckCircle2,
   Settings,
   Sparkles,
-  Trash2
+  Trash2,
+  History
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -91,27 +93,22 @@ export default function ResidentPortal() {
 
   const queryClient = useQueryClient();
 
-  // Fetch user data
   useEffect(() => {
     base44.auth.me().then(userData => {
       setUser(userData);
     }).catch(() => {});
   }, []);
 
-  // Read residentId from URL for manager override
   const urlParams = new URLSearchParams(window.location.search);
   const managerResidentId = urlParams.get('residentId');
 
-  // Fetch resident profile
   const { data: residents = [], refetch: refetchResidents } = useQuery({
     queryKey: ['residents', user?.email, managerResidentId],
     queryFn: async () => {
       if (managerResidentId) {
-        // If managerResidentId is present, fetch that specific resident
         const resident = await base44.entities.Resident.get(managerResidentId);
         return resident ? [resident] : [];
       } else if (user?.email) {
-        // Otherwise, fetch residents by the logged-in user's email
         return base44.entities.Resident.filter({ email: user?.email });
       }
       return [];
@@ -127,21 +124,18 @@ export default function ResidentPortal() {
     }
   }, [residents]);
 
-  // Refetch residents if the managerResidentId or user email changes
   useEffect(() => {
     if (user?.email || managerResidentId) {
       refetchResidents();
     }
   }, [user?.email, managerResidentId, refetchResidents]);
 
-  // Fetch work orders for this resident
   const { data: workOrders = [] } = useQuery({
-    queryKey: ['workOrders', resident?.email], // Use resident's email, which could be from manager override
+    queryKey: ['workOrders', resident?.email],
     queryFn: () => base44.entities.WorkOrder.filter({ reported_by: resident?.email }),
     enabled: !!resident?.email,
   });
 
-  // Fetch announcements for resident's building
   const { data: announcements = [] } = useQuery({
     queryKey: ['announcements', resident?.building_id],
     queryFn: async () => {
@@ -163,7 +157,6 @@ export default function ResidentPortal() {
     enabled: !!resident?.building_id,
   });
 
-  // Fetch documents for resident's building
   const { data: documents = [] } = useQuery({
     queryKey: ['documents', resident?.building_id],
     queryFn: () => base44.entities.Document.filter({ 
@@ -173,13 +166,11 @@ export default function ResidentPortal() {
     enabled: !!resident?.building_id,
   });
 
-  // Fetch building info
   const { data: buildings = [] } = useQuery({
     queryKey: ['buildings'],
     queryFn: () => base44.entities.Building.list(),
   });
 
-  // Fetch units
   const { data: units = [] } = useQuery({
     queryKey: ['units'],
     queryFn: () => base44.entities.Unit.list(),
@@ -195,11 +186,9 @@ export default function ResidentPortal() {
     },
     onSuccess: (data) => {
       if (data.requiresOwnerChoice) {
-        // Owner needs to choose how to proceed
         setPendingWorkOrderId(data.workOrderId);
         setShowOwnerChoice(true);
       } else {
-        // Tenant workflow - all done
         queryClient.invalidateQueries({ queryKey: ['workOrders'] });
         setShowRequestDialog(false);
         setFormData({ title: '', description: '', category: 'other', priority: 'medium' });
@@ -263,11 +252,9 @@ export default function ResidentPortal() {
     setShowWizard(false);
     setShowAIAssistant(true);
     
-    // Store responsibility and bylaw data for potential query note
     setResponsibilityData(data.responsibility);
     setBylawAnalysisData(data.bylawAnalysis);
     
-    // Pre-populate form with wizard data if available
     if (data.type && data.item) {
       setFormData({
         ...formData,
@@ -281,7 +268,6 @@ export default function ResidentPortal() {
 
   const handleAIComplete = (data) => {
     if (!data) {
-      // User resolved the issue themselves
       setShowRequestDialog(false);
       setShowWizard(true);
       setShowAIAssistant(false);
@@ -293,7 +279,6 @@ export default function ResidentPortal() {
     setAiData(data);
     setShowAIAssistant(false);
     
-    // Pre-populate form with AI-analyzed data
     setFormData({
       title: data.title,
       description: data.description,
@@ -328,7 +313,7 @@ export default function ResidentPortal() {
         category: formData.category,
         priority: formData.priority,
         photoUrls: photoUrls,
-        residentEmail: resident.email, // Pass resident email explicitly for manager override
+        residentEmail: resident.email,
       };
 
       createWorkOrderMutation.mutate(maintenanceData);
@@ -367,13 +352,13 @@ export default function ResidentPortal() {
   };
 
   const visibleDocuments = documents.filter(doc => 
-    doc.category !== 'lease_agreement' && // Exclude lease agreements from general documents
+    doc.category !== 'lease_agreement' &&
     (doc.visibility === 'public' || 
     doc.visibility === 'residents_only' ||
     (doc.visibility === 'owners_only' && resident?.resident_type === 'owner'))
   );
 
-  if (!user && !managerResidentId) { // Only require login if not in manager override mode
+  if (!user && !managerResidentId) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <Card className="w-96 text-center p-8">
@@ -471,7 +456,7 @@ export default function ResidentPortal() {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="requests" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="requests">
             <Wrench className="h-4 w-4 mr-2" />
             My Requests
@@ -487,6 +472,10 @@ export default function ResidentPortal() {
           <TabsTrigger value="documents">
             <FileText className="h-4 w-4 mr-2" />
             Documents
+          </TabsTrigger>
+          <TabsTrigger value="history">
+            <History className="h-4 w-4 mr-2" />
+            Query History
           </TabsTrigger>
           <TabsTrigger value="settings">
             <Settings className="h-4 w-4 mr-2" />
@@ -523,11 +512,7 @@ export default function ResidentPortal() {
               <CardContent className="p-12 text-center">
                 <Wrench className="h-12 w-12 mx-auto text-slate-300 mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No Requests Yet</h3>
-                <p className="text-slate-600 mb-4">Submit your first maintenance request to get started.</p>
-                <Button onClick={() => setShowRequestDialog(true)} variant="outline">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Submit Request
-                </Button>
+                <p className="text-slate-600">Submit your first maintenance request to get started.</p>
               </CardContent>
             </Card>
           ) : (
@@ -697,6 +682,11 @@ export default function ResidentPortal() {
           )}
         </TabsContent>
 
+        {/* Query History Tab */}
+        <TabsContent value="history" className="space-y-4">
+          <QueryNotesHistory residentId={resident?.unit_id} />
+        </TabsContent>
+
         {/* Notification Settings Tab */}
         <TabsContent value="settings" className="space-y-4">
           <h2 className="text-xl font-semibold">Notification Settings</h2>
@@ -751,10 +741,8 @@ export default function ResidentPortal() {
 
       {/* Submit Request Dialog */}
       <Dialog open={showRequestDialog} onOpenChange={async (open) => {
-        // If closing the dialog and wizard data exists but no work order was submitted
         if (!open && wizardData && !createWorkOrderMutation.isPending && resident) {
           try {
-            // Log the abandoned query
             await base44.entities.QueryNote.create({
               building_id: resident.building_id,
               unit_id: resident.unit_id,
@@ -769,6 +757,7 @@ export default function ResidentPortal() {
               severity: 'non_critical',
               status: 'pending'
             });
+            toast.info('Your query was saved for review by management.');
           } catch (error) {
             console.error('Error logging query note:', error);
           }
@@ -800,7 +789,11 @@ export default function ResidentPortal() {
               buildingId={resident?.building_id}
             />
           ) : showAIAssistant ? (
-            <WorkOrderAIAssistant onComplete={handleAIComplete} />
+            <WorkOrderAIAssistant 
+              onComplete={handleAIComplete} 
+              initialIssueType={wizardData?.type}
+              initialIssueItem={wizardData?.item}
+            />
           ) : (
             <form onSubmit={handleSubmitRequest} className="space-y-4">
             <div>
@@ -940,7 +933,7 @@ export default function ResidentPortal() {
                 {selectedDocument.title}
               </DialogTitle>
             </DialogHeader>
-            <LeaseAnalyzer document={selectedDocument} userEmail={resident?.email} /> {/* Use resident's email here */}
+            <LeaseAnalyzer document={selectedDocument} userEmail={resident?.email} />
           </DialogContent>
         </Dialog>
       )}
@@ -1010,12 +1003,12 @@ export default function ResidentPortal() {
               )}
             </div>
           </DialogContent>
-          </Dialog>
-          )}
+        </Dialog>
+      )}
 
-          {/* Delete Document Confirmation */}
-          <AlertDialog open={!!deleteDocumentId} onOpenChange={() => setDeleteDocumentId(null)}>
-          <AlertDialogContent>
+      {/* Delete Document Confirmation */}
+      <AlertDialog open={!!deleteDocumentId} onOpenChange={() => setDeleteDocumentId(null)}>
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Document</AlertDialogTitle>
             <AlertDialogDescription>
@@ -1032,8 +1025,8 @@ export default function ResidentPortal() {
               {deleteDocumentMutation.isPending ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
-          </AlertDialogContent>
-          </AlertDialog>
-          </div>
-          );
-          }
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
