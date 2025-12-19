@@ -464,15 +464,17 @@ export default function Home() {
           <p className="text-lg text-gray-600 mb-8 max-w-xl mx-auto">
             Already a Vivid BMS user? Access your building management platform
           </p>
-          <Link to={createPageUrl('Dashboard')}>
-            <Button 
-              size="lg"
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 hover:scale-105 text-lg px-12 py-6 font-semibold shadow-lg transition-all duration-200"
-            >
-              <LogIn className="mr-2 h-5 w-5" />
-              Login to Dashboard
-            </Button>
-          </Link>
+          <Button 
+            size="lg"
+            onClick={async () => {
+              const { base44 } = await import('@/api/base44Client');
+              base44.auth.redirectToLogin(createPageUrl('Dashboard'));
+            }}
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 hover:scale-105 text-lg px-12 py-6 font-semibold shadow-lg transition-all duration-200"
+          >
+            <LogIn className="mr-2 h-5 w-5" />
+            Login to Dashboard
+          </Button>
           <p className="mt-6 text-sm text-gray-500">
             Need help? Contact <a href="mailto:support@vividbms.com" className="text-blue-600 hover:underline">support@vividbms.com</a>
           </p>
