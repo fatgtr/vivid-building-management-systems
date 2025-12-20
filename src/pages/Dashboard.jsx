@@ -157,55 +157,61 @@ export default function Dashboard() {
         {/* Left Column */}
         <div className="space-y-6">
           {/* Building Summary */}
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold text-slate-900">Building Summary</CardTitle>
+          <Card className="overflow-hidden border-2 border-blue-200 shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-blue-400">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/20 to-transparent rounded-bl-full" />
+            <CardHeader className="pb-3 bg-gradient-to-r from-blue-50 to-indigo-50">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                  <Building2 className="h-5 w-5 text-white" />
+                </div>
+                <CardTitle className="text-base font-bold text-slate-900">Building Summary</CardTitle>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <CardContent className="space-y-2 pt-4">
+              <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-transparent rounded-lg hover:from-blue-100 transition-all cursor-pointer border border-blue-100">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Building2 className="h-5 w-5 text-blue-600" />
+                  <div className="p-2.5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-md">
+                    <Building2 className="h-4 w-4 text-white" />
                   </div>
-                  <span className="text-sm font-medium text-slate-700">Assets</span>
+                  <span className="text-sm font-semibold text-slate-800">Assets</span>
                 </div>
-                <span className="text-lg font-bold text-blue-600">{filteredUnits.length}</span>
+                <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{filteredUnits.length}</span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-transparent rounded-lg hover:from-purple-100 transition-all cursor-pointer border border-purple-100">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <Users className="h-5 w-5 text-purple-600" />
+                  <div className="p-2.5 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-md">
+                    <Users className="h-4 w-4 text-white" />
                   </div>
-                  <span className="text-sm font-medium text-slate-700">Residents</span>
+                  <span className="text-sm font-semibold text-slate-800">Residents</span>
                 </div>
-                <span className="text-lg font-bold text-purple-600">{filteredResidents.length}</span>
+                <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{filteredResidents.length}</span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-transparent rounded-lg hover:from-green-100 transition-all cursor-pointer border border-green-100">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <Wrench className="h-5 w-5 text-green-600" />
+                  <div className="p-2.5 bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-md">
+                    <Wrench className="h-4 w-4 text-white" />
                   </div>
-                  <span className="text-sm font-medium text-slate-700">Work Orders</span>
+                  <span className="text-sm font-semibold text-slate-800">Work Orders</span>
                 </div>
-                <span className="text-lg font-bold text-green-600">{filteredWorkOrders.length}</span>
+                <span className="text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">{filteredWorkOrders.length}</span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between p-3 bg-gradient-to-r from-orange-50 to-transparent rounded-lg hover:from-orange-100 transition-all cursor-pointer border border-orange-100">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-orange-100 rounded-lg">
-                    <HardHat className="h-5 w-5 text-orange-600" />
+                  <div className="p-2.5 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-md">
+                    <HardHat className="h-4 w-4 text-white" />
                   </div>
-                  <span className="text-sm font-medium text-slate-700">Contractors</span>
+                  <span className="text-sm font-semibold text-slate-800">Contractors</span>
                 </div>
-                <span className="text-lg font-bold text-orange-600">{contractors.length}</span>
+                <span className="text-xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">{contractors.length}</span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between p-3 bg-gradient-to-r from-red-50 to-transparent rounded-lg hover:from-red-100 transition-all cursor-pointer border border-red-100">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-red-100 rounded-lg">
-                    <AlertCircle className="h-5 w-5 text-red-600" />
+                  <div className="p-2.5 bg-gradient-to-br from-red-500 to-red-600 rounded-lg shadow-md">
+                    <AlertCircle className="h-4 w-4 text-white" />
                   </div>
-                  <span className="text-sm font-medium text-slate-700">Active Cases</span>
+                  <span className="text-sm font-semibold text-slate-800">Active Cases</span>
                 </div>
-                <span className="text-lg font-bold text-red-600">{filteredActiveCases}</span>
+                <span className="text-xl font-bold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">{filteredActiveCases}</span>
               </div>
             </CardContent>
           </Card>
@@ -214,13 +220,14 @@ export default function Dashboard() {
         {/* Middle Column */}
         <div className="space-y-6">
           {/* Items Requiring Action */}
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-red-50 to-orange-50">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-red-100 rounded-lg">
-                  <AlertCircle className="h-4 w-4 text-red-600" />
+          <Card className="overflow-hidden border-2 border-red-200 shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-red-400">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-red-500/20 to-transparent rounded-bl-full" />
+            <CardHeader className="pb-3 bg-gradient-to-r from-red-50 to-orange-50">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center shadow-lg shadow-red-500/30 animate-pulse">
+                  <AlertCircle className="h-5 w-5 text-white" />
                 </div>
-                <CardTitle className="text-base font-semibold text-slate-900">Items Requiring Action</CardTitle>
+                <CardTitle className="text-base font-bold text-slate-900">Items Requiring Action</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-2">
@@ -259,13 +266,19 @@ export default function Dashboard() {
           </Card>
 
           {/* Notes */}
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-yellow-50 to-amber-50">
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
-              <CardTitle className="text-base font-semibold text-slate-900">Notes</CardTitle>
+          <Card className="overflow-hidden border-2 border-yellow-200 shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-yellow-400">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-yellow-500/20 to-transparent rounded-bl-full" />
+            <CardHeader className="flex flex-row items-center justify-between pb-3 bg-gradient-to-r from-yellow-50 to-amber-50">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-yellow-500 to-amber-600 flex items-center justify-center shadow-lg shadow-yellow-500/30">
+                  <FileText className="h-5 w-5 text-white" />
+                </div>
+                <CardTitle className="text-base font-bold text-slate-900">Notes</CardTitle>
+              </div>
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-8 w-8 bg-yellow-100 hover:bg-yellow-200 text-yellow-700"
+                className="h-9 w-9 rounded-lg bg-gradient-to-br from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white shadow-lg shadow-yellow-500/30"
                 onClick={() => setShowNoteDialog(true)}
               >
                 <Plus className="h-4 w-4" />
@@ -295,13 +308,19 @@ export default function Dashboard() {
           </Card>
 
           {/* Numbers */}
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50">
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
-              <CardTitle className="text-base font-semibold text-slate-900">Important Numbers</CardTitle>
+          <Card className="overflow-hidden border-2 border-green-200 shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-green-400">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-500/20 to-transparent rounded-bl-full" />
+            <CardHeader className="flex flex-row items-center justify-between pb-3 bg-gradient-to-r from-green-50 to-emerald-50">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/30">
+                  <Phone className="h-5 w-5 text-white" />
+                </div>
+                <CardTitle className="text-base font-bold text-slate-900">Important Numbers</CardTitle>
+              </div>
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-8 w-8 bg-green-100 hover:bg-green-200 text-green-700"
+                className="h-9 w-9 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg shadow-green-500/30"
                 onClick={() => setShowNumberDialog(true)}
               >
                 <Plus className="h-4 w-4" />
@@ -338,13 +357,14 @@ export default function Dashboard() {
         {/* Right Column - Activity & Latest Work Orders */}
         <div className="space-y-6">
           {/* Latest Work Order Sent */}
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-pink-50">
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <Wrench className="h-4 w-4 text-purple-600" />
+          <Card className="overflow-hidden border-2 border-purple-200 shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-purple-400">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/20 to-transparent rounded-bl-full" />
+            <CardHeader className="flex flex-row items-center justify-between pb-3 bg-gradient-to-r from-purple-50 to-pink-50">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                  <Wrench className="h-5 w-5 text-white" />
                 </div>
-                <CardTitle className="text-base font-semibold text-slate-900">Latest Work Orders</CardTitle>
+                <CardTitle className="text-base font-bold text-slate-900">Latest Work Orders</CardTitle>
               </div>
               <Button variant="ghost" size="sm" className="h-7 text-xs text-purple-600 hover:text-purple-700 hover:bg-purple-100" asChild>
                 <Link to={createPageUrl('WorkOrders')}>
@@ -373,13 +393,14 @@ export default function Dashboard() {
           </Card>
 
           {/* Activity */}
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-cyan-50 to-blue-50">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-cyan-100 rounded-lg">
-                  <Clock className="h-4 w-4 text-cyan-600" />
+          <Card className="overflow-hidden border-2 border-cyan-200 shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-cyan-400">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-cyan-500/20 to-transparent rounded-bl-full" />
+            <CardHeader className="pb-3 bg-gradient-to-r from-cyan-50 to-blue-50">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                  <Clock className="h-5 w-5 text-white" />
                 </div>
-                <CardTitle className="text-base font-semibold text-slate-900">Recent Activity</CardTitle>
+                <CardTitle className="text-base font-bold text-slate-900">Recent Activity</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-2">
