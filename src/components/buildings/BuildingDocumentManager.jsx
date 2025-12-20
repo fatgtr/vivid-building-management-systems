@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Upload, 
   FileText, 
@@ -24,9 +27,16 @@ import {
   FileCheck,
   Flame,
   Droplet,
-  Sparkles
+  Sparkles,
+  Plus,
+  Search,
+  Filter,
+  Eye,
+  History,
+  Tag
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import SubdivisionPlanExtractor from './SubdivisionPlanExtractor';
 import StrataRollUploader from './StrataRollUploader';
@@ -39,6 +49,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -154,6 +165,14 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
   const [currentAIType, setCurrentAIType] = useState(null);
   const [uploadedFileUrl, setUploadedFileUrl] = useState(null);
   const [selectedDocumentId, setSelectedDocumentId] = useState(null);
+  const [showGeneralUpload, setShowGeneralUpload] = useState(false);
+  const [generalUploadData, setGeneralUploadData] = useState({
+    title: '', description: '', category: 'other', visibility: 'staff_only', tags: ''
+  });
+  const [isProcessingOCR, setIsProcessingOCR] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterCategory, setFilterCategory] = useState('all');
+  const [viewingDocument, setViewingDocument] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -233,9 +252,116 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
     setSelectedDocumentId(null);
   };
 
+  const generalUploadMutation = useMutation({
+    mutationFn: async ({ file }) => {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      const tags = generalUploadData.tags ? generalUploadData.tags.split(',').map(t => t.trim()) : [];
+      
+      const document = await base44.entities.Document.create({
+        building_id: buildingId,
+        title: generalUploadData.title || file.name,
+        description: generalUploadData.description,
+        category: generalUploadData.category,
+        file_url,
+        file_type: file.type,
+        file_size: file.size,
+        visibility: generalUploadData.visibility,
+        status: 'active',
+        tags,
+        ocr_status: 'pending',
+      });
+
+      // Trigger OCR processing if it's a PDF or image
+      if (file.type === 'application/pdf' || file.type.startsWith('image/')) {
+        setIsProcessingOCR(true);
+        try {
+          await base44.functions.invoke('processDocumentOCR', { document_id: document.id });
+          toast.success('Document uploaded and OCR processing started');
+        } catch (error) {
+          toast.warning('Document uploaded but OCR processing failed');
+        }
+        setIsProcessingOCR(false);
+      }
+
+      return document;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['buildingDocuments', buildingId] });
+      setShowGeneralUpload(false);
+      setGeneralUploadData({ title: '', description: '', category: 'other', visibility: 'staff_only', tags: '' });
+      toast.success('Document uploaded successfully');
+    },
+    onError: () => {
+      toast.error('Failed to upload document');
+    },
+  });
+
+  const handleGeneralUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    generalUploadMutation.mutate({ file });
+  };
+
+  const createVersionMutation = useMutation({
+    mutationFn: async ({ file, originalDoc }) => {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      return base44.entities.Document.create({
+        building_id: buildingId,
+        title: originalDoc.title,
+        description: originalDoc.description,
+        category: originalDoc.category,
+        file_url,
+        file_type: file.type,
+        file_size: file.size,
+        visibility: originalDoc.visibility,
+        status: 'active',
+        tags: originalDoc.tags,
+        parent_document_id: originalDoc.parent_document_id || originalDoc.id,
+        version: (originalDoc.version || 1) + 1,
+        version_notes: `Updated version from ${format(new Date(), 'PPp')}`,
+        ocr_status: 'pending',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['buildingDocuments', buildingId] });
+      toast.success('New version created successfully');
+    },
+  });
+
+  const allGeneralDocuments = documents.filter(doc => 
+    !documentTypes.some(dt => dt.category === doc.category)
+  );
+
+  const filteredGeneralDocuments = allGeneralDocuments.filter(doc => {
+    const matchesSearch = !searchQuery || 
+      doc.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      doc.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      doc.ocr_content?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = filterCategory === 'all' || doc.category === filterCategory;
+    return matchesSearch && matchesCategory;
+  });
+
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <Tabs defaultValue="specialized" className="w-full">
+        <TabsList>
+          <TabsTrigger value="specialized">
+            <Sparkles className="h-4 w-4 mr-2" />
+            AI-Powered Documents
+          </TabsTrigger>
+          <TabsTrigger value="general">
+            <FileText className="h-4 w-4 mr-2" />
+            All Documents
+            {allGeneralDocuments.length > 0 && (
+              <Badge variant="secondary" className="ml-2">{allGeneralDocuments.length}</Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="specialized" className="space-y-6 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {documentTypes.map((docType) => {
           const Icon = docType.icon;
           const docs = getDocumentsForCategory(docType.category);
@@ -466,7 +592,325 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
             </Card>
           );
         })}
-      </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="general" className="space-y-6 mt-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4 flex-1">
+              <div className="relative flex-1 max-w-sm">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  placeholder="Search documents..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <Select value={filterCategory} onValueChange={setFilterCategory}>
+                <SelectTrigger className="w-[180px]">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="policy">Policy</SelectItem>
+                  <SelectItem value="manual">Manual</SelectItem>
+                  <SelectItem value="form">Form</SelectItem>
+                  <SelectItem value="report">Report</SelectItem>
+                  <SelectItem value="certificate">Certificate</SelectItem>
+                  <SelectItem value="contract">Contract</SelectItem>
+                  <SelectItem value="meeting_minutes">Meeting Minutes</SelectItem>
+                  <SelectItem value="financial">Financial</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button onClick={() => setShowGeneralUpload(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Upload Document
+            </Button>
+          </div>
+
+          {filteredGeneralDocuments.length === 0 ? (
+            <Card className="border-dashed">
+              <CardContent className="py-12 text-center">
+                <FileText className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+                <p className="text-slate-500 mb-4">
+                  {searchQuery || filterCategory !== 'all' 
+                    ? 'No documents match your filters' 
+                    : 'No general documents uploaded yet'}
+                </p>
+                <Button onClick={() => setShowGeneralUpload(true)} variant="outline">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Upload First Document
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4">
+              {filteredGeneralDocuments.map((doc) => (
+                <Card key={doc.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-semibold truncate">{doc.title}</h3>
+                          <Badge variant="outline" className="capitalize">
+                            {doc.category?.replace(/_/g, ' ')}
+                          </Badge>
+                          {doc.version > 1 && (
+                            <Badge variant="secondary">v{doc.version}</Badge>
+                          )}
+                          {doc.ocr_status === 'completed' && (
+                            <Badge variant="outline" className="text-green-600">
+                              <Sparkles className="h-3 w-3 mr-1" />
+                              Searchable
+                            </Badge>
+                          )}
+                        </div>
+                        {doc.description && (
+                          <p className="text-sm text-slate-600 mb-2">{doc.description}</p>
+                        )}
+                        <div className="flex items-center gap-3 text-xs text-slate-500">
+                          <span>{format(new Date(doc.created_date), 'PPp')}</span>
+                          {doc.file_size && (
+                            <span>{(doc.file_size / 1024 / 1024).toFixed(2)} MB</span>
+                          )}
+                        </div>
+                        {doc.tags && doc.tags.length > 0 && (
+                          <div className="flex items-center gap-1 mt-2 flex-wrap">
+                            {doc.tags.map((tag, idx) => (
+                              <Badge key={idx} variant="secondary" className="text-xs">
+                                <Tag className="h-2 w-2 mr-1" />
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setViewingDocument(doc)}
+                          title="View Details"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => window.open(doc.file_url, '_blank')}
+                          title="Download"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        <input
+                          type="file"
+                          id={`version-${doc.id}`}
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) createVersionMutation.mutate({ file, originalDoc: doc });
+                          }}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => document.getElementById(`version-${doc.id}`).click()}
+                          title="Upload New Version"
+                        >
+                          <History className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-red-600 hover:text-red-700"
+                          onClick={() => setDeleteDoc(doc)}
+                          title="Delete"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+
+      {/* Upload General Document Dialog */}
+      <Dialog open={showGeneralUpload} onOpenChange={setShowGeneralUpload}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Upload Document</DialogTitle>
+            <DialogDescription>
+              Add a new document to this building's profile
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Document Title *</Label>
+              <Input
+                value={generalUploadData.title}
+                onChange={(e) => setGeneralUploadData({ ...generalUploadData, title: e.target.value })}
+                placeholder="e.g., Annual Report 2024"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Textarea
+                value={generalUploadData.description}
+                onChange={(e) => setGeneralUploadData({ ...generalUploadData, description: e.target.value })}
+                placeholder="Brief description of the document"
+                rows={3}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Category *</Label>
+                <Select
+                  value={generalUploadData.category}
+                  onValueChange={(value) => setGeneralUploadData({ ...generalUploadData, category: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="policy">Policy</SelectItem>
+                    <SelectItem value="manual">Manual</SelectItem>
+                    <SelectItem value="form">Form</SelectItem>
+                    <SelectItem value="report">Report</SelectItem>
+                    <SelectItem value="certificate">Certificate</SelectItem>
+                    <SelectItem value="contract">Contract</SelectItem>
+                    <SelectItem value="meeting_minutes">Meeting Minutes</SelectItem>
+                    <SelectItem value="financial">Financial</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Visibility *</Label>
+                <Select
+                  value={generalUploadData.visibility}
+                  onValueChange={(value) => setGeneralUploadData({ ...generalUploadData, visibility: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="public">Public</SelectItem>
+                    <SelectItem value="residents_only">Residents Only</SelectItem>
+                    <SelectItem value="owners_only">Owners Only</SelectItem>
+                    <SelectItem value="staff_only">Staff Only</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Tags (comma-separated)</Label>
+              <Input
+                value={generalUploadData.tags}
+                onChange={(e) => setGeneralUploadData({ ...generalUploadData, tags: e.target.value })}
+                placeholder="e.g., compliance, urgent, Q1-2024"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Select File *</Label>
+              <Input
+                type="file"
+                onChange={handleGeneralUpload}
+                disabled={generalUploadMutation.isPending || isProcessingOCR}
+              />
+              {isProcessingOCR && (
+                <p className="text-xs text-blue-600 flex items-center gap-2">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Processing document for search...
+                </p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowGeneralUpload(false)}>
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Document Details Dialog */}
+      <Dialog open={!!viewingDocument} onOpenChange={() => setViewingDocument(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>{viewingDocument?.title}</DialogTitle>
+            <DialogDescription>
+              Document details and metadata
+            </DialogDescription>
+          </DialogHeader>
+          {viewingDocument && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-slate-500">Category</p>
+                  <p className="capitalize">{viewingDocument.category?.replace(/_/g, ' ')}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-500">Visibility</p>
+                  <p className="capitalize">{viewingDocument.visibility?.replace(/_/g, ' ')}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-500">Version</p>
+                  <p>{viewingDocument.version || 1}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-500">File Size</p>
+                  <p>{viewingDocument.file_size ? `${(viewingDocument.file_size / 1024 / 1024).toFixed(2)} MB` : 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-500">Uploaded</p>
+                  <p>{format(new Date(viewingDocument.created_date), 'PPp')}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-500">OCR Status</p>
+                  <Badge variant={viewingDocument.ocr_status === 'completed' ? 'default' : 'secondary'}>
+                    {viewingDocument.ocr_status || 'Not processed'}
+                  </Badge>
+                </div>
+              </div>
+              {viewingDocument.description && (
+                <div>
+                  <p className="text-sm font-medium text-slate-500 mb-1">Description</p>
+                  <p className="text-sm">{viewingDocument.description}</p>
+                </div>
+              )}
+              {viewingDocument.tags && viewingDocument.tags.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium text-slate-500 mb-2">Tags</p>
+                  <div className="flex flex-wrap gap-2">
+                    {viewingDocument.tags.map((tag, idx) => (
+                      <Badge key={idx} variant="outline">{tag}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {viewingDocument.ocr_content && (
+                <div>
+                  <p className="text-sm font-medium text-slate-500 mb-2">Extracted Content</p>
+                  <div className="max-h-64 overflow-y-auto bg-slate-50 rounded-lg p-4 text-sm">
+                    {viewingDocument.ocr_content}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setViewingDocument(null)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* AI Processing Dialog */}
       <Dialog open={aiDialogOpen} onOpenChange={setAiDialogOpen}>
