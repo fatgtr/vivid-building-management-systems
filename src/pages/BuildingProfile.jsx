@@ -29,7 +29,11 @@ import {
   BookOpen,
   UserCog,
   ArrowRight,
-  CheckCircle2
+  CheckCircle2,
+  Briefcase,
+  Shield,
+  MapPinned,
+  Factory
 } from 'lucide-react';
 
 export default function BuildingProfile() {
@@ -191,73 +195,97 @@ export default function BuildingProfile() {
           <TabsTrigger value="management">Management</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Building Information</CardTitle>
+        <TabsContent value="overview" className="space-y-6">
+          <Card className="overflow-hidden border-2 hover:border-blue-300 transition-all duration-300 hover:shadow-xl">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-500/10 to-transparent rounded-bl-full" />
+            <CardHeader className="bg-gradient-to-r from-slate-50 to-transparent pb-4">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                  <Building2 className="h-6 w-6 text-white" />
+                </div>
+                <CardTitle className="text-xl">Building Information</CardTitle>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-slate-500">Address</p>
-                  <div className="flex items-start gap-2 mt-1">
-                    <MapPin className="h-4 w-4 text-slate-400 mt-0.5 flex-shrink-0" />
-                    <p className="text-slate-900">
-                      {building.address}
-                      {building.city && `, ${building.city}`}
-                      {building.state && `, ${building.state}`}
-                      {building.postal_code && ` ${building.postal_code}`}
-                    </p>
+            <CardContent className="space-y-6 pt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2 p-4 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <MapPinned className="h-4 w-4 text-blue-600" />
+                    <p className="text-sm font-semibold text-slate-700">Address</p>
                   </div>
+                  <p className="text-slate-900 leading-relaxed pl-6">
+                    {building.address}
+                    {building.city && `, ${building.city}`}
+                    {building.state && `, ${building.state}`}
+                    {building.postal_code && ` ${building.postal_code}`}
+                  </p>
                 </div>
 
-                <div>
-                  <p className="text-sm font-medium text-slate-500">Building Type</p>
-                  <p className="text-slate-900 mt-1 capitalize">
+                <div className="space-y-2 p-4 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <Factory className="h-4 w-4 text-purple-600" />
+                    <p className="text-sm font-semibold text-slate-700">Building Type</p>
+                  </div>
+                  <p className="text-slate-900 capitalize pl-6">
                     {building.building_type?.replace(/_/g, ' ') || 'N/A'}
                   </p>
                 </div>
 
-                <div>
-                  <p className="text-sm font-medium text-slate-500">Year Built</p>
-                  <p className="text-slate-900 mt-1">{building.year_built || 'N/A'}</p>
+                <div className="space-y-2 p-4 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-orange-600" />
+                    <p className="text-sm font-semibold text-slate-700">Year Built</p>
+                  </div>
+                  <p className="text-slate-900 pl-6">{building.year_built || 'N/A'}</p>
                 </div>
 
-                <div>
-                  <p className="text-sm font-medium text-slate-500">Total Lots</p>
-                  <p className="text-slate-900 mt-1">{building.strata_lots || 'N/A'}</p>
+                <div className="space-y-2 p-4 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <Home className="h-4 w-4 text-emerald-600" />
+                    <p className="text-sm font-semibold text-slate-700">Total Lots</p>
+                  </div>
+                  <p className="text-slate-900 pl-6">{building.strata_lots || 'N/A'}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {building.manager_name && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Building Manager</CardTitle>
+            <Card className="overflow-hidden border-2 hover:border-indigo-300 transition-all duration-300 hover:shadow-xl">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-indigo-500/10 to-transparent rounded-bl-full" />
+              <CardHeader className="bg-gradient-to-r from-slate-50 to-transparent pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <Briefcase className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl">Building Manager</CardTitle>
+                    <p className="text-sm text-slate-500 mt-0.5">Primary Contact</p>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <p className="text-sm font-medium text-slate-500">Name</p>
-                  <p className="text-slate-900 mt-1">{building.manager_name}</p>
+              <CardContent className="space-y-4 pt-6">
+                <div className="p-4 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Manager Name</p>
+                  <p className="text-lg font-semibold text-slate-900">{building.manager_name}</p>
                 </div>
                 {building.manager_email && (
-                  <div>
-                    <p className="text-sm font-medium text-slate-500">Email</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Mail className="h-4 w-4 text-slate-400" />
-                      <a href={`mailto:${building.manager_email}`} className="text-blue-600 hover:underline">
+                  <div className="p-4 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Email Address</p>
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-indigo-600 flex-shrink-0" />
+                      <a href={`mailto:${building.manager_email}`} className="text-indigo-600 hover:text-indigo-700 font-medium hover:underline">
                         {building.manager_email}
                       </a>
                     </div>
                   </div>
                 )}
                 {building.manager_phone && (
-                  <div>
-                    <p className="text-sm font-medium text-slate-500">Phone</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Phone className="h-4 w-4 text-slate-400" />
-                      <a href={`tel:${building.manager_phone}`} className="text-blue-600 hover:underline">
+                  <div className="p-4 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Phone Number</p>
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-indigo-600 flex-shrink-0" />
+                      <a href={`tel:${building.manager_phone}`} className="text-indigo-600 hover:text-indigo-700 font-medium hover:underline">
                         {building.manager_phone}
                       </a>
                     </div>
@@ -272,52 +300,65 @@ export default function BuildingProfile() {
           <BuildingDocumentManager buildingId={buildingId} buildingName={building.name} />
         </TabsContent>
 
-        <TabsContent value="strata" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Strata Managing Agent</CardTitle>
+        <TabsContent value="strata" className="space-y-6">
+          <Card className="overflow-hidden border-2 hover:border-cyan-300 transition-all duration-300 hover:shadow-xl">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-500/10 to-transparent rounded-bl-full" />
+            <CardHeader className="bg-gradient-to-r from-slate-50 to-transparent pb-4">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                  <Briefcase className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl">Strata Managing Agent</CardTitle>
+                  <p className="text-sm text-slate-500 mt-0.5">External Management</p>
+                </div>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-4 pt-6">
               {building.strata_managing_agent_name ? (
                 <>
-                  <div>
-                    <p className="text-sm font-medium text-slate-500">Agent Name</p>
-                    <p className="text-slate-900 mt-1">{building.strata_managing_agent_name}</p>
+                  <div className="p-4 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Agent Name</p>
+                    <p className="text-lg font-semibold text-slate-900">{building.strata_managing_agent_name}</p>
                   </div>
                   {building.strata_managing_agent_license && (
-                    <div>
-                      <p className="text-sm font-medium text-slate-500">License Number</p>
-                      <p className="text-slate-900 mt-1">{building.strata_managing_agent_license}</p>
+                    <div className="p-4 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">License Number</p>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="font-mono text-sm">
+                          {building.strata_managing_agent_license}
+                        </Badge>
+                      </div>
                     </div>
                   )}
                   {building.strata_managing_agent_email && (
-                    <div>
-                      <p className="text-sm font-medium text-slate-500">Email</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Mail className="h-4 w-4 text-slate-400" />
-                        <a href={`mailto:${building.strata_managing_agent_email}`} className="text-blue-600 hover:underline">
+                    <div className="p-4 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Email Address</p>
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-cyan-600 flex-shrink-0" />
+                        <a href={`mailto:${building.strata_managing_agent_email}`} className="text-cyan-600 hover:text-cyan-700 font-medium hover:underline">
                           {building.strata_managing_agent_email}
                         </a>
                       </div>
                     </div>
                   )}
                   {building.strata_managing_agent_phone && (
-                    <div>
-                      <p className="text-sm font-medium text-slate-500">Phone</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Phone className="h-4 w-4 text-slate-400" />
-                        <a href={`tel:${building.strata_managing_agent_phone}`} className="text-blue-600 hover:underline">
+                    <div className="p-4 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Phone Number</p>
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-cyan-600 flex-shrink-0" />
+                        <a href={`tel:${building.strata_managing_agent_phone}`} className="text-cyan-600 hover:text-cyan-700 font-medium hover:underline">
                           {building.strata_managing_agent_phone}
                         </a>
                       </div>
                     </div>
                   )}
                   {building.strata_managing_agent_invoicing_email && (
-                    <div>
-                      <p className="text-sm font-medium text-slate-500">Invoicing Email</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Mail className="h-4 w-4 text-slate-400" />
-                        <a href={`mailto:${building.strata_managing_agent_invoicing_email}`} className="text-blue-600 hover:underline">
+                    <div className="p-4 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Invoicing Email</p>
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-cyan-600 flex-shrink-0" />
+                        <a href={`mailto:${building.strata_managing_agent_invoicing_email}`} className="text-cyan-600 hover:text-cyan-700 font-medium hover:underline">
                           {building.strata_managing_agent_invoicing_email}
                         </a>
                       </div>
@@ -325,22 +366,37 @@ export default function BuildingProfile() {
                   )}
                 </>
               ) : (
-                <p className="text-slate-500">No strata managing agent information available</p>
+                <div className="text-center py-8">
+                  <div className="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                    <Briefcase className="h-8 w-8 text-slate-400" />
+                  </div>
+                  <p className="text-slate-500">No strata managing agent information available</p>
+                  <p className="text-sm text-slate-400 mt-1">Add agent details to track management contacts</p>
+                </div>
               )}
             </CardContent>
           </Card>
 
           {building.building_compliance_email && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Compliance</CardTitle>
+            <Card className="overflow-hidden border-2 hover:border-emerald-300 transition-all duration-300 hover:shadow-xl">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-bl-full" />
+              <CardHeader className="bg-gradient-to-r from-slate-50 to-transparent pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                    <Shield className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl">Compliance</CardTitle>
+                    <p className="text-sm text-slate-500 mt-0.5">Regulatory Contact</p>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent>
-                <div>
-                  <p className="text-sm font-medium text-slate-500">Compliance Email</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Mail className="h-4 w-4 text-slate-400" />
-                    <a href={`mailto:${building.building_compliance_email}`} className="text-blue-600 hover:underline">
+              <CardContent className="pt-6">
+                <div className="p-4 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Compliance Email</p>
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                    <a href={`mailto:${building.building_compliance_email}`} className="text-emerald-600 hover:text-emerald-700 font-medium hover:underline">
                       {building.building_compliance_email}
                     </a>
                   </div>
