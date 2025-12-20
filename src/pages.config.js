@@ -4,7 +4,6 @@ import Residents from './pages/Residents';
 import WorkOrders from './pages/WorkOrders';
 import Amenities from './pages/Amenities';
 import Visitors from './pages/Visitors';
-import Announcements from './pages/Announcements';
 import Documents from './pages/Documents';
 import Inspections from './pages/Inspections';
 import Contractors from './pages/Contractors';
@@ -33,7 +32,6 @@ export const PAGES = {
     "WorkOrders": WorkOrders,
     "Amenities": Amenities,
     "Visitors": Visitors,
-    "Announcements": Announcements,
     "Documents": Documents,
     "Inspections": Inspections,
     "Contractors": Contractors,

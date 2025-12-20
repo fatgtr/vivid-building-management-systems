@@ -59,7 +59,6 @@ const navItems = [
   { name: 'Maintenance Schedule', icon: Calendar, page: 'MaintenanceSchedule', requirePermission: { resource: 'work_orders', action: 'view' } },
   { name: 'Amenities', icon: Calendar, page: 'Amenities', requirePermission: { resource: 'amenities', action: 'view' } },
   { name: 'Visitors', icon: DoorOpen, page: 'Visitors', requirePermission: { resource: 'buildings', action: 'view' } },
-  { name: 'Announcements', icon: Bell, page: 'Announcements', requirePermission: { resource: 'announcements', action: 'view' } },
   { name: 'Communications', icon: MessageSquare, page: 'Communications', requirePermission: { resource: 'announcements', action: 'view' } },
   { name: 'Documents', icon: FileText, page: 'Documents', requirePermission: { resource: 'documents', action: 'view' } },
   { name: 'Inspections', icon: ClipboardCheck, page: 'Inspections', requirePermission: { resource: 'buildings', action: 'view' } },
