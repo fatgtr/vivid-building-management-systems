@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
-import { ClipboardCheck, Search, Building2, MoreVertical, Pencil, Trash2, Calendar, User, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { ClipboardCheck, Search, Building2, MoreVertical, Pencil, Trash2, Calendar, User, CheckCircle, XCircle, AlertTriangle, Wrench, Upload, Image as ImageIcon, FileText, X, Smartphone } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,6 +56,8 @@ const initialFormState = {
   findings: '',
   recommendations: '',
   next_inspection_date: '',
+  photos: [],
+  documents: [],
 };
 
 export default function Inspections() {
@@ -66,6 +68,11 @@ export default function Inspections() {
   const [filterBuilding, setFilterBuilding] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [deleteInspection, setDeleteInspection] = useState(null);
+  const [creatingWorkOrder, setCreatingWorkOrder] = useState(null);
+  const [uploadingFiles, setUploadingFiles] = useState(false);
+  const [selectedPhotos, setSelectedPhotos] = useState([]);
+  const [selectedDocuments, setSelectedDocuments] = useState([]);
+  const [showMobileInspector, setShowMobileInspector] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -112,6 +119,8 @@ export default function Inspections() {
     setShowDialog(false);
     setEditingInspection(null);
     setFormData(initialFormState);
+    setSelectedPhotos([]);
+    setSelectedDocuments([]);
   };
 
   const handleEdit = (inspection) => {
@@ -128,17 +137,74 @@ export default function Inspections() {
       findings: inspection.findings || '',
       recommendations: inspection.recommendations || '',
       next_inspection_date: inspection.next_inspection_date || '',
+      photos: inspection.photos || [],
+      documents: inspection.documents || [],
     });
+    setSelectedPhotos([]);
+    setSelectedDocuments([]);
     setShowDialog(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingInspection) {
-      updateMutation.mutate({ id: editingInspection.id, data: formData });
-    } else {
-      createMutation.mutate(formData);
+    setUploadingFiles(true);
+
+    try {
+      let photoUrls = [...(formData.photos || [])];
+      let documentUrls = [...(formData.documents || [])];
+
+      if (selectedPhotos.length > 0) {
+        const photoUploads = await Promise.all(
+          selectedPhotos.map(file => base44.integrations.Core.UploadFile({ file }))
+        );
+        photoUrls = [...photoUrls, ...photoUploads.map(r => r.file_url)];
+      }
+
+      if (selectedDocuments.length > 0) {
+        const docUploads = await Promise.all(
+          selectedDocuments.map(file => base44.integrations.Core.UploadFile({ file }))
+        );
+        documentUrls = [...documentUrls, ...docUploads.map(r => r.file_url)];
+      }
+
+      const data = {
+        ...formData,
+        photos: photoUrls,
+        documents: documentUrls,
+      };
+
+      if (editingInspection) {
+        updateMutation.mutate({ id: editingInspection.id, data });
+      } else {
+        createMutation.mutate(data);
+      }
+    } catch (error) {
+      console.error('Upload failed:', error);
+    } finally {
+      setUploadingFiles(false);
     }
+  };
+
+  const handlePhotoSelect = (e) => {
+    const files = Array.from(e.target.files || []);
+    setSelectedPhotos([...selectedPhotos, ...files]);
+  };
+
+  const handleDocumentSelect = (e) => {
+    const files = Array.from(e.target.files || []);
+    setSelectedDocuments([...selectedDocuments, ...files]);
+  };
+
+  const removePhoto = (index) => {
+    setSelectedPhotos(selectedPhotos.filter((_, i) => i !== index));
+  };
+
+  const removeDocument = (index) => {
+    setSelectedDocuments(selectedDocuments.filter((_, i) => i !== index));
+  };
+
+  const handleCreateWorkOrder = (inspection) => {
+    setCreatingWorkOrder(inspection);
   };
 
   const getBuildingName = (buildingId) => buildings.find(b => b.id === buildingId)?.name || 'Unknown';
@@ -177,9 +243,18 @@ export default function Inspections() {
       <PageHeader 
         title="Inspections" 
         subtitle={`${upcomingCount} upcoming inspections`}
-        action={() => setShowDialog(true)}
-        actionLabel="Schedule Inspection"
       />
+
+      <div className="flex gap-3">
+        <Button onClick={() => setShowDialog(true)} className="bg-blue-600 hover:bg-blue-700">
+          <Calendar className="h-4 w-4 mr-2" />
+          Schedule Inspection
+        </Button>
+        <Button onClick={() => setShowMobileInspector(true)} variant="outline">
+          <Smartphone className="h-4 w-4 mr-2" />
+          Mobile Inspector
+        </Button>
+      </div>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4">
@@ -247,6 +322,9 @@ export default function Inspections() {
                       <DropdownMenuItem onClick={() => handleEdit(inspection)}>
                         <Pencil className="mr-2 h-4 w-4" /> Edit
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleCreateWorkOrder(inspection)}>
+                        <Wrench className="mr-2 h-4 w-4" /> Create Work Order
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => setDeleteInspection(inspection)} className="text-red-600">
                         <Trash2 className="mr-2 h-4 w-4" /> Delete
                       </DropdownMenuItem>
@@ -284,6 +362,23 @@ export default function Inspections() {
                       <p className="text-xs text-slate-600 line-clamp-2">
                         <span className="font-medium">Findings:</span> {inspection.findings}
                       </p>
+                    )}
+                  </div>
+                )}
+
+                {(inspection.photos?.length > 0 || inspection.documents?.length > 0) && (
+                  <div className="mt-3 flex items-center gap-3 text-xs text-slate-500">
+                    {inspection.photos?.length > 0 && (
+                      <div className="flex items-center gap-1">
+                        <ImageIcon className="h-3 w-3" />
+                        <span>{inspection.photos.length} photo{inspection.photos.length !== 1 ? 's' : ''}</span>
+                      </div>
+                    )}
+                    {inspection.documents?.length > 0 && (
+                      <div className="flex items-center gap-1">
+                        <FileText className="h-3 w-3" />
+                        <span>{inspection.documents.length} doc{inspection.documents.length !== 1 ? 's' : ''}</span>
+                      </div>
                     )}
                   </div>
                 )}
@@ -422,12 +517,116 @@ export default function Inspections() {
                   placeholder="Recommendations for follow-up actions..."
                 />
               </div>
+
+              {/* Photos Upload */}
+              <div className="md:col-span-2">
+                <Label>Inspection Photos</Label>
+                <div className="mt-2">
+                  <Button type="button" variant="outline" className="w-full" asChild>
+                    <label>
+                      <ImageIcon className="h-4 w-4 mr-2" />
+                      Upload Photos ({selectedPhotos.length + (formData.photos?.length || 0)})
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handlePhotoSelect}
+                      />
+                    </label>
+                  </Button>
+                  {selectedPhotos.length > 0 && (
+                    <div className="grid grid-cols-4 gap-2 mt-2">
+                      {selectedPhotos.map((file, idx) => (
+                        <div key={idx} className="relative group">
+                          <img 
+                            src={URL.createObjectURL(file)} 
+                            alt="" 
+                            className="w-full h-20 object-cover rounded"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removePhoto(idx)}
+                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {formData.photos?.length > 0 && (
+                    <div className="grid grid-cols-4 gap-2 mt-2">
+                      {formData.photos.map((photo, idx) => (
+                        <img
+                          key={idx}
+                          src={photo}
+                          alt=""
+                          className="w-full h-20 object-cover rounded"
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Documents Upload */}
+              <div className="md:col-span-2">
+                <Label>Inspection Documents</Label>
+                <div className="mt-2">
+                  <Button type="button" variant="outline" className="w-full" asChild>
+                    <label>
+                      <FileText className="h-4 w-4 mr-2" />
+                      Upload Documents ({selectedDocuments.length + (formData.documents?.length || 0)})
+                      <input
+                        type="file"
+                        multiple
+                        accept=".pdf,.doc,.docx"
+                        className="hidden"
+                        onChange={handleDocumentSelect}
+                      />
+                    </label>
+                  </Button>
+                  {selectedDocuments.length > 0 && (
+                    <div className="space-y-2 mt-2">
+                      {selectedDocuments.map((file, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded">
+                          <span className="text-sm truncate">{file.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeDocument(idx)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {formData.documents?.length > 0 && (
+                    <div className="space-y-2 mt-2">
+                      {formData.documents.map((doc, idx) => (
+                        <a
+                          key={idx}
+                          href={doc}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 p-2 bg-slate-50 rounded hover:bg-slate-100"
+                        >
+                          <FileText className="h-4 w-4 text-blue-600" />
+                          <span className="text-sm">Document {idx + 1}</span>
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={handleCloseDialog}>Cancel</Button>
-              <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={createMutation.isPending || updateMutation.isPending}>
-                {createMutation.isPending || updateMutation.isPending ? 'Saving...' : (editingInspection ? 'Update' : 'Schedule')}
+              <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={createMutation.isPending || updateMutation.isPending || uploadingFiles}>
+                {uploadingFiles ? 'Uploading...' : (createMutation.isPending || updateMutation.isPending ? 'Saving...' : (editingInspection ? 'Update' : 'Schedule'))}
               </Button>
             </DialogFooter>
           </form>
@@ -451,6 +650,155 @@ export default function Inspections() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Create Work Order from Inspection Dialog */}
+      {creatingWorkOrder && (
+        <WorkOrderFromInspectionDialog 
+          inspection={creatingWorkOrder}
+          onClose={() => setCreatingWorkOrder(null)}
+        />
+      )}
+
+      {/* Mobile Inspector */}
+      {showMobileInspector && (
+        <Dialog open={true} onOpenChange={() => setShowMobileInspector(false)}>
+          <DialogContent className="max-w-md h-[90vh] p-0">
+            <MobileInspectionConductor onClose={() => setShowMobileInspector(false)} />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
+  );
+}
+
+// Work Order Creation from Inspection Component
+function WorkOrderFromInspectionDialog({ inspection, onClose }) {
+  const queryClient = useQueryClient();
+  const [formData, setFormData] = useState({
+    building_id: inspection.building_id,
+    unit_id: inspection.unit_id || '',
+    title: `Follow-up: ${inspection.title}`,
+    description: `Inspection findings: ${inspection.findings || ''}\n\nRecommendations: ${inspection.recommendations || ''}`,
+    category: 'other',
+    priority: 'medium',
+    status: 'open',
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data) => base44.entities.WorkOrder.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workOrders'] });
+      onClose();
+    },
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    createMutation.mutate(formData);
+  };
+
+  return (
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Create Work Order from Inspection</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
+            <p className="font-medium text-blue-900 mb-1">Source Inspection</p>
+            <p className="text-blue-700">{inspection.title}</p>
+          </div>
+
+          <div>
+            <Label htmlFor="title">Work Order Title *</Label>
+            <Input
+              id="title"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="description">Description *</Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              rows={6}
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="category">Category *</Label>
+              <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="plumbing">Plumbing</SelectItem>
+                  <SelectItem value="electrical">Electrical</SelectItem>
+                  <SelectItem value="hvac">HVAC</SelectItem>
+                  <SelectItem value="appliance">Appliance</SelectItem>
+                  <SelectItem value="structural">Structural</SelectItem>
+                  <SelectItem value="pest_control">Pest Control</SelectItem>
+                  <SelectItem value="cleaning">Cleaning</SelectItem>
+                  <SelectItem value="landscaping">Landscaping</SelectItem>
+                  <SelectItem value="security">Security</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="priority">Priority *</Label>
+              <Select value={formData.priority} onValueChange={(v) => setFormData({ ...formData, priority: v })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="urgent">Urgent</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+            <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={createMutation.isPending}>
+              {createMutation.isPending ? 'Creating...' : 'Create Work Order'}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Mobile Inspector Component with Offline Support
+function MobileInspector({ onClose }) {
+  return (
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="max-w-md h-[90vh] p-0">
+        <div className="h-full flex flex-col">
+          <div className="p-4 border-b bg-gradient-to-r from-blue-600 to-cyan-600 text-white">
+            <h2 className="text-lg font-semibold">Mobile Inspector</h2>
+            <p className="text-sm opacity-90">On-site inspection tool with offline support</p>
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <iframe
+              src="/mobile-inspector.html"
+              className="w-full h-full border-0"
+              title="Mobile Inspector"
+            />
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
