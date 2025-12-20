@@ -52,6 +52,31 @@ export default function ManagingAgentPortal() {
     queryFn: () => base44.entities.LeaseAnalysis.list(),
   });
 
+  const { data: announcements = [] } = useQuery({
+    queryKey: ['announcements'],
+    queryFn: async () => {
+      const buildingIds = [...new Set(managedResidents.map(r => r.building_id))];
+      if (buildingIds.length === 0) return [];
+      const all = await base44.entities.Announcement.list();
+      return all.filter(a => 
+        buildingIds.includes(a.building_id) && 
+        a.status === 'published'
+      );
+    },
+    enabled: managedResidents.length > 0,
+  });
+
+  const { data: workOrders = [] } = useQuery({
+    queryKey: ['workOrders'],
+    queryFn: async () => {
+      const residentEmails = managedResidents.map(r => r.email);
+      if (residentEmails.length === 0) return [];
+      const all = await base44.entities.WorkOrder.list();
+      return all.filter(wo => residentEmails.includes(wo.reported_by));
+    },
+    enabled: managedResidents.length > 0,
+  });
+
   const getBuildingName = (buildingId) => buildings.find(b => b.id === buildingId)?.name || 'Unknown';
   const getUnitNumber = (unitId) => units.find(u => u.id === unitId)?.unit_number || '';
 
