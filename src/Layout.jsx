@@ -4,6 +4,7 @@ import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
 import { BuildingProvider, useBuildingContext } from '@/components/BuildingContext';
 import { PermissionsProvider, usePermissions } from '@/components/permissions/PermissionsContext';
+import AIAssistant from '@/components/ai/AIAssistant';
 import { 
   Building2, 
   Home, 
@@ -24,7 +25,8 @@ import {
   LayoutDashboard,
   Shield,
   Mail,
-  BarChart3
+  BarChart3,
+  Sparkles
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
@@ -69,6 +71,7 @@ function LayoutInner({ children, currentPageName }) {
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
   const { selectedBuildingId, setSelectedBuildingId, managedBuildings, isAdmin } = useBuildingContext();
   const { can, isAdmin: isPermissionAdmin, hasRole } = usePermissions();
 
@@ -331,16 +334,38 @@ function LayoutInner({ children, currentPageName }) {
           {children}
         </div>
       </main>
-    </div>
-  );
-}
 
-export default function Layout({ children, currentPageName }) {
-  return (
-    <PermissionsProvider>
+      {/* AI Assistant Floating Button */}
+      {user && (
+        <>
+          {!showAIAssistant && (
+            <button
+              onClick={() => setShowAIAssistant(true)}
+              className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-full shadow-2xl hover:shadow-blue-500/50 hover:scale-110 transition-all duration-200 flex items-center justify-center z-40"
+              aria-label="Open AI Assistant"
+            >
+              <Sparkles className="h-6 w-6" />
+            </button>
+          )}
+
+          {showAIAssistant && (
+            <AIAssistant 
+              buildingId={selectedBuildingId}
+              onClose={() => setShowAIAssistant(false)}
+            />
+          )}
+        </>
+      )}
+      </div>
+      );
+      }
+
+      export default function Layout({ children, currentPageName }) {
+      return (
+      <PermissionsProvider>
       <BuildingProvider>
         <LayoutInner children={children} currentPageName={currentPageName} />
       </BuildingProvider>
-    </PermissionsProvider>
-  );
-}
+      </PermissionsProvider>
+      );
+      }
