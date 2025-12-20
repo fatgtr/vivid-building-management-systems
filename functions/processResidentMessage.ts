@@ -45,7 +45,7 @@ Provide:
           category: { type: "string" },
           priority: { type: "string" },
           tags: { type: "array", items: { type: "string" } },
-          summary: { type: "string" },
+          ai_summary: { type: "string" },
           suggested_assignment: { type: "string" },
           action_required: { type: "boolean" },
           action_description: { type: "string" }
@@ -92,7 +92,7 @@ The response should:
       category: analysisResult.category,
       priority: analysisResult.priority,
       tags: analysisResult.tags,
-      ai_summary: analysisResult.summary,
+      ai_summary: analysisResult.ai_summary,
       assigned_role: analysisResult.suggested_assignment,
       suggested_response: suggestedResponse,
       status: 'read'
