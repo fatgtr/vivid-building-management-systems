@@ -12,7 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import PageHeader from '@/components/common/PageHeader';
 import StatusBadge from '@/components/common/StatusBadge';
-import { Users, Upload, FileText, Building2, Home, Calendar, Mail, Loader2, CheckCircle2, AlertCircle, Bell, AlertTriangle, MessageSquare } from 'lucide-react';
+import MoveChecklistDisplay from '@/components/move/MoveChecklistDisplay';
+import { Users, Upload, FileText, Building2, Home, Calendar, Mail, Loader2, CheckCircle2, AlertCircle, Bell, AlertTriangle, MessageSquare, ClipboardCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
@@ -22,6 +23,7 @@ export default function ManagingAgentPortal() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [processing, setProcessing] = useState(false);
   const [processingStatus, setProcessingStatus] = useState('');
+  const [selectedChecklist, setSelectedChecklist] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -87,6 +89,17 @@ export default function ManagingAgentPortal() {
       if (unitIds.length === 0) return [];
       const all = await base44.entities.QueryNote.list();
       return all.filter(qn => unitIds.includes(qn.unit_id));
+    },
+    enabled: managedResidents.length > 0,
+  });
+
+  const { data: moveChecklists = [] } = useQuery({
+    queryKey: ['moveChecklists'],
+    queryFn: async () => {
+      const residentIds = managedResidents.map(r => r.id);
+      if (residentIds.length === 0) return [];
+      const all = await base44.entities.MoveChecklist.list('-created_date');
+      return all.filter(mc => residentIds.includes(mc.resident_id));
     },
     enabled: managedResidents.length > 0,
   });
@@ -268,7 +281,11 @@ export default function ManagingAgentPortal() {
             <Calendar className="h-4 w-4 mr-2" />
             Calendar
           </TabsTrigger>
-        </TabsList>
+          <TabsTrigger value="checklists">
+            <ClipboardCheck className="h-4 w-4 mr-2" />
+            Move Checklists
+          </TabsTrigger>
+          </TabsList>
 
         {/* Query History Tab */}
         <TabsContent value="query-history">
@@ -620,7 +637,94 @@ export default function ManagingAgentPortal() {
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>
+
+        {/* Move Checklists Tab */}
+        <TabsContent value="checklists">
+          {selectedChecklist ? (
+            <div className="space-y-6">
+              <Button variant="outline" onClick={() => setSelectedChecklist(null)}>
+                ← Back to Checklists
+              </Button>
+              <MoveChecklistDisplay checklist={selectedChecklist} userRole="managing_agent" />
+            </div>
+          ) : (
+            <Card className="border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle>Move Checklists</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {moveChecklists.length === 0 ? (
+                  <div className="text-center py-12">
+                    <ClipboardCheck className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-slate-900 mb-2">No Move Checklists</h3>
+                    <p className="text-slate-500">Move checklists for your tenants will appear here.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {moveChecklists.map((checklist) => {
+                      const completedTasks = checklist.tasks?.filter(t => t.is_completed).length || 0;
+                      const totalTasks = checklist.tasks?.length || 0;
+                      const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+                      const myTasks = checklist.tasks?.filter(t => t.assigned_to === 'managing_agent') || [];
+                      const myIncompleteTasks = myTasks.filter(t => !t.is_completed).length;
+
+                      return (
+                        <Card 
+                          key={checklist.id}
+                          className="cursor-pointer hover:shadow-md transition-all border"
+                          onClick={() => setSelectedChecklist(checklist)}
+                        >
+                          <CardContent className="p-5">
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <h3 className="font-semibold text-lg text-slate-900">{checklist.resident_name}</h3>
+                                  <StatusBadge status={checklist.status} />
+                                  {checklist.move_type === 'move_in' ? (
+                                    <Badge className="bg-green-100 text-green-800">Move In</Badge>
+                                  ) : (
+                                    <Badge className="bg-orange-100 text-orange-800">Move Out</Badge>
+                                  )}
+                                </div>
+                                <div className="space-y-1 text-sm text-slate-600">
+                                  <div className="flex items-center gap-2">
+                                    <Building2 className="h-4 w-4" />
+                                    {getBuildingName(checklist.building_id)}
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Home className="h-4 w-4" />
+                                    Unit {getUnitNumber(checklist.unit_id)}
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Calendar className="h-4 w-4" />
+                                    {format(new Date(checklist.checklist_date), 'MMM d, yyyy')}
+                                  </div>
+                                  {myIncompleteTasks > 0 && (
+                                    <div className="flex items-center gap-2 mt-2">
+                                      <AlertCircle className="h-4 w-4 text-orange-600" />
+                                      <span className="text-orange-600 font-medium">
+                                        {myIncompleteTasks} task{myIncompleteTasks > 1 ? 's' : ''} pending your action
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-2xl font-bold text-blue-600">{progress}%</div>
+                                <div className="text-xs text-slate-500">{completedTasks}/{totalTasks} tasks</div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+        </Tabs>
 
       {/* Lease Upload Dialog */}
       <Dialog open={!!uploadingLease} onOpenChange={() => {

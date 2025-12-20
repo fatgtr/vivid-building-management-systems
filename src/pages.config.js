@@ -23,7 +23,6 @@ import Home from './pages/Home';
 import Notifications from './pages/Notifications';
 import Communications from './pages/Communications';
 import OperationsCenter from './pages/OperationsCenter';
-import MoveChecklists from './pages/MoveChecklists';
 import __Layout from './Layout.jsx';
 
 
@@ -53,7 +52,6 @@ export const PAGES = {
     "Notifications": Notifications,
     "Communications": Communications,
     "OperationsCenter": OperationsCenter,
-    "MoveChecklists": MoveChecklists,
 }
 
 export const pagesConfig = {

@@ -14,9 +14,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
+import MoveChecklistDisplay from '@/components/move/MoveChecklistDisplay';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Users, Search, Pencil, Trash2, Building2, Home, Phone, Mail, MoreVertical, Calendar, Upload, FileText, X, ExternalLink, Send, User, Plus, Bed, Bath, Square, Edit, MapPin, BriefcaseBusiness, UserPlus } from 'lucide-react';
+import { Users, Search, Pencil, Trash2, Building2, Home, Phone, Mail, MoreVertical, Calendar, Upload, FileText, X, ExternalLink, Send, User, Plus, Bed, Bath, Square, Edit, MapPin, BriefcaseBusiness, UserPlus, ClipboardCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   DropdownMenu,
@@ -110,6 +111,7 @@ export default function Residents() {
     building_id: '',
     unit_id: '',
   });
+  const [selectedChecklist, setSelectedChecklist] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -130,6 +132,11 @@ export default function Residents() {
   const { data: units = [] } = useQuery({
     queryKey: ['units'],
     queryFn: () => base44.entities.Unit.list(),
+  });
+
+  const { data: moveChecklists = [] } = useQuery({
+    queryKey: ['moveChecklists'],
+    queryFn: () => base44.entities.MoveChecklist.list('-created_date'),
   });
 
   const createMutation = useMutation({
@@ -535,6 +542,16 @@ export default function Residents() {
             }`}
           >
             Managing Agents
+          </button>
+          <button
+            onClick={() => setActiveTab('move-checklists')}
+            className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'move-checklists'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            Move Checklists
           </button>
         </div>
       </div>
