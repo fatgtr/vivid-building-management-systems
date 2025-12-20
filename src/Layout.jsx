@@ -235,6 +235,9 @@ function LayoutInner({ children, currentPageName }) {
           {navItems.map((item) => {
             const isActive = currentPageName === item.page;
 
+            // Hide Home page for logged-in users
+            if (item.page === 'Home' && user) return null;
+
             // Check admin-only pages
             if (item.adminOnly && !isAdmin && !isPermissionAdmin()) return null;
 
