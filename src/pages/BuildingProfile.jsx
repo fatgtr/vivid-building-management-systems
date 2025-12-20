@@ -25,7 +25,11 @@ import {
   Calendar,
   Vote,
   ScrollText,
-  Package
+  Package,
+  BookOpen,
+  UserCog,
+  ArrowRight,
+  CheckCircle2
 } from 'lucide-react';
 
 export default function BuildingProfile() {
@@ -350,62 +354,142 @@ export default function BuildingProfile() {
           <ReportGenerator buildingId={buildingId} buildingName={building.name} />
         </TabsContent>
 
-        <TabsContent value="management" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardContent className="pt-6">
-                <div className="flex flex-col items-center text-center space-y-3">
-                  <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-                    <Vote className="h-6 w-6 text-blue-600" />
+        <TabsContent value="management" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Voting Panel Card */}
+            <Card className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-blue-400 cursor-pointer overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-transparent rounded-bl-full" />
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                      <Vote className="h-7 w-7 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-xl">Voting Panel</CardTitle>
+                      <p className="text-sm text-slate-500 mt-0.5">Polls & Decisions</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-900">Voting Panel</h3>
-                    <p className="text-sm text-slate-500 mt-1">Manage and conduct strata votes</p>
+                  <ArrowRight className="h-5 w-5 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  Create and manage polls, AGM voting, and strata committee decisions. Track voting progress and results in real-time.
+                </p>
+                <div className="flex items-center gap-4 pt-2 text-xs text-slate-500">
+                  <div className="flex items-center gap-1">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                    <span>Create polls</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                    <span>Track votes</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
+            {/* By-laws Card */}
             <Link to={createPageUrl('StrataKnowledgeBase')}>
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-                <CardContent className="pt-6">
-                  <div className="flex flex-col items-center text-center space-y-3">
-                    <div className="h-12 w-12 rounded-full bg-emerald-100 flex items-center justify-center">
-                      <ScrollText className="h-6 w-6 text-emerald-600" />
+              <Card className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-emerald-400 cursor-pointer overflow-hidden h-full">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-bl-full" />
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                        <BookOpen className="h-7 w-7 text-white" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-xl">By-laws</CardTitle>
+                        <p className="text-sm text-slate-500 mt-0.5">Rules & Regulations</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-slate-900">By-laws</h3>
-                      <p className="text-sm text-slate-500 mt-1">Access building by-laws and regulations</p>
+                    <ArrowRight className="h-5 w-5 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all" />
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    Access and search building by-laws, strata regulations, and compliance requirements. AI-powered search for instant answers.
+                  </p>
+                  <div className="flex items-center gap-4 pt-2 text-xs text-slate-500">
+                    <div className="flex items-center gap-1">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                      <span>AI search</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                      <span>Full documents</span>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </Link>
 
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardContent className="pt-6">
-                <div className="flex flex-col items-center text-center space-y-3">
-                  <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
-                    <Users className="h-6 w-6 text-purple-600" />
+            {/* Strata Committee Card */}
+            <Card className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-purple-400 cursor-pointer overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/10 to-transparent rounded-bl-full" />
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                      <UserCog className="h-7 w-7 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-xl">Strata Committee</CardTitle>
+                      <p className="text-sm text-slate-500 mt-0.5">Committee Members</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-900">Strata Committee</h3>
-                    <p className="text-sm text-slate-500 mt-1">View and manage committee members</p>
+                  <ArrowRight className="h-5 w-5 text-slate-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all" />
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  View and manage strata committee members, roles, and responsibilities. Track member terms and election schedules.
+                </p>
+                <div className="flex items-center gap-4 pt-2 text-xs text-slate-500">
+                  <div className="flex items-center gap-1">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                    <span>Member directory</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                    <span>Role tracking</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
+            {/* Inventory Card */}
             <Link to={createPageUrl('AssetRegister') + `?building_id=${buildingId}`}>
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-                <CardContent className="pt-6">
-                  <div className="flex flex-col items-center text-center space-y-3">
-                    <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
-                      <Package className="h-6 w-6 text-orange-600" />
+              <Card className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-orange-400 cursor-pointer overflow-hidden h-full">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-500/10 to-transparent rounded-bl-full" />
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
+                        <Package className="h-7 w-7 text-white" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-xl">Inventory</CardTitle>
+                        <p className="text-sm text-slate-500 mt-0.5">Asset Tracking</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-slate-900">Inventory</h3>
-                      <p className="text-sm text-slate-500 mt-1">Track building assets and inventory</p>
+                    <ArrowRight className="h-5 w-5 text-slate-400 group-hover:text-orange-600 group-hover:translate-x-1 transition-all" />
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    Track building assets, equipment inventory, and maintenance costs. Monitor depreciation and replacement schedules.
+                  </p>
+                  <div className="flex items-center gap-4 pt-2 text-xs text-slate-500">
+                    <div className="flex items-center gap-1">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                      <span>Asset register</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                      <span>Cost tracking</span>
                     </div>
                   </div>
                 </CardContent>
