@@ -162,7 +162,20 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Step 7: Send welcome email with bylaws
+    // Step 7: Call onboarding function to create user account and send welcome email
+    const units = await base44.asServiceRole.entities.Unit.filter({ id: unitId });
+    const unitNumber = units && units.length > 0 ? units[0].unit_number : null;
+
+    const onboardingResult = await base44.functions.invoke('onboardTenant', {
+      residentId,
+      residentEmail,
+      residentName: `${resident[0]?.first_name} ${resident[0]?.last_name}`,
+      buildingId,
+      unitNumber,
+      leaseStartDate: leaseAnalysis.lease_start_date
+    });
+
+    // Step 8: Send detailed lease information email
     if (residentEmail && building) {
       const moveInDate = leaseAnalysis.lease_start_date ? 
         new Date(leaseAnalysis.lease_start_date).toLocaleDateString('en-US', { 
@@ -170,15 +183,13 @@ Deno.serve(async (req) => {
         }) : 'your move-in date';
 
       const emailBody = `
-        <h2>Welcome to ${building.name}!</h2>
+        <h2>Your Lease Details - ${building.name}</h2>
         
         <p>Dear ${resident[0]?.first_name},</p>
         
-        <p>We're excited to welcome you as a new tenant! Your tenancy agreement has been processed and everything is set up for your move-in on ${moveInDate}.</p>
+        <p>Your tenancy agreement has been processed. Here are the details:</p>
         
-        <h3>Important Information:</h3>
-        
-        <h4>📋 Lease Details:</h4>
+        <h3>📋 Lease Details:</h3>
         <ul>
           <li>Move-in Date: ${moveInDate}</li>
           ${leaseAnalysis.monthly_rent ? `<li>Monthly Rent: $${leaseAnalysis.monthly_rent}</li>` : ''}
@@ -215,14 +226,12 @@ Deno.serve(async (req) => {
         
         <p>If you have any questions, please don't hesitate to contact your managing agent or building management.</p>
         
-        <p>Welcome home!</p>
-        
         <p><em>This email was automatically generated based on your tenancy agreement.</em></p>
       `;
 
       await base44.integrations.Core.SendEmail({
         to: residentEmail,
-        subject: `Welcome to ${building.name} - Your Tenancy Information`,
+        subject: `Lease Details - ${building.name}`,
         body: emailBody
       });
 
@@ -239,6 +248,7 @@ Deno.serve(async (req) => {
         moveIn: moveInBookingId,
         moveOut: moveOutBookingId
       },
+      onboarding: onboardingResult.data,
       emailSent: true
     });
 
