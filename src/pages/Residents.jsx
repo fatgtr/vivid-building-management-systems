@@ -158,6 +158,31 @@ export default function Residents() {
       } else {
         toast.success('Resident added successfully');
       }
+
+      // Generate move checklists if move dates are set
+      if (data.move_in_date) {
+        try {
+          await base44.functions.invoke('generateMoveChecklist', {
+            residentId: newResident.id,
+            moveType: 'move_in',
+            moveDate: data.move_in_date
+          });
+        } catch (error) {
+          console.error('Failed to generate move-in checklist:', error);
+        }
+      }
+
+      if (data.move_out_date) {
+        try {
+          await base44.functions.invoke('generateMoveChecklist', {
+            residentId: newResident.id,
+            moveType: 'move_out',
+            moveDate: data.move_out_date
+          });
+        } catch (error) {
+          console.error('Failed to generate move-out checklist:', error);
+        }
+      }
       
       return newResident;
     },
@@ -168,10 +193,41 @@ export default function Residents() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Resident.update(id, data),
+    mutationFn: async ({ id, data }) => {
+      const oldResident = residents.find(r => r.id === id);
+      const updated = await base44.entities.Resident.update(id, data);
+
+      // Generate move checklists if move dates are newly set or changed
+      if (data.move_in_date && data.move_in_date !== oldResident?.move_in_date) {
+        try {
+          await base44.functions.invoke('generateMoveChecklist', {
+            residentId: id,
+            moveType: 'move_in',
+            moveDate: data.move_in_date
+          });
+        } catch (error) {
+          console.error('Failed to generate move-in checklist:', error);
+        }
+      }
+
+      if (data.move_out_date && data.move_out_date !== oldResident?.move_out_date) {
+        try {
+          await base44.functions.invoke('generateMoveChecklist', {
+            residentId: id,
+            moveType: 'move_out',
+            moveDate: data.move_out_date
+          });
+        } catch (error) {
+          console.error('Failed to generate move-out checklist:', error);
+        }
+      }
+
+      return updated;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['residents'] });
       handleCloseDialog();
+      toast.success('Resident updated successfully');
     },
   });
 
