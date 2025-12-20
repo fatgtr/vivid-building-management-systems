@@ -7,7 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageHeader from '@/components/common/PageHeader';
 import ContractorWorkOrderCard from '@/components/contractor/ContractorWorkOrderCard';
 import ContractorDocuments from '@/components/contractor/ContractorDocuments';
-import { Wrench, FileText, Clock, CheckCircle } from 'lucide-react';
+import ComplianceReminders from '@/components/contractor/ComplianceReminders';
+import { Wrench, FileText, Clock, CheckCircle, Shield } from 'lucide-react';
 
 export default function ContractorPortal() {
   const [user, setUser] = useState(null);
@@ -117,6 +118,10 @@ export default function ContractorPortal() {
         <TabsList>
           <TabsTrigger value="active">Active Orders ({openOrders.length})</TabsTrigger>
           <TabsTrigger value="completed">Completed ({completedOrders.length})</TabsTrigger>
+          <TabsTrigger value="compliance">
+            <Shield className="h-4 w-4 mr-1" />
+            Compliance
+          </TabsTrigger>
           <TabsTrigger value="documents">My Documents</TabsTrigger>
         </TabsList>
 
@@ -144,6 +149,10 @@ export default function ContractorPortal() {
           ) : (
             completedOrders.map(wo => <ContractorWorkOrderCard key={wo.id} workOrder={wo} />)
           )}
+        </TabsContent>
+
+        <TabsContent value="compliance">
+          <ComplianceReminders contractor={contractor} />
         </TabsContent>
 
         <TabsContent value="documents">
