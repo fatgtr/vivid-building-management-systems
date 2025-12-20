@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { BuildingProvider, useBuildingContext } from '@/components/BuildingContext';
 import { PermissionsProvider, usePermissions } from '@/components/permissions/PermissionsContext';
 import AIAssistant from '@/components/ai/AIAssistant';
+import GlobalNotificationBell from '@/components/notifications/GlobalNotificationBell';
 import { 
   Building2, 
   Home, 
@@ -156,12 +157,14 @@ function LayoutInner({ children, currentPageName }) {
           </div>
         </div>
         {user && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <UserCircle className="h-6 w-6 text-slate-600" />
-              </Button>
-            </DropdownMenuTrigger>
+          <>
+            <GlobalNotificationBell userEmail={user.email} />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full">
+                  <UserCircle className="h-6 w-6 text-slate-600" />
+                </Button>
+              </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <div className="px-3 py-2">
                 <p className="text-sm font-medium">{user.full_name}</p>
@@ -173,8 +176,9 @@ function LayoutInner({ children, currentPageName }) {
                 Logout
               </DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+            </DropdownMenu>
+            </>
+            )}
       </header>
 
       {/* Sidebar */}

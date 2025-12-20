@@ -21,6 +21,7 @@ import ResidentProfile from './pages/ResidentProfile';
 import RoleManagement from './pages/RoleManagement';
 import Reports from './pages/Reports';
 import Home from './pages/Home';
+import Notifications from './pages/Notifications';
 import __Layout from './Layout.jsx';
 
 
@@ -48,6 +49,7 @@ export const PAGES = {
     "RoleManagement": RoleManagement,
     "Reports": Reports,
     "Home": Home,
+    "Notifications": Notifications,
 }
 
 export const pagesConfig = {
