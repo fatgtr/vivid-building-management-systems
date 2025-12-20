@@ -22,6 +22,7 @@ import RoleManagement from './pages/RoleManagement';
 import Reports from './pages/Reports';
 import Home from './pages/Home';
 import Notifications from './pages/Notifications';
+import Communications from './pages/Communications';
 import __Layout from './Layout.jsx';
 
 
@@ -50,6 +51,7 @@ export const PAGES = {
     "Reports": Reports,
     "Home": Home,
     "Notifications": Notifications,
+    "Communications": Communications,
 }
 
 export const pagesConfig = {
