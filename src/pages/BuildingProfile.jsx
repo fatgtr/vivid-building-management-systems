@@ -22,7 +22,11 @@ import {
   Mail,
   Phone,
   FileText,
-  Calendar
+  Calendar,
+  Vote,
+  ScrollText,
+  Users,
+  Package
 } from 'lucide-react';
 
 export default function BuildingProfile() {
@@ -181,6 +185,7 @@ export default function BuildingProfile() {
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="strata">Strata Info</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
+          <TabsTrigger value="management">Management</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -344,6 +349,70 @@ export default function BuildingProfile() {
 
         <TabsContent value="reports">
           <ReportGenerator buildingId={buildingId} buildingName={building.name} />
+        </TabsContent>
+
+        <TabsContent value="management" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="pt-6">
+                <div className="flex flex-col items-center text-center space-y-3">
+                  <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+                    <Vote className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-slate-900">Voting Panel</h3>
+                    <p className="text-sm text-slate-500 mt-1">Manage and conduct strata votes</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Link to={createPageUrl('StrataKnowledgeBase')}>
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                <CardContent className="pt-6">
+                  <div className="flex flex-col items-center text-center space-y-3">
+                    <div className="h-12 w-12 rounded-full bg-emerald-100 flex items-center justify-center">
+                      <ScrollText className="h-6 w-6 text-emerald-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-slate-900">By-laws</h3>
+                      <p className="text-sm text-slate-500 mt-1">Access building by-laws and regulations</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="pt-6">
+                <div className="flex flex-col items-center text-center space-y-3">
+                  <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
+                    <Users className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-slate-900">Strata Committee</h3>
+                    <p className="text-sm text-slate-500 mt-1">View and manage committee members</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Link to={createPageUrl('AssetRegister') + `?building_id=${buildingId}`}>
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                <CardContent className="pt-6">
+                  <div className="flex flex-col items-center text-center space-y-3">
+                    <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
+                      <Package className="h-6 w-6 text-orange-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-slate-900">Inventory</h3>
+                      <p className="text-sm text-slate-500 mt-1">Track building assets and inventory</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
