@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import PageHeader from '@/components/common/PageHeader';
 import StatusBadge from '@/components/common/StatusBadge';
-import { Users, Upload, FileText, Building2, Home, Calendar, Mail, Loader2, CheckCircle2, AlertCircle, Bell } from 'lucide-react';
+import { Users, Upload, FileText, Building2, Home, Calendar, Mail, Loader2, CheckCircle2, AlertCircle, Bell, AlertTriangle, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
@@ -72,10 +72,21 @@ export default function ManagingAgentPortal() {
   const { data: workOrders = [] } = useQuery({
     queryKey: ['workOrders'],
     queryFn: async () => {
-      const residentEmails = managedResidents.map(r => r.email);
-      if (residentEmails.length === 0) return [];
+      const unitIds = managedResidents.map(r => r.unit_id);
+      if (unitIds.length === 0) return [];
       const all = await base44.entities.WorkOrder.list();
-      return all.filter(wo => residentEmails.includes(wo.reported_by));
+      return all.filter(wo => unitIds.includes(wo.unit_id));
+    },
+    enabled: managedResidents.length > 0,
+  });
+
+  const { data: queryNotes = [] } = useQuery({
+    queryKey: ['queryNotes'],
+    queryFn: async () => {
+      const unitIds = managedResidents.map(r => r.unit_id);
+      if (unitIds.length === 0) return [];
+      const all = await base44.entities.QueryNote.list();
+      return all.filter(qn => unitIds.includes(qn.unit_id));
     },
     enabled: managedResidents.length > 0,
   });
@@ -223,13 +234,11 @@ export default function ManagingAgentPortal() {
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-orange-100 rounded-lg">
-                <Building2 className="h-5 w-5 text-orange-600" />
+                <AlertTriangle className="h-5 w-5 text-orange-600" />
               </div>
               <div>
-                <p className="text-sm text-slate-500">Buildings</p>
-                <p className="text-2xl font-bold text-slate-900">
-                  {new Set(managedResidents.map(r => r.building_id)).size}
-                </p>
+                <p className="text-sm text-slate-500">Query Notes</p>
+                <p className="text-2xl font-bold text-slate-900">{queryNotes.length}</p>
               </div>
             </div>
           </CardContent>
@@ -238,14 +247,18 @@ export default function ManagingAgentPortal() {
 
       {/* Main Tabs */}
       <Tabs defaultValue="tenants" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="tenants">
             <Users className="h-4 w-4 mr-2" />
             My Tenants
           </TabsTrigger>
+          <TabsTrigger value="query-history">
+            <MessageSquare className="h-4 w-4 mr-2" />
+            Query History
+          </TabsTrigger>
           <TabsTrigger value="requests">
             <FileText className="h-4 w-4 mr-2" />
-            Maintenance Requests
+            Maintenance
           </TabsTrigger>
           <TabsTrigger value="announcements">
             <Bell className="h-4 w-4 mr-2" />
@@ -256,6 +269,94 @@ export default function ManagingAgentPortal() {
             Calendar
           </TabsTrigger>
         </TabsList>
+
+        {/* Query History Tab */}
+        <TabsContent value="query-history">
+          <Card className="border-0 shadow-sm">
+            <CardHeader>
+              <CardTitle>Tenant Query History</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {queryNotes.length === 0 ? (
+                <div className="text-center py-12">
+                  <MessageSquare className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-slate-900 mb-2">No Query Notes</h3>
+                  <p className="text-slate-500">Tenant queries and issues will appear here.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {queryNotes.map((note) => {
+                    const tenant = managedResidents.find(r => r.email === note.resident_email);
+                    return (
+                      <Card key={note.id} className="border shadow-sm">
+                        <CardContent className="p-5">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Badge variant="outline" className="capitalize">
+                                  {note.issue_type?.replace(/_/g, ' ')}
+                                </Badge>
+                                <Badge 
+                                  className={
+                                    note.severity === 'critical' ? 'bg-red-600' :
+                                    note.severity === 'defect' ? 'bg-orange-600' :
+                                    'bg-slate-600'
+                                  }
+                                >
+                                  {note.severity}
+                                </Badge>
+                                <StatusBadge status={note.status} />
+                                {tenant && (
+                                  <Badge variant="secondary">
+                                    {tenant.first_name} {tenant.last_name}
+                                  </Badge>
+                                )}
+                              </div>
+                              <h3 className="font-semibold text-lg text-slate-900 mb-2">
+                                {note.issue_type}: {note.issue_item}
+                              </h3>
+                              <div className="space-y-2 text-sm text-slate-600">
+                                <div className="flex items-center gap-2">
+                                  <Building2 className="h-4 w-4 text-slate-400" />
+                                  <span>{getBuildingName(note.building_id)}</span>
+                                  <Home className="h-4 w-4 text-slate-400 ml-2" />
+                                  <span>Unit {getUnitNumber(note.unit_id)}</span>
+                                </div>
+                                {note.lot_number && (
+                                  <p className="text-slate-500">Lot: {note.lot_number}</p>
+                                )}
+                                <div className="grid grid-cols-2 gap-2 mt-3 p-3 bg-slate-50 rounded-lg">
+                                  <div>
+                                    <p className="text-xs text-slate-500 mb-1">Standard Responsibility</p>
+                                    <p className="font-medium">{note.standard_responsibility || 'N/A'}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs text-slate-500 mb-1">Bylaw Responsibility</p>
+                                    <p className="font-medium">{note.bylaw_responsibility || 'N/A'}</p>
+                                  </div>
+                                </div>
+                                {note.manager_notes && (
+                                  <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                    <p className="text-xs text-blue-700 font-medium mb-1">Manager Notes:</p>
+                                    <p className="text-sm text-blue-900">{note.manager_notes}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between text-sm text-slate-500 pt-3 border-t">
+                            <span>Reported by: {note.resident_name}</span>
+                            <span>{format(new Date(note.created_date), 'MMM d, yyyy')}</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         {/* Tenants Tab */}
         <TabsContent value="tenants">
