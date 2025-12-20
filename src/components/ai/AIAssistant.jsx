@@ -44,6 +44,12 @@ const QUICK_ACTIONS = [
     label: "Best Practices",
     prompt: "What are the best practices for managing common property maintenance disputes?",
     category: "advice"
+  },
+  {
+    icon: Sparkles,
+    label: "How to Use Vivid BMS",
+    prompt: "How do I create a work order in Vivid BMS?",
+    category: "system_help"
   }
 ];
 
@@ -51,7 +57,7 @@ export default function AIAssistant({ buildingId, onClose }) {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: "Hi! I'm your Vivid BMS AI Assistant. I can help you with building management best practices, draft responses to resident inquiries, summarize documents, and provide operational insights. How can I assist you today?"
+      content: "Hi! I'm your Vivid BMS AI Assistant. I can help you with:\n\n• **Building Management** - Best practices, compliance, and operational insights\n• **System Guidance** - Learn how to use Vivid BMS features and workflows\n• **Draft Communications** - Professional responses to resident inquiries\n• **Document Analysis** - Summarize reports and identify key requirements\n• **Feature Recommendations** - Discover tools you might not be using\n\nHow can I assist you today?"
     }
   ]);
   const [input, setInput] = useState('');
@@ -251,22 +257,22 @@ export default function AIAssistant({ buildingId, onClose }) {
 
         {/* Quick Actions */}
         {messages.length === 1 && (
-          <div className="border-t p-4 bg-gray-50">
-            <p className="text-xs text-gray-500 mb-3 font-medium">Quick Actions:</p>
-            <div className="grid grid-cols-2 gap-2">
-              {QUICK_ACTIONS.map((action, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleQuickAction(action)}
-                  className="flex items-start gap-2 p-2 bg-white border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors text-left"
-                  disabled={isLoading}
-                >
-                  <action.icon className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <span className="text-xs text-gray-700">{action.label}</span>
-                </button>
-              ))}
-            </div>
+        <div className="border-t p-4 bg-gray-50">
+          <p className="text-xs text-gray-500 mb-3 font-medium">Quick Actions:</p>
+          <div className="grid grid-cols-2 gap-2 max-h-[180px] overflow-y-auto">
+            {QUICK_ACTIONS.map((action, index) => (
+              <button
+                key={index}
+                onClick={() => handleQuickAction(action)}
+                className="flex items-start gap-2 p-2 bg-white border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors text-left"
+                disabled={isLoading}
+              >
+                <action.icon className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                <span className="text-xs text-gray-700">{action.label}</span>
+              </button>
+            ))}
           </div>
+        </div>
         )}
 
         {/* Input Area */}
