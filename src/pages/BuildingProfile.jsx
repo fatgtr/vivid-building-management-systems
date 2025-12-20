@@ -25,7 +25,6 @@ import {
   Calendar,
   Vote,
   ScrollText,
-  Users,
   Package
 } from 'lucide-react';
 
