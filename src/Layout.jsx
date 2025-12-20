@@ -57,6 +57,7 @@ const navItems = [
   { name: 'Smart Devices', icon: Settings, page: 'SmartDevices', requirePermission: { resource: 'buildings', action: 'view' } },
   { name: 'Strata Knowledge Base', icon: FileText, page: 'StrataKnowledgeBase', requirePermission: { resource: 'documents', action: 'view' } },
   { name: 'Role Management', icon: Shield, page: 'RoleManagement', adminOnly: true },
+  { name: 'Partner Management', icon: Building2, page: 'PartnerManagement', adminOnly: true },
 ];
 
 function LayoutInner({ children, currentPageName }) {
