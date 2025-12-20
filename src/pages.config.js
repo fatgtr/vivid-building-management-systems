@@ -22,6 +22,7 @@ import Reports from './pages/Reports';
 import Home from './pages/Home';
 import Notifications from './pages/Notifications';
 import Communications from './pages/Communications';
+import OperationsCenter from './pages/OperationsCenter';
 import __Layout from './Layout.jsx';
 
 
@@ -50,6 +51,7 @@ export const PAGES = {
     "Home": Home,
     "Notifications": Notifications,
     "Communications": Communications,
+    "OperationsCenter": OperationsCenter,
 }
 
 export const pagesConfig = {
