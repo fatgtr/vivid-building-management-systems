@@ -135,12 +135,40 @@ export default function ManagingAgentPortal() {
     );
   }
 
+  const { data: announcements = [] } = useQuery({
+    queryKey: ['announcements'],
+    queryFn: async () => {
+      const buildingIds = [...new Set(managedResidents.map(r => r.building_id))];
+      if (buildingIds.length === 0) return [];
+      const all = await base44.entities.Announcement.list();
+      return all.filter(a => 
+        buildingIds.includes(a.building_id) && 
+        a.status === 'published'
+      );
+    },
+    enabled: managedResidents.length > 0,
+  });
+
+  const { data: workOrders = [] } = useQuery({
+    queryKey: ['workOrders'],
+    queryFn: async () => {
+      const residentEmails = managedResidents.map(r => r.email);
+      if (residentEmails.length === 0) return [];
+      const all = await base44.entities.WorkOrder.list();
+      return all.filter(wo => residentEmails.includes(wo.reported_by));
+    },
+    enabled: managedResidents.length > 0,
+  });
+
   return (
     <div className="space-y-6">
-      <PageHeader 
-        title="Managing Agent Portal" 
-        subtitle={`Managing ${managedResidents.length} tenant${managedResidents.length !== 1 ? 's' : ''}`}
-      />
+      {/* Header Banner */}
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-8 text-white">
+        <h1 className="text-3xl font-bold mb-2">Managing Agent Portal</h1>
+        <p className="text-blue-100">
+          Managing {managedResidents.length} tenant{managedResidents.length !== 1 ? 's' : ''} across {new Set(managedResidents.map(r => r.building_id)).size} building{new Set(managedResidents.map(r => r.building_id)).size !== 1 ? 's' : ''}
+        </p>
+      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -205,12 +233,34 @@ export default function ManagingAgentPortal() {
         </Card>
       </div>
 
-      {/* Tenants Table */}
-      <Card className="border-0 shadow-sm">
-        <CardHeader>
-          <CardTitle>Your Tenants</CardTitle>
-        </CardHeader>
-        <CardContent>
+      {/* Main Tabs */}
+      <Tabs defaultValue="tenants" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="tenants">
+            <Users className="h-4 w-4 mr-2" />
+            My Tenants
+          </TabsTrigger>
+          <TabsTrigger value="requests">
+            <FileText className="h-4 w-4 mr-2" />
+            Maintenance Requests
+          </TabsTrigger>
+          <TabsTrigger value="announcements">
+            <Bell className="h-4 w-4 mr-2" />
+            Announcements
+          </TabsTrigger>
+          <TabsTrigger value="calendar">
+            <Calendar className="h-4 w-4 mr-2" />
+            Calendar
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Tenants Tab */}
+        <TabsContent value="tenants">
+          <Card className="border-0 shadow-sm">
+            <CardHeader>
+              <CardTitle>Your Tenants</CardTitle>
+            </CardHeader>
+            <CardContent>
           {managedResidents.length === 0 ? (
             <div className="text-center py-12">
               <Users className="h-12 w-12 text-slate-300 mx-auto mb-4" />
@@ -303,8 +353,170 @@ export default function ManagingAgentPortal() {
               </TableBody>
             </Table>
           )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Maintenance Requests Tab */}
+        <TabsContent value="requests">
+          <Card className="border-0 shadow-sm">
+            <CardHeader>
+              <CardTitle>Tenant Maintenance Requests</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {workOrders.length === 0 ? (
+                <div className="text-center py-12">
+                  <FileText className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-slate-900 mb-2">No Maintenance Requests</h3>
+                  <p className="text-slate-500">Tenant maintenance requests will appear here.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {workOrders.map((order) => {
+                    const tenant = managedResidents.find(r => r.email === order.reported_by);
+                    return (
+                      <Card key={order.id} className="border shadow-sm">
+                        <CardContent className="p-5">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <StatusBadge status={order.status} />
+                                <Badge variant="outline" className="capitalize">{order.priority}</Badge>
+                                {tenant && (
+                                  <Badge variant="secondary">
+                                    {tenant.first_name} {tenant.last_name}
+                                  </Badge>
+                                )}
+                              </div>
+                              <h3 className="font-semibold text-lg text-slate-900 mb-1">{order.title}</h3>
+                              <p className="text-sm text-slate-600 line-clamp-2">{order.description}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between text-sm text-slate-500">
+                            <div className="flex items-center gap-4">
+                              <span className="capitalize">{order.category?.replace(/_/g, ' ')}</span>
+                              {order.due_date && (
+                                <span className="flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  {format(new Date(order.due_date), 'MMM d')}
+                                </span>
+                              )}
+                            </div>
+                            <span>{format(new Date(order.created_date), 'MMM d, yyyy')}</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Announcements Tab */}
+        <TabsContent value="announcements">
+          <Card className="border-0 shadow-sm">
+            <CardHeader>
+              <CardTitle>Building Announcements</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {announcements.length === 0 ? (
+                <div className="text-center py-12">
+                  <Bell className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-slate-900 mb-2">No Announcements</h3>
+                  <p className="text-slate-500">Building announcements will appear here.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {announcements.map((announcement) => (
+                    <Card key={announcement.id} className="border-l-4 border-l-blue-500">
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge variant="outline" className="capitalize">{announcement.type}</Badge>
+                              {announcement.priority === 'urgent' && (
+                                <Badge className="bg-red-600">Urgent</Badge>
+                              )}
+                            </div>
+                            <h3 className="font-semibold text-lg mb-2">{announcement.title}</h3>
+                            <div className="prose prose-sm max-w-none text-slate-700" 
+                                 dangerouslySetInnerHTML={{ __html: announcement.content }} />
+                          </div>
+                          <div className="text-xs text-slate-500">
+                            {announcement.publish_date && format(new Date(announcement.publish_date), 'MMM d, yyyy')}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Calendar Tab */}
+        <TabsContent value="calendar">
+          <Card className="border-0 shadow-sm">
+            <CardHeader>
+              <CardTitle>Lease & Move-In/Out Calendar</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {managedResidents.map((resident) => {
+                  const leaseAnalysis = leaseAnalyses.find(l => l.resident_email === resident.email);
+                  if (!leaseAnalysis) return null;
+                  
+                  return (
+                    <Card key={resident.id} className="border">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-slate-900 mb-1">
+                              {resident.first_name} {resident.last_name}
+                            </h4>
+                            <p className="text-sm text-slate-600">
+                              {getBuildingName(resident.building_id)} - Unit {getUnitNumber(resident.unit_id)}
+                            </p>
+                            <div className="mt-2 flex items-center gap-4 text-sm text-slate-600">
+                              {leaseAnalysis.lease_start_date && (
+                                <div className="flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  <span>Move-in: {format(new Date(leaseAnalysis.lease_start_date), 'MMM d, yyyy')}</span>
+                                </div>
+                              )}
+                              {leaseAnalysis.lease_end_date && (
+                                <div className="flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  <span>Move-out: {format(new Date(leaseAnalysis.lease_end_date), 'MMM d, yyyy')}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            {leaseAnalysis.monthly_rent && (
+                              <p className="text-lg font-semibold text-slate-900">${leaseAnalysis.monthly_rent}/mo</p>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+                {managedResidents.filter(r => leaseAnalyses.find(l => l.resident_email === r.email)).length === 0 && (
+                  <div className="text-center py-12">
+                    <Calendar className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-slate-900 mb-2">No Lease Data</h3>
+                    <p className="text-slate-500">Upload lease agreements to see calendar information.</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Lease Upload Dialog */}
       <Dialog open={!!uploadingLease} onOpenChange={() => {
