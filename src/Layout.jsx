@@ -27,7 +27,8 @@ import {
   Shield,
   Mail,
   BarChart3,
-  Sparkles
+  Sparkles,
+  MessageSquare
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
