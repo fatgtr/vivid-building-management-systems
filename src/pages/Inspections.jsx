@@ -30,6 +30,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { format } from 'date-fns';
+import MobileInspectionConductor from '@/components/inspections/MobileInspectionConductor';
 
 const inspectionTypes = [
   { value: 'fire_safety', label: 'Fire Safety' },
