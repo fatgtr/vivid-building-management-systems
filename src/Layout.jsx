@@ -60,7 +60,6 @@ const navItems = [
   { name: 'Amenities', icon: Calendar, page: 'Amenities', requirePermission: { resource: 'amenities', action: 'view' } },
   { name: 'Visitors', icon: DoorOpen, page: 'Visitors', requirePermission: { resource: 'buildings', action: 'view' } },
   { name: 'Communications', icon: MessageSquare, page: 'Communications', requirePermission: { resource: 'announcements', action: 'view' } },
-  { name: 'Documents', icon: FileText, page: 'Documents', requirePermission: { resource: 'documents', action: 'view' } },
   { name: 'Inspections', icon: ClipboardCheck, page: 'Inspections', requirePermission: { resource: 'buildings', action: 'view' } },
   { name: 'Contractors', icon: HardHat, page: 'Contractors', requirePermission: { resource: 'contractors', action: 'view' } },
   { name: 'Contractor Portal', icon: HardHat, page: 'ContractorPortal', contractorOnly: true },
