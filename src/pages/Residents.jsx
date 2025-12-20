@@ -16,7 +16,7 @@ import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Users, Search, Pencil, Trash2, Building2, Home, Phone, Mail, MoreVertical, Calendar, Upload, FileText, X, ExternalLink, Send, User, Plus, Bed, Bath, Square, Edit, MapPin } from 'lucide-react';
+import { Users, Search, Pencil, Trash2, Building2, Home, Phone, Mail, MoreVertical, Calendar, Upload, FileText, X, ExternalLink, Send, User, Plus, Bed, Bath, Square, Edit, MapPin, BriefcaseBusiness, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   DropdownMenu,
@@ -102,6 +102,14 @@ export default function Residents() {
   const [deleteUnit, setDeleteUnit] = useState(null);
   const [viewUnitsForBuilding, setViewUnitsForBuilding] = useState(null);
   const [activeTab, setActiveTab] = useState('residents');
+  const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const [inviteFormData, setInviteFormData] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    building_id: '',
+    unit_id: '',
+  });
 
   const queryClient = useQueryClient();
 
@@ -182,6 +190,41 @@ export default function Residents() {
       queryClient.invalidateQueries({ queryKey: ['units'] });
       setDeleteUnit(null);
       toast.success('Unit deleted successfully');
+    },
+  });
+
+  const inviteManagingAgentMutation = useMutation({
+    mutationFn: async (data) => {
+      // Create a resident record for the managing agent
+      const newResident = await base44.entities.Resident.create({
+        building_id: data.building_id,
+        unit_id: data.unit_id,
+        first_name: data.first_name,
+        last_name: data.last_name,
+        email: data.email,
+        resident_type: 'tenant',
+        status: 'pending',
+        managing_agent_email: data.email,
+        managing_agent_contact_name: `${data.first_name} ${data.last_name}`,
+      });
+      // Send portal invite
+      await base44.functions.invoke('sendManagingAgentInvite', { residentId: newResident.id });
+      return newResident;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['residents'] });
+      toast.success('Managing agent invited successfully!');
+      setShowInviteDialog(false);
+      setInviteFormData({
+        first_name: '',
+        last_name: '',
+        email: '',
+        building_id: '',
+        unit_id: '',
+      });
+    },
+    onError: (error) => {
+      toast.error('Failed to invite managing agent: ' + error.message);
     },
   });
 
@@ -349,63 +392,32 @@ export default function Residents() {
       <PageHeader 
         title="Residents & Units" 
         subtitle={`${residents.filter(r => r.status === 'active').length} active residents • ${units.length} units`}
-        action={() => setShowDialog(true)}
-        actionLabel="Add Resident"
       >
-        <Button 
-          variant="outline" 
-          onClick={async () => {
-            try {
-              const myResident = residents.find(r => r.email === user?.email);
-              if (myResident) {
-                toast.success('You already have a resident profile!');
-                return;
-              }
-
-              const firstBuilding = buildings[0];
-              const firstUnit = units.find(u => u.building_id === firstBuilding?.id);
-
-              if (!firstBuilding || !firstUnit) {
-                toast.error('Please create a building and unit first');
-                return;
-              }
-
-              await base44.entities.Resident.create({
-                building_id: firstBuilding.id,
-                unit_id: firstUnit.id,
-                first_name: user.full_name?.split(' ')[0] || 'Test',
-                last_name: user.full_name?.split(' ').slice(1).join(' ') || 'Admin',
-                email: user.email,
-                resident_type: 'owner',
-                status: 'active',
-                notes: 'Test resident profile for admin testing'
-              });
-
-              queryClient.invalidateQueries({ queryKey: ['residents'] });
-              toast.success('Test resident profile created! You can now access the Resident Portal.');
-            } catch (error) {
-              toast.error('Failed to create test profile');
-            }
-          }}
-          className="border-blue-200"
-        >
-          <User className="h-4 w-4 mr-2" />
-          Create Test Profile
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              <Plus className="h-4 w-4 mr-2" />
+              Add New
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setShowDialog(true)}>
+              <UserPlus className="mr-2 h-4 w-4" /> Add Resident
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setShowUnitDialog(true)}>
+              <Home className="mr-2 h-4 w-4" /> Add Unit
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setShowInviteDialog(true)}>
+              <BriefcaseBusiness className="mr-2 h-4 w-4" /> Invite Managing Agent
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Link to={createPageUrl('ResidentPortal')}>
           <Button variant="outline">
             <ExternalLink className="h-4 w-4 mr-2" />
             Resident Portal
           </Button>
         </Link>
-        <Button 
-          variant="outline" 
-          onClick={() => setShowUnitDialog(true)}
-          className="border-blue-200"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Unit
-        </Button>
       </PageHeader>
 
       {/* Tabs */}
@@ -430,6 +442,16 @@ export default function Residents() {
             }`}
           >
             Units
+          </button>
+          <button
+            onClick={() => setActiveTab('managing-agents')}
+            className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'managing-agents'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            Managing Agents
           </button>
         </div>
       </div>
@@ -613,9 +635,16 @@ export default function Residents() {
                             </Link>
                           </DropdownMenuItem>
                           {resident.managing_agent_email && (
-                            <DropdownMenuItem onClick={() => sendInviteMutation.mutate(resident.id)}>
-                              <Send className="mr-2 h-4 w-4" /> Send Portal Invite
-                            </DropdownMenuItem>
+                            <>
+                              <DropdownMenuItem asChild>
+                                <Link to={createPageUrl('ManagingAgentPortal')}>
+                                  <BriefcaseBusiness className="mr-2 h-4 w-4" /> View Managing Agent Portal
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => sendInviteMutation.mutate(resident.id)}>
+                                <Send className="mr-2 h-4 w-4" /> Send Portal Invite
+                              </DropdownMenuItem>
+                            </>
                           )}
                           <DropdownMenuItem onClick={() => setDeleteResident(resident)} className="text-red-600">
                             <Trash2 className="mr-2 h-4 w-4" /> Delete
@@ -629,7 +658,7 @@ export default function Residents() {
             </Table>
           </Card>
         )
-      ) : (
+      ) : activeTab === 'units' ? (
         units.length === 0 ? (
           <EmptyState
             icon={Home}
@@ -747,6 +776,107 @@ export default function Residents() {
               })}
           </div>
         )
+      ) : (
+        // Managing Agents Tab
+        <Card className="border-0 shadow-sm">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-slate-50">
+                <TableHead>Managing Agent</TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead>Managed Properties</TableHead>
+                <TableHead className="w-12"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {residents
+                .filter(r => r.managing_agent_email)
+                .reduce((agents, resident) => {
+                  const existing = agents.find(a => a.email === resident.managing_agent_email);
+                  if (existing) {
+                    existing.properties.push(resident);
+                  } else {
+                    agents.push({
+                      email: resident.managing_agent_email,
+                      name: resident.managing_agent_contact_name || 'Unknown',
+                      phone: resident.managing_agent_phone,
+                      company: resident.managing_agent_company,
+                      properties: [resident]
+                    });
+                  }
+                  return agents;
+                }, [])
+                .map((agent, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <p className="font-medium text-slate-900">{agent.name}</p>
+                        {agent.company && (
+                          <p className="text-xs text-slate-500">{agent.company}</p>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5 text-sm text-slate-600">
+                          <Mail className="h-3.5 w-3.5 text-slate-400" />
+                          {agent.email}
+                        </div>
+                        {agent.phone && (
+                          <div className="flex items-center gap-1.5 text-sm text-slate-600">
+                            <Phone className="h-3.5 w-3.5 text-slate-400" />
+                            {agent.phone}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        {agent.properties.map((prop, pIdx) => (
+                          <div key={pIdx} className="text-sm text-slate-600 flex items-center gap-2">
+                            <Building2 className="h-3.5 w-3.5 text-slate-400" />
+                            {getBuildingName(prop.building_id)}
+                            <Home className="h-3.5 w-3.5 text-slate-400 ml-2" />
+                            Unit {getUnitNumber(prop.unit_id)}
+                          </div>
+                        ))}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link to={createPageUrl('ManagingAgentPortal')}>
+                              <ExternalLink className="mr-2 h-4 w-4" /> View Portal
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => sendInviteMutation.mutate(agent.properties[0].id)}>
+                            <Send className="mr-2 h-4 w-4" /> Resend Invite
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+          {residents.filter(r => r.managing_agent_email).length === 0 && (
+            <div className="text-center py-12">
+              <BriefcaseBusiness className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">No Managing Agents</h3>
+              <p className="text-slate-500 mb-4">Invite managing agents to access their portal</p>
+              <Button onClick={() => setShowInviteDialog(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Invite Managing Agent
+              </Button>
+            </div>
+          )}
+        </Card>
       )}
 
       {/* Add/Edit Dialog */}
@@ -1395,6 +1525,94 @@ export default function Residents() {
               </Table>
             </Card>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Invite Managing Agent Dialog */}
+      <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Invite Managing Agent</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            inviteManagingAgentMutation.mutate(inviteFormData);
+          }} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="invite_first_name">First Name *</Label>
+                <Input
+                  id="invite_first_name"
+                  value={inviteFormData.first_name}
+                  onChange={(e) => setInviteFormData({ ...inviteFormData, first_name: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="invite_last_name">Last Name *</Label>
+                <Input
+                  id="invite_last_name"
+                  value={inviteFormData.last_name}
+                  onChange={(e) => setInviteFormData({ ...inviteFormData, last_name: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="invite_email">Email *</Label>
+              <Input
+                id="invite_email"
+                type="email"
+                value={inviteFormData.email}
+                onChange={(e) => setInviteFormData({ ...inviteFormData, email: e.target.value })}
+                placeholder="agent@example.com"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="invite_building">Building *</Label>
+              <Select 
+                value={inviteFormData.building_id} 
+                onValueChange={(v) => setInviteFormData({ ...inviteFormData, building_id: v, unit_id: '' })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select building" />
+                </SelectTrigger>
+                <SelectContent>
+                  {buildings.map(b => (
+                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="invite_unit">Unit *</Label>
+              <Select 
+                value={inviteFormData.unit_id} 
+                onValueChange={(v) => setInviteFormData({ ...inviteFormData, unit_id: v })}
+                disabled={!inviteFormData.building_id}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select unit" />
+                </SelectTrigger>
+                <SelectContent>
+                  {units
+                    .filter(u => u.building_id === inviteFormData.building_id)
+                    .map(u => (
+                      <SelectItem key={u.id} value={u.id}>Unit {u.unit_number}</SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowInviteDialog(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={inviteManagingAgentMutation.isPending}>
+                {inviteManagingAgentMutation.isPending ? 'Sending...' : 'Send Invite'}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
