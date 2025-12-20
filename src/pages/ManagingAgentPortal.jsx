@@ -8,10 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import PageHeader from '@/components/common/PageHeader';
 import StatusBadge from '@/components/common/StatusBadge';
-import { Users, Upload, FileText, Building2, Home, Calendar, Mail, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Users, Upload, FileText, Building2, Home, Calendar, Mail, Loader2, CheckCircle2, AlertCircle, Bell } from 'lucide-react';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
 
 export default function ManagingAgentPortal() {
   const [user, setUser] = useState(null);
