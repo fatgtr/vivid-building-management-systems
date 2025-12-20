@@ -14,7 +14,8 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
-  TrendingUp
+  TrendingUp,
+  BarChart3
 } from 'lucide-react';
 
 // Import existing page components
@@ -23,6 +24,7 @@ import AssetRegister from './AssetRegister';
 import MaintenanceSchedule from './MaintenanceSchedule';
 import Inspections from './Inspections';
 import Contractors from './Contractors';
+import Reports from './Reports';
 
 export default function OperationsCenter() {
   const { selectedBuildingId } = useBuildingContext();
@@ -76,7 +78,7 @@ export default function OperationsCenter() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
             Overview
@@ -106,6 +108,10 @@ export default function OperationsCenter() {
           <TabsTrigger value="contractors" className="flex items-center gap-2">
             <HardHat className="h-4 w-4" />
             Contractors
+          </TabsTrigger>
+          <TabsTrigger value="reports" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Reports
           </TabsTrigger>
         </TabsList>
 
@@ -303,6 +309,10 @@ export default function OperationsCenter() {
 
         <TabsContent value="contractors" className="mt-6">
           <Contractors />
+        </TabsContent>
+
+        <TabsContent value="reports" className="mt-6">
+          <Reports />
         </TabsContent>
       </Tabs>
     </div>
