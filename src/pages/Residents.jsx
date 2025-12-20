@@ -133,7 +133,34 @@ export default function Residents() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Resident.create(data),
+    mutationFn: async (data) => {
+      const newResident = await base44.entities.Resident.create(data);
+      
+      // Trigger automated onboarding if tenant has email
+      if (newResident && newResident.email && data.resident_type === 'tenant') {
+        const building = buildings.find(b => b.id === data.building_id);
+        const unit = units.find(u => u.id === data.unit_id);
+        
+        try {
+          await base44.functions.invoke('onboardTenant', {
+            residentId: newResident.id,
+            residentEmail: newResident.email,
+            residentName: `${data.first_name} ${data.last_name}`,
+            buildingId: data.building_id,
+            unitNumber: unit?.unit_number,
+            leaseStartDate: data.move_in_date
+          });
+          toast.success('Resident added and onboarded successfully');
+        } catch (error) {
+          console.error('Onboarding failed:', error);
+          toast.success('Resident added (onboarding email pending)');
+        }
+      } else {
+        toast.success('Resident added successfully');
+      }
+      
+      return newResident;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['residents'] });
       handleCloseDialog();
