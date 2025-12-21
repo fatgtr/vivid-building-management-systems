@@ -4,10 +4,34 @@ import { base44 } from '@/api/base44Client';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Loader2, Save, Edit2, Trash2, X, Sparkles } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Upload, Loader2, Save, Edit2, Trash2, X, Sparkles, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
+
+const DEFAULT_SCHEMA = {
+  type: 'object',
+  properties: {
+    assets: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          asset_type: { type: 'string' },
+          name: { type: 'string' },
+          location: { type: 'string' },
+          floor: { type: 'string' },
+          manufacturer: { type: 'string' },
+          model: { type: 'string' },
+          identifier: { type: 'string' },
+          notes: { type: 'string' },
+        },
+      },
+    },
+  },
+};
 
 export default function AsBuiltMechanicalExtractor({ buildingId, onComplete }) {
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -16,6 +40,9 @@ export default function AsBuiltMechanicalExtractor({ buildingId, onComplete }) {
   const [extractedAssets, setExtractedAssets] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
   const [editedAsset, setEditedAsset] = useState(null);
+  const [extractionMode, setExtractionMode] = useState('default'); // 'default' or 'prompt'
+  const [naturalLanguagePrompt, setNaturalLanguagePrompt] = useState('');
+  const [generatingSchema, setGeneratingSchema] = useState(false);
   const queryClient = useQueryClient();
 
   const createAssetsMutation = useMutation({
@@ -53,34 +80,72 @@ export default function AsBuiltMechanicalExtractor({ buildingId, onComplete }) {
     }
   };
 
+  const generateSchemaFromPrompt = async () => {
+    if (!naturalLanguagePrompt.trim()) {
+      toast.error('Please provide a description of what to extract');
+      return null;
+    }
+
+    setGeneratingSchema(true);
+    try {
+      const llmPrompt = `You are an AI assistant that generates JSON schemas for data extraction.
+
+The user wants to extract information from a building mechanical drawing PDF. They have described what they want to extract as follows:
+
+"${naturalLanguagePrompt}"
+
+Generate a JSON schema that can be used with an extraction API. The schema must:
+1. Have a root "type" of "object"
+2. Contain a "properties" field with an "assets" array
+3. The "assets" array should contain items with properties matching what the user described
+4. Always include these base fields: asset_type, name, location
+5. Add any additional fields the user mentioned
+
+Return ONLY the JSON schema, no explanation.`;
+
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: llmPrompt,
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            schema: {
+              type: 'object',
+              properties: {
+                type: { type: 'string' },
+                properties: { type: 'object' }
+              }
+            }
+          }
+        }
+      });
+
+      return response.schema;
+    } catch (error) {
+      toast.error('Failed to generate schema from prompt');
+      console.error(error);
+      return null;
+    } finally {
+      setGeneratingSchema(false);
+    }
+  };
+
   const handleExtractAssets = async () => {
     if (!uploadedFile || !buildingId) return;
+
+    let schemaToUse = DEFAULT_SCHEMA;
+
+    // If using natural language mode, generate schema first
+    if (extractionMode === 'prompt') {
+      const generatedSchema = await generateSchemaFromPrompt();
+      if (!generatedSchema) return;
+      schemaToUse = generatedSchema;
+    }
 
     setAnalyzing(true);
     try {
       const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
         file_url: uploadedFile.url,
-        json_schema: {
-          type: 'object',
-          properties: {
-            assets: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  asset_type: { type: 'string' },
-                  name: { type: 'string' },
-                  location: { type: 'string' },
-                  floor: { type: 'string' },
-                  manufacturer: { type: 'string' },
-                  model: { type: 'string' },
-                  identifier: { type: 'string' },
-                  notes: { type: 'string' },
-                },
-              },
-            },
-          },
-        },
+        json_schema: schemaToUse,
       });
 
       if (result.status === 'success' && result.output?.assets) {
@@ -156,26 +221,74 @@ export default function AsBuiltMechanicalExtractor({ buildingId, onComplete }) {
       </div>
 
       {uploadedFile && (
-        <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-          <span className="text-sm font-medium">{uploadedFile.name}</span>
-          <Button
-            onClick={handleExtractAssets}
-            disabled={analyzing}
-            size="sm"
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            {analyzing ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Analyzing...
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-4 w-4 mr-2" />
-                Extract Assets
-              </>
+        <div className="space-y-4">
+          <div className="p-4 bg-slate-50 rounded-lg border space-y-3">
+            <Label>Extraction Method</Label>
+            <RadioGroup value={extractionMode} onValueChange={setExtractionMode}>
+              <div className="flex items-start space-x-2">
+                <RadioGroupItem value="default" id="default" />
+                <div className="grid gap-1.5 leading-none">
+                  <label htmlFor="default" className="text-sm font-medium cursor-pointer">
+                    Standard Mechanical Assets
+                  </label>
+                  <p className="text-xs text-slate-500">
+                    Extract common mechanical assets (HVAC, pumps, valves, etc.)
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-2">
+                <RadioGroupItem value="prompt" id="prompt" />
+                <div className="grid gap-1.5 leading-none">
+                  <label htmlFor="prompt" className="text-sm font-medium cursor-pointer">
+                    Custom Extraction
+                  </label>
+                  <p className="text-xs text-slate-500">
+                    Describe what specific information you want to extract
+                  </p>
+                </div>
+              </div>
+            </RadioGroup>
+
+            {extractionMode === 'prompt' && (
+              <div className="mt-3">
+                <Label htmlFor="prompt-input" className="text-xs">Describe what to extract</Label>
+                <Textarea
+                  id="prompt-input"
+                  placeholder="e.g., Extract all fire pumps with their model numbers, installation dates, and maintenance schedules"
+                  value={naturalLanguagePrompt}
+                  onChange={(e) => setNaturalLanguagePrompt(e.target.value)}
+                  rows={3}
+                  className="mt-1.5"
+                />
+              </div>
             )}
-          </Button>
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+            <span className="text-sm font-medium">{uploadedFile.name}</span>
+            <Button
+              onClick={handleExtractAssets}
+              disabled={analyzing || generatingSchema || (extractionMode === 'prompt' && !naturalLanguagePrompt.trim())}
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {analyzing || generatingSchema ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  {generatingSchema ? 'Generating...' : 'Analyzing...'}
+                </>
+              ) : (
+                <>
+                  {extractionMode === 'prompt' ? (
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                  ) : (
+                    <Sparkles className="h-4 w-4 mr-2" />
+                  )}
+                  Extract Assets
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       )}
 
