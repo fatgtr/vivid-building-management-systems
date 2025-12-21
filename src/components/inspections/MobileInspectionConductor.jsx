@@ -184,23 +184,23 @@ export default function MobileInspectionConductor({ onClose }) {
   return (
     <div className="h-full flex flex-col bg-slate-50">
       {/* Header with Status */}
-      <div className={`p-4 flex items-center justify-between ${isOnline ? 'bg-emerald-600' : 'bg-orange-600'} text-white`}>
+      <div className={`p-3 sm:p-4 flex items-center justify-between ${isOnline ? 'bg-emerald-600' : 'bg-orange-600'} text-white flex-shrink-0`}>
         <div className="flex items-center gap-2">
-          {isOnline ? <Wifi className="h-5 w-5" /> : <WifiOff className="h-5 w-5" />}
-          <span className="font-medium">{isOnline ? 'Online' : 'Offline Mode'}</span>
+          {isOnline ? <Wifi className="h-4 w-4 sm:h-5 sm:w-5" /> : <WifiOff className="h-4 w-4 sm:h-5 sm:w-5" />}
+          <span className="text-sm sm:text-base font-medium">{isOnline ? 'Online' : 'Offline Mode'}</span>
         </div>
         {offlineInspections.length > 0 && (
-          <Badge className="bg-white text-orange-600">
-            {offlineInspections.length} pending sync
+          <Badge className="bg-white text-orange-600 text-xs">
+            {offlineInspections.length} pending
           </Badge>
         )}
       </div>
 
       {/* Form */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           <Card>
-            <CardContent className="pt-6 space-y-4">
+            <CardContent className="pt-4 sm:pt-6 space-y-3 sm:space-y-4">
               <div>
                 <Label htmlFor="title">Inspection Title *</Label>
                 <Input
@@ -293,7 +293,7 @@ export default function MobileInspectionConductor({ onClose }) {
 
           {/* Photo Capture */}
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 sm:pt-6">
               <Label className="mb-3 block">Inspection Photos</Label>
               
               <Button type="button" variant="outline" className="w-full mb-3" asChild>
@@ -334,7 +334,7 @@ export default function MobileInspectionConductor({ onClose }) {
           </Card>
 
           {/* Submit Buttons */}
-          <div className="flex gap-3 pb-4">
+          <div className="flex gap-2 sm:gap-3 pb-3 sm:pb-4">
             {!isOnline && (
               <Button 
                 type="button" 

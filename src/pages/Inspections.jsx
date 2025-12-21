@@ -663,7 +663,7 @@ export default function Inspections() {
       {/* Mobile Inspector */}
       {showMobileInspector && (
         <Dialog open={true} onOpenChange={() => setShowMobileInspector(false)}>
-          <DialogContent className="max-w-md h-[90vh] p-0">
+          <DialogContent className="max-w-md h-[90vh] p-0 overflow-hidden">
             <MobileInspectionConductor onClose={() => setShowMobileInspector(false)} />
           </DialogContent>
         </Dialog>
