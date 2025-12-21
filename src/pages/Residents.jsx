@@ -143,6 +143,23 @@ export default function Residents() {
     mutationFn: async (data) => {
       const newResident = await base44.entities.Resident.create(data);
       
+      // Send welcome email to new residents
+      if (newResident && newResident.email) {
+        const building = buildings.find(b => b.id === data.building_id);
+        const unit = units.find(u => u.id === data.unit_id);
+        
+        try {
+          await base44.functions.invoke('sendWelcomeEmail', {
+            residentEmail: newResident.email,
+            residentName: `${data.first_name} ${data.last_name}`,
+            buildingName: building?.name,
+            unitNumber: unit?.unit_number
+          });
+        } catch (error) {
+          console.error('Welcome email failed:', error);
+        }
+      }
+      
       // Trigger automated onboarding if tenant has email
       if (newResident && newResident.email && data.resident_type === 'tenant') {
         const building = buildings.find(b => b.id === data.building_id);
