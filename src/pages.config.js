@@ -25,6 +25,7 @@ import Communications from './pages/Communications';
 import OperationsCenter from './pages/OperationsCenter';
 import ResidentsCenter from './pages/ResidentsCenter';
 import PartnerManagement from './pages/PartnerManagement';
+import PartnerDashboard from './pages/PartnerDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -56,6 +57,7 @@ export const PAGES = {
     "OperationsCenter": OperationsCenter,
     "ResidentsCenter": ResidentsCenter,
     "PartnerManagement": PartnerManagement,
+    "PartnerDashboard": PartnerDashboard,
 }
 
 export const pagesConfig = {

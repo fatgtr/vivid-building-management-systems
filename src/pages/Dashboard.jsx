@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useBuildingContext } from '@/components/BuildingContext';
+import PartnerDashboard from './PartnerDashboard';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +35,13 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 
 export default function Dashboard() {
-  const { selectedBuildingId } = useBuildingContext();
+  const { selectedBuildingId, user } = useBuildingContext();
+  
+  // Show partner dashboard if user has partner_id
+  if (user?.partner_id) {
+    return <PartnerDashboard />;
+  }
+  
   const queryClient = useQueryClient();
   const [showNoteDialog, setShowNoteDialog] = useState(false);
   const [showNumberDialog, setShowNumberDialog] = useState(false);
