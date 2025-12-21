@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
-import { FileText, Search, Building2, MoreVertical, Pencil, Trash2, Download, Upload, Eye, File, FileImage, FileArchive, Folder, ChevronDown, ChevronRight, Scan, History, FileUp, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { FileText, Search, Building2, MoreVertical, Pencil, Trash2, Download, Upload, Eye, File, FileImage, FileArchive, Folder, ChevronDown, ChevronRight, Scan, History, FileUp, Loader2, CheckCircle2, AlertCircle, Wrench } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   DropdownMenu,
@@ -32,6 +32,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { format } from 'date-fns';
+import AsBuiltMechanicalExtractor from '@/components/buildings/AsBuiltMechanicalExtractor';
 
 const documentCategories = [
   { value: 'strata_roll', label: 'Strata Roll', icon: FileText },
@@ -80,6 +81,7 @@ export default function Documents() {
   const [versionNotes, setVersionNotes] = useState('');
   const [uploadingVersion, setUploadingVersion] = useState(false);
   const [ocrProcessing, setOcrProcessing] = useState({});
+  const [showAsBuiltExtractor, setShowAsBuiltExtractor] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -360,6 +362,30 @@ export default function Documents() {
                 
                 {isExpanded && (
                   <div className="border-t border-slate-100">
+                    {categoryConfig.value === 'as_built_mechanical' && (
+                      <div className="p-4 bg-slate-50 border-b border-slate-100">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <Wrench className="h-4 w-4 text-blue-600" />
+                            <h4 className="font-medium text-slate-900">AI Asset Extractor</h4>
+                          </div>
+                          <Button 
+                            size="sm"
+                            variant={showAsBuiltExtractor ? "outline" : "default"}
+                            onClick={() => setShowAsBuiltExtractor(!showAsBuiltExtractor)}
+                            className={!showAsBuiltExtractor ? "bg-blue-600 hover:bg-blue-700" : ""}
+                          >
+                            {showAsBuiltExtractor ? 'Hide' : 'Extract Assets from Drawing'}
+                          </Button>
+                        </div>
+                        {showAsBuiltExtractor && (
+                          <AsBuiltMechanicalExtractor 
+                            buildingId={filterBuilding !== 'all' ? filterBuilding : null}
+                            onComplete={() => setShowAsBuiltExtractor(false)}
+                          />
+                        )}
+                      </div>
+                    )}
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-slate-50">
