@@ -42,6 +42,7 @@ const initialFormState = {
   state: '',
   postal_code: '',
   country: '',
+  partner_id: '',
   total_units: '',
   floors: '',
   year_built: '',
@@ -91,6 +92,16 @@ export default function Buildings() {
   const { data: residents = [] } = useQuery({
     queryKey: ['residents'],
     queryFn: () => base44.entities.Resident.list(),
+  });
+
+  const { data: partners = [] } = useQuery({
+    queryKey: ['partners'],
+    queryFn: () => base44.entities.Partner.list(),
+  });
+
+  const { data: brandings = [] } = useQuery({
+    queryKey: ['partnerBrandings'],
+    queryFn: () => base44.entities.PartnerBranding.list(),
   });
 
   const createMutation = useMutation({
@@ -158,6 +169,7 @@ export default function Buildings() {
       state: building.state || '',
       postal_code: building.postal_code || '',
       country: building.country || '',
+      partner_id: building.partner_id || '',
       total_units: building.total_units || '',
       floors: building.floors || '',
       year_built: building.year_built || '',
@@ -220,17 +232,33 @@ export default function Buildings() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Auto-populate partner branding fields if a partner is selected
+    let finalFormData = { ...formData };
+    if (formData.partner_id) {
+      const partnerBranding = brandings.find(b => b.partner_id === formData.partner_id);
+      if (partnerBranding && !editingBuilding) {
+        // Only auto-populate for new buildings, not edits
+        finalFormData = {
+          ...finalFormData,
+          strata_managing_agent_name: partnerBranding.company_name || finalFormData.strata_managing_agent_name,
+          building_compliance_email: partnerBranding.email_reply_to || finalFormData.building_compliance_email,
+        };
+      }
+    }
+    
     const data = {
-      ...formData,
-      total_units: formData.total_units ? Number(formData.total_units) : null,
-      floors: formData.floors ? Number(formData.floors) : null,
-      year_built: formData.year_built ? Number(formData.year_built) : null,
-      strata_lots: formData.strata_lots ? Number(formData.strata_lots) : null,
-      compliance_reminder_intervals: formData.compliance_reminder_intervals 
-        ? formData.compliance_reminder_intervals.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n))
+      ...finalFormData,
+      partner_id: finalFormData.partner_id || null,
+      total_units: finalFormData.total_units ? Number(finalFormData.total_units) : null,
+      floors: finalFormData.floors ? Number(finalFormData.floors) : null,
+      year_built: finalFormData.year_built ? Number(finalFormData.year_built) : null,
+      strata_lots: finalFormData.strata_lots ? Number(finalFormData.strata_lots) : null,
+      compliance_reminder_intervals: finalFormData.compliance_reminder_intervals 
+        ? finalFormData.compliance_reminder_intervals.split(',').map(s => Number(s.trim())).filter(n => !isNaN(n))
         : [90, 60, 30],
-      compliance_reminder_recipients: formData.compliance_reminder_recipients 
-        ? formData.compliance_reminder_recipients.split(',').map(s => s.trim()).filter(s => s)
+      compliance_reminder_recipients: finalFormData.compliance_reminder_recipients 
+        ? finalFormData.compliance_reminder_recipients.split(',').map(s => s.trim()).filter(s => s)
         : [],
     };
 
@@ -389,6 +417,28 @@ export default function Buildings() {
           {dialogStep === 'form' && (
             <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:col-span-2">
+                <Label htmlFor="partner_id">Managing Partner (Optional)</Label>
+                <Select 
+                  value={formData.partner_id} 
+                  onValueChange={(v) => setFormData({ ...formData, partner_id: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a partner or leave blank" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>No Partner (Manual Setup)</SelectItem>
+                    {partners.filter(p => p.status === 'active').map((partner) => (
+                      <SelectItem key={partner.id} value={partner.id}>
+                        {partner.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-slate-500 mt-1">
+                  Select a partner to automatically apply their branding, terms, and company details
+                </p>
+              </div>
               <div className="md:col-span-2">
                 <Label htmlFor="name">Building Name *</Label>
                 <Input
