@@ -13,7 +13,9 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
-import { Building2, Plus, Pencil, Upload, ArrowLeft, Palette, FileText, Settings } from 'lucide-react';
+import { Building2, Plus, Pencil, Upload, ArrowLeft, Palette, FileText, Settings, Users, DollarSign } from 'lucide-react';
+import PartnerUsersTab from '@/components/partner/PartnerUsersTab';
+import PartnerBillingTab from '@/components/partner/PartnerBillingTab';
 import { toast } from 'sonner';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -238,6 +240,18 @@ export default function PartnerManagement() {
               <FileText className="h-4 w-4" />
               Work Order Settings
             </TabsTrigger>
+            {selectedPartner && (
+              <>
+                <TabsTrigger value="users" className="gap-2">
+                  <Users className="h-4 w-4" />
+                  Team Members
+                </TabsTrigger>
+                <TabsTrigger value="billing" className="gap-2">
+                  <DollarSign className="h-4 w-4" />
+                  Billing
+                </TabsTrigger>
+              </>
+            )}
           </TabsList>
 
           <TabsContent value="general">
@@ -547,6 +561,18 @@ export default function PartnerManagement() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {selectedPartner && (
+            <>
+              <TabsContent value="users">
+                <PartnerUsersTab partnerId={selectedPartner.id} />
+              </TabsContent>
+
+              <TabsContent value="billing">
+                <PartnerBillingTab partnerId={selectedPartner.id} />
+              </TabsContent>
+            </>
+          )}
         </Tabs>
 
         <div className="flex justify-end gap-3 sticky bottom-0 bg-white border-t pt-4">
