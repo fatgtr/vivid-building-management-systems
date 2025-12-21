@@ -416,7 +416,257 @@ export default function AmenitiesTab() {
         </TabsContent>
       </Tabs>
 
-      {/* Dialogs remain the same as original Amenities.jsx - omitted for brevity */}
+      {/* Add/Edit Amenity Dialog */}
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingAmenity ? 'Edit Amenity' : 'Add New Amenity'}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:col-span-2">
+                <Label htmlFor="building_id">Building *</Label>
+                <Select value={formData.building_id} onValueChange={(v) => setFormData({ ...formData, building_id: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select building" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {buildings.map(b => (
+                      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="name">Amenity Name *</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="amenity_type">Type *</Label>
+                <Select value={formData.amenity_type} onValueChange={(v) => setFormData({ ...formData, amenity_type: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {amenityTypes.map(t => (
+                      <SelectItem key={t.value} value={t.value}>{t.icon} {t.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="location">Location</Label>
+                <Input
+                  id="location"
+                  value={formData.location}
+                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  placeholder="e.g., Ground floor, Level 10"
+                />
+              </div>
+              <div>
+                <Label htmlFor="capacity">Capacity</Label>
+                <Input
+                  id="capacity"
+                  type="number"
+                  value={formData.capacity}
+                  onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="available_from">Available From</Label>
+                <Input
+                  id="available_from"
+                  value={formData.available_from}
+                  onChange={(e) => setFormData({ ...formData, available_from: e.target.value })}
+                  placeholder="e.g., 06:00"
+                />
+              </div>
+              <div>
+                <Label htmlFor="available_to">Available Until</Label>
+                <Input
+                  id="available_to"
+                  value={formData.available_to}
+                  onChange={(e) => setFormData({ ...formData, available_to: e.target.value })}
+                  placeholder="e.g., 22:00"
+                />
+              </div>
+              <div>
+                <Label htmlFor="booking_fee">Booking Fee ($)</Label>
+                <Input
+                  id="booking_fee"
+                  type="number"
+                  value={formData.booking_fee}
+                  onChange={(e) => setFormData({ ...formData, booking_fee: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="max_booking_hours">Max Booking Hours</Label>
+                <Input
+                  id="max_booking_hours"
+                  type="number"
+                  value={formData.max_booking_hours}
+                  onChange={(e) => setFormData({ ...formData, max_booking_hours: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="status">Status</Label>
+                <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="available">Available</SelectItem>
+                    <SelectItem value="maintenance">Maintenance</SelectItem>
+                    <SelectItem value="closed">Closed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="requires_booking"
+                  checked={formData.requires_booking}
+                  onCheckedChange={(v) => setFormData({ ...formData, requires_booking: v })}
+                />
+                <Label htmlFor="requires_booking">Requires Booking</Label>
+              </div>
+              <div className="md:col-span-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  rows={2}
+                />
+              </div>
+              <div className="md:col-span-2">
+                <Label htmlFor="rules">Rules</Label>
+                <Textarea
+                  id="rules"
+                  value={formData.rules}
+                  onChange={(e) => setFormData({ ...formData, rules: e.target.value })}
+                  rows={2}
+                  placeholder="Usage rules and guidelines"
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={handleCloseDialog}>Cancel</Button>
+              <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={createMutation.isPending || updateMutation.isPending}>
+                {createMutation.isPending || updateMutation.isPending ? 'Saving...' : (editingAmenity ? 'Update' : 'Create')}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Booking Dialog */}
+      <Dialog open={showBookingDialog} onOpenChange={setShowBookingDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Book Amenity</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleBookingSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="resident_name">Resident Name *</Label>
+              <Input
+                id="resident_name"
+                value={bookingForm.resident_name}
+                onChange={(e) => setBookingForm({ ...bookingForm, resident_name: e.target.value })}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="unit_number">Unit Number</Label>
+              <Input
+                id="unit_number"
+                value={bookingForm.unit_number}
+                onChange={(e) => setBookingForm({ ...bookingForm, unit_number: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="booking_date">Date *</Label>
+              <Input
+                id="booking_date"
+                type="date"
+                value={bookingForm.booking_date}
+                onChange={(e) => setBookingForm({ ...bookingForm, booking_date: e.target.value })}
+                required
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="start_time">Start Time *</Label>
+                <Input
+                  id="start_time"
+                  type="time"
+                  value={bookingForm.start_time}
+                  onChange={(e) => setBookingForm({ ...bookingForm, start_time: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="end_time">End Time *</Label>
+                <Input
+                  id="end_time"
+                  type="time"
+                  value={bookingForm.end_time}
+                  onChange={(e) => setBookingForm({ ...bookingForm, end_time: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="guests">Number of Guests</Label>
+              <Input
+                id="guests"
+                type="number"
+                value={bookingForm.guests}
+                onChange={(e) => setBookingForm({ ...bookingForm, guests: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="purpose">Purpose</Label>
+              <Input
+                id="purpose"
+                value={bookingForm.purpose}
+                onChange={(e) => setBookingForm({ ...bookingForm, purpose: e.target.value })}
+                placeholder="e.g., Birthday party"
+              />
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowBookingDialog(false)}>Cancel</Button>
+              <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={createBookingMutation.isPending}>
+                {createBookingMutation.isPending ? 'Booking...' : 'Book'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteAmenity} onOpenChange={() => setDeleteAmenity(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Amenity</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{deleteAmenity?.name}"?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteMutation.mutate(deleteAmenity.id)} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
