@@ -26,6 +26,8 @@ import OperationsCenter from './pages/OperationsCenter';
 import ResidentsCenter from './pages/ResidentsCenter';
 import PartnerManagement from './pages/PartnerManagement';
 import PartnerDashboard from './pages/PartnerDashboard';
+import PlatformDashboard from './pages/PlatformDashboard';
+import VividStaffManagement from './pages/VividStaffManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -58,6 +60,8 @@ export const PAGES = {
     "ResidentsCenter": ResidentsCenter,
     "PartnerManagement": PartnerManagement,
     "PartnerDashboard": PartnerDashboard,
+    "PlatformDashboard": PlatformDashboard,
+    "VividStaffManagement": VividStaffManagement,
 }
 
 export const pagesConfig = {

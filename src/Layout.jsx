@@ -49,6 +49,7 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { name: 'Home', icon: Home, page: 'Home', adminOnly: false },
   { name: 'Dashboard', icon: LayoutDashboard, page: 'Dashboard', adminOnly: false },
+  { name: 'Platform Dashboard', icon: Sparkles, page: 'PlatformDashboard', adminOnly: true },
   { name: 'Buildings', icon: Building2, page: 'Buildings', requirePermission: { resource: 'buildings', action: 'view' } },
   { name: 'Residents Center', icon: Users, page: 'ResidentsCenter', requirePermission: { resource: 'residents', action: 'view' } },
   { name: 'Operations Center', icon: Wrench, page: 'OperationsCenter', requirePermission: { resource: 'work_orders', action: 'view' } },
@@ -58,6 +59,7 @@ const navItems = [
   { name: 'Strata Knowledge Base', icon: FileText, page: 'StrataKnowledgeBase', requirePermission: { resource: 'documents', action: 'view' } },
   { name: 'Role Management', icon: Shield, page: 'RoleManagement', adminOnly: true },
   { name: 'Partner Management', icon: Building2, page: 'PartnerManagement', adminOnly: true },
+  { name: 'Vivid Staff', icon: Users, page: 'VividStaffManagement', adminOnly: true },
 ];
 
 function LayoutInner({ children, currentPageName }) {
