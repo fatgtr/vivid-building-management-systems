@@ -8,8 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Loader2, Save, Edit2, Trash2, X, MapPin } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Upload, Loader2, Save, Edit2, Trash2, X, MapPin, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
+import PlanMarkupTool from './PlanMarkupTool';
 
 const LOCATION_SCHEMA = {
   type: 'object',
@@ -56,6 +58,29 @@ export default function LocationExtractor({ buildingId, onComplete }) {
       if (onComplete) onComplete();
     },
   });
+
+  const updateLocationCoordinatesMutation = useMutation({
+    mutationFn: async (updates) => {
+      const results = [];
+      for (const update of updates) {
+        if (update.id) {
+          const updated = await base44.entities.Location.update(update.id, {
+            coordinates: update.coordinates,
+          });
+          results.push(updated);
+        }
+      }
+      return results;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['locations'] });
+      toast.success('Location coordinates saved!');
+    },
+  });
+
+  const handleSaveCoordinates = (coordinateUpdates) => {
+    updateLocationCoordinatesMutation.mutate(coordinateUpdates);
+  };
 
   const handleFileSelect = async (e) => {
     const file = e.target.files[0];
@@ -138,25 +163,33 @@ export default function LocationExtractor({ buildingId, onComplete }) {
   };
 
   return (
-    <div className="space-y-4">
-      <div>
-        <Label>Upload Building Plan (PDF)</Label>
-        <div className="mt-2">
-          <Button variant="outline" className="w-full" asChild disabled={uploading}>
-            <label>
-              <Upload className="h-4 w-4 mr-2" />
-              {uploading ? 'Uploading...' : uploadedFile ? uploadedFile.name : 'Choose PDF File'}
-              <input
-                type="file"
-                accept=".pdf"
-                className="hidden"
-                onChange={handleFileSelect}
-                disabled={uploading}
-              />
-            </label>
-          </Button>
+    <Tabs defaultValue="extract" className="space-y-4">
+      <TabsList>
+        <TabsTrigger value="extract">Extract Locations</TabsTrigger>
+        <TabsTrigger value="markup" disabled={!uploadedFile || extractedLocations.length === 0}>
+          Mark Up Plan
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="extract" className="space-y-4">
+        <div>
+          <Label>Upload Building Plan (PDF)</Label>
+          <div className="mt-2">
+            <Button variant="outline" className="w-full" asChild disabled={uploading}>
+              <label>
+                <Upload className="h-4 w-4 mr-2" />
+                {uploading ? 'Uploading...' : uploadedFile ? uploadedFile.name : 'Choose PDF File'}
+                <input
+                  type="file"
+                  accept=".pdf"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                  disabled={uploading}
+                />
+              </label>
+            </Button>
+          </div>
         </div>
-      </div>
 
       {uploadedFile && (
         <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
@@ -314,6 +347,17 @@ export default function LocationExtractor({ buildingId, onComplete }) {
           </div>
         </div>
       )}
-    </div>
+      </TabsContent>
+
+      <TabsContent value="markup" className="space-y-4">
+        {uploadedFile && extractedLocations.length > 0 && (
+          <PlanMarkupTool
+            pdfUrl={uploadedFile.url}
+            locations={extractedLocations}
+            onSaveCoordinates={handleSaveCoordinates}
+          />
+        )}
+      </TabsContent>
+    </Tabs>
   );
 }
