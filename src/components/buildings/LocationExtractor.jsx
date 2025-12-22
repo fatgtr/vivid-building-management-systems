@@ -21,10 +21,11 @@ const LOCATION_SCHEMA = {
       items: {
         type: 'object',
         properties: {
-          name: { type: 'string' },
-          floor_level: { type: 'string' },
-          area_type: { type: 'string' },
-          description: { type: 'string' },
+          name: { type: 'string', description: 'Location identifier like PA301, M302, STORAGE, MECH, LIFT LOBBY' },
+          floor_level: { type: 'string', description: 'Floor or basement level like BASEMENT 3, B3, Ground, Level 5' },
+          area_type: { type: 'string', description: 'Type: storage_cage, mechanical_room, electrical_room, common_area, lift_lobby, car_park, parking_space' },
+          description: { type: 'string', description: 'Additional details like Resident DDA, Motorcycle, dimensions' },
+          space_code: { type: 'string', description: 'Parking or storage code like PA301, P305, M310, C302' },
           coordinates: { type: 'string' },
         },
       },
@@ -110,15 +111,21 @@ export default function LocationExtractor({ buildingId, onComplete }) {
       });
 
       if (result.status === 'success' && result.output?.locations) {
-        const locationsWithBuildingId = result.output.locations.map(location => ({
-          ...location,
-          building_id: buildingId,
-          responsibility: 'pending_review',
-          common_property: false,
-          inspection_required: true,
-          inspection_frequency: 'monthly',
-          status: 'active',
-        }));
+        const locationsWithBuildingId = result.output.locations.map(location => {
+          // Determine inspection requirements based on area type
+          const isParkingOrStorage = ['car_park', 'parking_space', 'storage_cage'].includes(location.area_type);
+          const inspectionFreq = isParkingOrStorage ? 'quarterly' : 'monthly';
+          
+          return {
+            ...location,
+            building_id: buildingId,
+            responsibility: 'pending_review',
+            common_property: false,
+            inspection_required: !isParkingOrStorage,
+            inspection_frequency: inspectionFreq,
+            status: 'active',
+          };
+        });
         setExtractedLocations(locationsWithBuildingId);
         toast.success(`Extracted ${locationsWithBuildingId.length} locations from plan`);
       } else {

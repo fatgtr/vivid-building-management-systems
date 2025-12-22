@@ -29,6 +29,7 @@ import PartnerDashboard from './pages/PartnerDashboard';
 import PlatformDashboard from './pages/PlatformDashboard';
 import VividStaffManagement from './pages/VividStaffManagement';
 import AsBuiltMechanicalProcessor from './pages/AsBuiltMechanicalProcessor';
+import Locations from './pages/Locations';
 import __Layout from './Layout.jsx';
 
 
@@ -64,6 +65,7 @@ export const PAGES = {
     "PlatformDashboard": PlatformDashboard,
     "VividStaffManagement": VividStaffManagement,
     "AsBuiltMechanicalProcessor": AsBuiltMechanicalProcessor,
+    "Locations": Locations,
 }
 
 export const pagesConfig = {
