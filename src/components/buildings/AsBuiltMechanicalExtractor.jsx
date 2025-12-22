@@ -30,6 +30,18 @@ const DEFAULT_SCHEMA = {
         },
       },
     },
+    locations: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          floor_level: { type: 'string' },
+          area_type: { type: 'string' },
+          description: { type: 'string' },
+        },
+      },
+    },
   },
 };
 
@@ -38,6 +50,7 @@ export default function AsBuiltMechanicalExtractor({ buildingId, onComplete }) {
   const [uploading, setUploading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [extractedAssets, setExtractedAssets] = useState([]);
+  const [extractedLocations, setExtractedLocations] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
   const [editedAsset, setEditedAsset] = useState(null);
   const [extractionMode, setExtractionMode] = useState('default'); // 'default' or 'prompt'
@@ -60,6 +73,22 @@ export default function AsBuiltMechanicalExtractor({ buildingId, onComplete }) {
       setExtractedAssets([]);
       setUploadedFile(null);
       if (onComplete) onComplete();
+    },
+  });
+
+  const createLocationsMutation = useMutation({
+    mutationFn: async (locations) => {
+      const results = [];
+      for (const location of locations) {
+        const created = await base44.entities.Location.create(location);
+        results.push(created);
+      }
+      return results;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['locations'] });
+      toast.success('Locations created successfully!');
+      setExtractedLocations([]);
     },
   });
 
@@ -148,18 +177,35 @@ Return ONLY the JSON schema, no explanation.`;
         json_schema: schemaToUse,
       });
 
-      if (result.status === 'success' && result.output?.assets) {
-        const assetsWithBuildingId = result.output.assets.map(asset => ({
-          ...asset,
-          building_id: buildingId,
-          asset_category: 'mechanical',
-          document_id: uploadedFile.url,
-          status: 'active',
-        }));
-        setExtractedAssets(assetsWithBuildingId);
-        toast.success(`Extracted ${assetsWithBuildingId.length} assets from drawing`);
+      if (result.status === 'success') {
+        if (result.output?.assets) {
+          const assetsWithBuildingId = result.output.assets.map(asset => ({
+            ...asset,
+            building_id: buildingId,
+            asset_category: 'mechanical',
+            document_id: uploadedFile.url,
+            status: 'active',
+          }));
+          setExtractedAssets(assetsWithBuildingId);
+        }
+        
+        if (result.output?.locations) {
+          const locationsWithBuildingId = result.output.locations.map(location => ({
+            ...location,
+            building_id: buildingId,
+            responsibility: 'pending_review',
+            common_property: false,
+            inspection_required: true,
+            inspection_frequency: 'monthly',
+            status: 'active',
+          }));
+          setExtractedLocations(locationsWithBuildingId);
+        }
+        
+        const totalCount = (result.output?.assets?.length || 0) + (result.output?.locations?.length || 0);
+        toast.success(`Extracted ${totalCount} items from drawing`);
       } else {
-        toast.error('No assets found or extraction failed');
+        toast.error('No data found or extraction failed');
       }
     } catch (error) {
       toast.error('Failed to extract assets');
@@ -197,6 +243,14 @@ Return ONLY the JSON schema, no explanation.`;
       return;
     }
     createAssetsMutation.mutate(extractedAssets);
+  };
+
+  const handleCreateLocations = () => {
+    if (extractedLocations.length === 0) {
+      toast.error('No locations to create');
+      return;
+    }
+    createLocationsMutation.mutate(extractedLocations);
   };
 
   return (
@@ -393,6 +447,59 @@ Return ONLY the JSON schema, no explanation.`;
                         </TableCell>
                       </>
                     )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      )}
+
+      {extractedLocations.length > 0 && (
+        <div className="space-y-3 mt-6">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-slate-700">
+              Extracted {extractedLocations.length} location{extractedLocations.length !== 1 ? 's' : ''}
+            </p>
+            <Button
+              onClick={handleCreateLocations}
+              disabled={createLocationsMutation.isPending}
+              size="sm"
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {createLocationsMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Create Locations
+                </>
+              )}
+            </Button>
+          </div>
+
+          <div className="border rounded-lg overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Floor</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Description</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {extractedLocations.map((location, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="font-medium">{location.name}</TableCell>
+                    <TableCell className="text-sm text-slate-600">{location.floor_level || '—'}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{location.area_type || 'common_area'}</Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-slate-600">{location.description || '—'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
