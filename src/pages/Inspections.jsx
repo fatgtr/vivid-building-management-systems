@@ -92,6 +92,11 @@ export default function Inspections() {
     queryFn: () => base44.entities.Unit.list(),
   });
 
+  const { data: locations = [] } = useQuery({
+    queryKey: ['locations'],
+    queryFn: () => base44.entities.Location.list(),
+  });
+
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Inspection.create(data),
     onSuccess: () => {

@@ -79,6 +79,13 @@ export default function AssetRegister() {
     enabled: !selectedBuildingId,
   });
 
+  const { data: locations = [] } = useQuery({
+    queryKey: ['locations', selectedBuildingId],
+    queryFn: () => selectedBuildingId 
+      ? base44.entities.Location.filter({ building_id: selectedBuildingId })
+      : base44.entities.Location.list(),
+  });
+
   const filteredAssets = assets.filter(asset => {
     const matchesSearch = 
       asset.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -100,6 +107,12 @@ export default function AssetRegister() {
     }
     const building = buildings.find(b => b.id === buildingId);
     return building?.name || 'Unknown';
+  };
+
+  const getLocationName = (locationId) => {
+    if (!locationId) return null;
+    const location = locations.find(l => l.id === locationId);
+    return location ? `${location.name} (${location.floor_level})` : null;
   };
 
   const getCategoryCounts = () => {
@@ -254,10 +267,12 @@ export default function AssetRegister() {
                   )}
 
                   <div className="space-y-2">
-                    {asset.location && (
+                    {(asset.location || asset.location_id) && (
                       <div className="flex items-center gap-2 text-sm text-slate-600">
                         <MapPin className="h-4 w-4 text-slate-400" />
-                        <span className="truncate">{asset.location}</span>
+                        <span className="truncate">
+                          {getLocationName(asset.location_id) || asset.location}
+                        </span>
                       </div>
                     )}
 

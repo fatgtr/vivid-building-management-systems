@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Upload, Loader2, Save, Edit2, Trash2, X, Sparkles, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const DEFAULT_SCHEMA = {
   type: 'object',
@@ -57,6 +59,13 @@ export default function AsBuiltMechanicalExtractor({ buildingId, onComplete }) {
   const [naturalLanguagePrompt, setNaturalLanguagePrompt] = useState('');
   const [generatingSchema, setGeneratingSchema] = useState(false);
   const queryClient = useQueryClient();
+
+  // Fetch locations for the building
+  const { data: locations = [] } = useQuery({
+    queryKey: ['locations', buildingId],
+    queryFn: () => buildingId ? base44.entities.Location.filter({ building_id: buildingId }) : [],
+    enabled: !!buildingId,
+  });
 
   const createAssetsMutation = useMutation({
     mutationFn: async (assets) => {
@@ -220,6 +229,12 @@ Return ONLY the JSON schema, no explanation.`;
     setEditedAsset({ ...extractedAssets[index] });
   };
 
+  const handleLocationChange = (index, locationId) => {
+    const updated = [...extractedAssets];
+    updated[index] = { ...updated[index], location_id: locationId };
+    setExtractedAssets(updated);
+  };
+
   const handleSaveEdit = () => {
     const updated = [...extractedAssets];
     updated[editingIndex] = editedAsset;
@@ -378,7 +393,8 @@ Return ONLY the JSON schema, no explanation.`;
                 <TableRow>
                   <TableHead>Type</TableHead>
                   <TableHead>Name</TableHead>
-                  <TableHead>Location</TableHead>
+                  <TableHead>Location (Text)</TableHead>
+                  <TableHead>Location (Linked)</TableHead>
                   <TableHead>Manufacturer</TableHead>
                   <TableHead className="w-20">Actions</TableHead>
                 </TableRow>
@@ -434,6 +450,23 @@ Return ONLY the JSON schema, no explanation.`;
                         </TableCell>
                         <TableCell className="font-medium">{asset.name}</TableCell>
                         <TableCell className="text-sm text-slate-600">{asset.location || '—'}</TableCell>
+                        <TableCell>
+                          <Select 
+                            value={asset.location_id || ''} 
+                            onValueChange={(value) => handleLocationChange(index, value)}
+                          >
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder="Link to location" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {locations.map((loc) => (
+                                <SelectItem key={loc.id} value={loc.id}>
+                                  {loc.name} ({loc.floor_level})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
                         <TableCell className="text-sm text-slate-600">{asset.manufacturer || '—'}</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
