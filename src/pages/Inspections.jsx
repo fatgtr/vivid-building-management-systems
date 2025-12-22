@@ -48,6 +48,7 @@ const inspectionTypes = [
 const initialFormState = {
   building_id: '',
   unit_id: '',
+  location_id: '',
   title: '',
   inspection_type: 'general',
   scheduled_date: '',
@@ -134,6 +135,7 @@ export default function Inspections() {
     setFormData({
       building_id: inspection.building_id || '',
       unit_id: inspection.unit_id || '',
+      location_id: inspection.location_id || '',
       title: inspection.title || '',
       inspection_type: inspection.inspection_type || 'general',
       scheduled_date: inspection.scheduled_date || '',
@@ -215,7 +217,12 @@ export default function Inspections() {
 
   const getBuildingName = (buildingId) => buildings.find(b => b.id === buildingId)?.name || 'Unknown';
   const getUnitNumber = (unitId) => units.find(u => u.id === unitId)?.unit_number || '';
+  const getLocationName = (locationId) => {
+    const location = locations.find(l => l.id === locationId);
+    return location ? `${location.name} (${location.floor_level})` : '';
+  };
   const getFilteredUnits = () => units.filter(u => u.building_id === formData.building_id);
+  const getFilteredLocations = () => locations.filter(l => l.building_id === formData.building_id);
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -346,6 +353,7 @@ export default function Inspections() {
                     <Building2 className="h-4 w-4 text-slate-400" />
                     <span>{getBuildingName(inspection.building_id)}</span>
                     {inspection.unit_id && <span>• Unit {getUnitNumber(inspection.unit_id)}</span>}
+                    {inspection.location_id && <span>• {getLocationName(inspection.location_id)}</span>}
                   </div>
                   {inspection.scheduled_date && (
                     <div className="flex items-center gap-2 text-slate-600">
@@ -435,6 +443,19 @@ export default function Inspections() {
                     <SelectItem value={null}>Building-wide</SelectItem>
                     {getFilteredUnits().map(u => (
                       <SelectItem key={u.id} value={u.id}>Unit {u.unit_number}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="location_id">Location (optional)</Label>
+                <Select value={formData.location_id} onValueChange={(v) => setFormData({ ...formData, location_id: v })} disabled={!formData.building_id}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getFilteredLocations().map(l => (
+                      <SelectItem key={l.id} value={l.id}>{l.name} ({l.floor_level})</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
