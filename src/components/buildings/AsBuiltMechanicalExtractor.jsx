@@ -188,18 +188,35 @@ Return ONLY the JSON schema, no explanation.`;
 
       if (result.status === 'success') {
         if (result.output?.assets) {
-          const assetsWithBuildingId = result.output.assets.map(asset => ({
+          console.log('Raw AI extraction returned:', result.output.assets.length, 'assets');
+          
+          let assetsWithBuildingId = result.output.assets.map(asset => ({
             ...asset,
             building_id: buildingId,
             asset_category: 'mechanical',
             document_id: uploadedFile.url,
             status: 'active',
           }));
-          setExtractedAssets(assetsWithBuildingId);
+
+          // Deduplicate assets based on key properties
+          const uniqueAssets = [];
+          const seen = new Set();
+          assetsWithBuildingId.forEach(asset => {
+            const identifier = `${asset.asset_type}-${asset.name}-${asset.location}-${asset.identifier || ''}`.toLowerCase();
+            if (!seen.has(identifier)) {
+              seen.add(identifier);
+              uniqueAssets.push(asset);
+            }
+          });
+          
+          console.log('After deduplication:', uniqueAssets.length, 'unique assets');
+          setExtractedAssets(uniqueAssets);
         }
         
         if (result.output?.locations) {
-          const locationsWithBuildingId = result.output.locations.map(location => ({
+          console.log('Raw AI extraction returned:', result.output.locations.length, 'locations');
+          
+          let locationsWithBuildingId = result.output.locations.map(location => ({
             ...location,
             building_id: buildingId,
             responsibility: 'pending_review',
@@ -208,7 +225,20 @@ Return ONLY the JSON schema, no explanation.`;
             inspection_frequency: 'monthly',
             status: 'active',
           }));
-          setExtractedLocations(locationsWithBuildingId);
+
+          // Deduplicate locations based on name and floor
+          const uniqueLocations = [];
+          const seenLocations = new Set();
+          locationsWithBuildingId.forEach(location => {
+            const identifier = `${location.name}-${location.floor_level || ''}`.toLowerCase();
+            if (!seenLocations.has(identifier)) {
+              seenLocations.add(identifier);
+              uniqueLocations.push(location);
+            }
+          });
+          
+          console.log('After deduplication:', uniqueLocations.length, 'unique locations');
+          setExtractedLocations(uniqueLocations);
         }
         
         const totalCount = (result.output?.assets?.length || 0) + (result.output?.locations?.length || 0);
