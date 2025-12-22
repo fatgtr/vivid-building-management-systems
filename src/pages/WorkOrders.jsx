@@ -41,21 +41,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { format } from 'date-fns';
 
-const categories = [
-  { value: 'fire_safety', label: 'Fire Safety' },
-  { value: 'electrical', label: 'Electrical' },
-  { value: 'mechanical', label: 'Mechanical' },
-  { value: 'plumbing', label: 'Plumbing' },
-  { value: 'hvac', label: 'HVAC' },
-  { value: 'lift', label: 'Lift' },
-  { value: 'appliance', label: 'Appliance' },
-  { value: 'structural', label: 'Structural' },
-  { value: 'pest_control', label: 'Pest Control' },
-  { value: 'cleaning', label: 'Cleaning' },
-  { value: 'landscaping', label: 'Landscaping' },
-  { value: 'security', label: 'Security' },
-  { value: 'other', label: 'Other' },
-];
+import { ASSET_CATEGORIES, formatSubcategoryLabel, getSubcategories } from '@/components/categories/assetCategories';
 
 const initialFormState = {
   building_id: '',
@@ -64,7 +50,8 @@ const initialFormState = {
   is_common_area: false,
   title: '',
   description: '',
-  category: 'other',
+  main_category: '',
+  subcategory: '',
   priority: 'medium',
   status: 'open',
   reported_by_name: '',
@@ -120,12 +107,12 @@ export default function WorkOrders() {
   });
 
   const { data: assets = [] } = useQuery({
-    queryKey: ['assets', formData.building_id, formData.category],
+    queryKey: ['assets', formData.building_id, formData.main_category],
     queryFn: () => {
       if (!formData.building_id) return [];
       const filters = { building_id: formData.building_id };
-      if (formData.category && formData.category !== 'all' && formData.category !== 'other') {
-        filters.asset_category = formData.category;
+      if (formData.main_category) {
+        filters.asset_main_category = formData.main_category;
       }
       return base44.entities.Asset.filter(filters);
     },
@@ -200,7 +187,8 @@ export default function WorkOrders() {
       asset_id: order.asset_id || '',
       title: order.title || '',
       description: order.description || '',
-      category: order.category || 'other',
+      main_category: order.main_category || '',
+      subcategory: order.subcategory || '',
       priority: order.priority || 'medium',
       status: order.status || 'open',
       reported_by_name: order.reported_by_name || '',
@@ -664,10 +652,15 @@ export default function WorkOrders() {
                     </span>
                   </div>
                   
-                  <div className="flex items-center gap-2 text-xs bg-slate-50 px-3 py-2 rounded-lg">
-                    <Wrench className="h-3.5 w-3.5 text-slate-500 flex-shrink-0" />
-                    <span className="capitalize text-slate-700">{order.category?.replace(/_/g, ' ')}</span>
-                  </div>
+                  {order.main_category && (
+                    <div className="flex items-center gap-2 text-xs bg-slate-50 px-3 py-2 rounded-lg">
+                      <Wrench className="h-3.5 w-3.5 text-slate-500 flex-shrink-0" />
+                      <span className="text-slate-700">
+                        {ASSET_CATEGORIES[order.main_category]?.label || order.main_category.replace(/_/g, ' ')}
+                        {order.subcategory && <span className="text-slate-500"> • {formatSubcategoryLabel(order.subcategory)}</span>}
+                      </span>
+                    </div>
+                  )}
 
                   {order.due_date && (
                     <div className="flex items-center gap-2 text-xs bg-orange-50 px-3 py-2 rounded-lg">
@@ -796,14 +789,32 @@ export default function WorkOrders() {
                   </div>
 
                   <div>
-                    <Label htmlFor="category" className="text-sm font-semibold">Category *</Label>
-                    <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v, asset_id: '' })}>
+                    <Label htmlFor="main_category" className="text-sm font-semibold">Main Category *</Label>
+                    <Select value={formData.main_category} onValueChange={(v) => setFormData({ ...formData, main_category: v, subcategory: '', asset_id: '' })}>
                       <SelectTrigger className="mt-1.5">
-                        <SelectValue />
+                        <SelectValue placeholder="Select main category" />
                       </SelectTrigger>
                       <SelectContent>
-                        {categories.map(c => (
-                          <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                        {Object.entries(ASSET_CATEGORIES).map(([key, cat]) => (
+                          <SelectItem key={key} value={key}>{cat.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="subcategory" className="text-sm font-semibold">Sub-Category</Label>
+                    <Select 
+                      value={formData.subcategory} 
+                      onValueChange={(v) => setFormData({ ...formData, subcategory: v })}
+                      disabled={!formData.main_category}
+                    >
+                      <SelectTrigger className="mt-1.5">
+                        <SelectValue placeholder={formData.main_category ? "Select sub-category" : "Select main category first"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {formData.main_category && getSubcategories(formData.main_category).map(sub => (
+                          <SelectItem key={sub} value={sub}>{formatSubcategoryLabel(sub)}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -814,7 +825,7 @@ export default function WorkOrders() {
                     <Select 
                       value={formData.asset_id || ''} 
                       onValueChange={(v) => setFormData({ ...formData, asset_id: v })} 
-                      disabled={!formData.building_id || (formData.category && formData.category === 'other') || assets.length === 0}
+                      disabled={!formData.building_id || !formData.main_category || assets.length === 0}
                     >
                       <SelectTrigger className="mt-1.5">
                         <SelectValue placeholder={assets.length === 0 ? "No assets available" : "Select asset"} />
