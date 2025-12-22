@@ -57,6 +57,7 @@ const categories = [
 const initialFormState = {
   building_id: '',
   unit_id: '',
+  asset_id: '',
   is_common_area: false,
   title: '',
   description: '',
@@ -113,6 +114,19 @@ export default function WorkOrders() {
   const { data: contractors = [] } = useQuery({
     queryKey: ['contractors'],
     queryFn: () => base44.entities.Contractor.list(),
+  });
+
+  const { data: assets = [] } = useQuery({
+    queryKey: ['assets', formData.building_id, formData.category],
+    queryFn: () => {
+      if (!formData.building_id) return [];
+      const filters = { building_id: formData.building_id };
+      if (formData.category && formData.category !== 'all' && formData.category !== 'other') {
+        filters.asset_category = formData.category;
+      }
+      return base44.entities.Asset.filter(filters);
+    },
+    enabled: !!formData.building_id,
   });
 
   const createMutation = useMutation({
@@ -180,6 +194,7 @@ export default function WorkOrders() {
     setFormData({
       building_id: order.building_id || '',
       unit_id: order.unit_id || '',
+      asset_id: order.asset_id || '',
       title: order.title || '',
       description: order.description || '',
       category: order.category || 'other',
@@ -779,13 +794,34 @@ export default function WorkOrders() {
 
                   <div>
                     <Label htmlFor="category" className="text-sm font-semibold">Category *</Label>
-                    <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
+                    <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v, asset_id: '' })}>
                       <SelectTrigger className="mt-1.5">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         {categories.map(c => (
                           <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="asset_id" className="text-sm font-semibold">Linked Asset (optional)</Label>
+                    <Select 
+                      value={formData.asset_id || ''} 
+                      onValueChange={(v) => setFormData({ ...formData, asset_id: v })} 
+                      disabled={!formData.building_id || (formData.category && formData.category === 'other') || assets.length === 0}
+                    >
+                      <SelectTrigger className="mt-1.5">
+                        <SelectValue placeholder={assets.length === 0 ? "No assets available" : "Select asset"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={null}>No linked asset</SelectItem>
+                        {assets.map(asset => (
+                          <SelectItem key={asset.id} value={asset.id}>
+                            {asset.name} ({asset.asset_type})
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
