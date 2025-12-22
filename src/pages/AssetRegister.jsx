@@ -34,6 +34,12 @@ const categoryIcons = {
   plumbing: Droplet,
   hvac: Wind,
   lift: Building,
+  appliance: Package,
+  structural: Building,
+  pest_control: AlertCircle,
+  cleaning: Droplet,
+  landscaping: Wind,
+  security: AlertCircle,
   other: Package,
 };
 
@@ -44,6 +50,12 @@ const categoryColors = {
   plumbing: 'text-blue-600 bg-blue-50 border-blue-200',
   hvac: 'text-cyan-600 bg-cyan-50 border-cyan-200',
   lift: 'text-purple-600 bg-purple-50 border-purple-200',
+  appliance: 'text-indigo-600 bg-indigo-50 border-indigo-200',
+  structural: 'text-gray-600 bg-gray-50 border-gray-200',
+  pest_control: 'text-red-600 bg-red-50 border-red-200',
+  cleaning: 'text-teal-600 bg-teal-50 border-teal-200',
+  landscaping: 'text-green-600 bg-green-50 border-green-200',
+  security: 'text-slate-600 bg-slate-50 border-slate-200',
   other: 'text-slate-600 bg-slate-50 border-slate-200',
 };
 
@@ -194,6 +206,12 @@ export default function AssetRegister() {
                 <SelectItem value="plumbing">Plumbing</SelectItem>
                 <SelectItem value="hvac">HVAC</SelectItem>
                 <SelectItem value="lift">Lift</SelectItem>
+                <SelectItem value="appliance">Appliance</SelectItem>
+                <SelectItem value="structural">Structural</SelectItem>
+                <SelectItem value="pest_control">Pest Control</SelectItem>
+                <SelectItem value="cleaning">Cleaning</SelectItem>
+                <SelectItem value="landscaping">Landscaping</SelectItem>
+                <SelectItem value="security">Security</SelectItem>
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>

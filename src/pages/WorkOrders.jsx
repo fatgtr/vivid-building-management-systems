@@ -42,9 +42,12 @@ import {
 import { format } from 'date-fns';
 
 const categories = [
-  { value: 'plumbing', label: 'Plumbing' },
+  { value: 'fire_safety', label: 'Fire Safety' },
   { value: 'electrical', label: 'Electrical' },
+  { value: 'mechanical', label: 'Mechanical' },
+  { value: 'plumbing', label: 'Plumbing' },
   { value: 'hvac', label: 'HVAC' },
+  { value: 'lift', label: 'Lift' },
   { value: 'appliance', label: 'Appliance' },
   { value: 'structural', label: 'Structural' },
   { value: 'pest_control', label: 'Pest Control' },
