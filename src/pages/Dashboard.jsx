@@ -68,6 +68,11 @@ export default function Dashboard() {
     queryFn: () => base44.entities.WorkOrder.list('-created_date', 50),
   });
 
+  const { data: assets = [] } = useQuery({
+    queryKey: ['assets'],
+    queryFn: () => base44.entities.Asset.list(),
+  });
+
   const { data: contractors = [] } = useQuery({
     queryKey: ['contractors'],
     queryFn: () => base44.entities.Contractor.list(),
