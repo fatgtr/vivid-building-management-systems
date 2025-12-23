@@ -139,6 +139,7 @@ export default function Dashboard() {
   }
 
   // Filter data by selected building
+  const filteredAssets = selectedBuildingId ? assets.filter(a => a.building_id === selectedBuildingId) : assets;
   const filteredUnits = selectedBuildingId ? units.filter(u => u.building_id === selectedBuildingId) : units;
   const filteredResidents = selectedBuildingId ? residents.filter(r => r.building_id === selectedBuildingId) : residents;
   const filteredWorkOrders = selectedBuildingId ? workOrders.filter(wo => wo.building_id === selectedBuildingId) : workOrders;
