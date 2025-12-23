@@ -7,23 +7,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
-import StatusBadge from '@/components/common/StatusBadge';
 import { useBuildingContext } from '@/components/BuildingContext';
+import { usePermissions } from '@/components/permissions/PermissionsContext';
 import { ASSET_CATEGORIES, formatSubcategoryLabel } from '@/components/categories/assetCategories';
+import BuildingManagerView from '@/components/assets/BuildingManagerView';
+import StrataManagerView from '@/components/assets/StrataManagerView';
+import ContractorView from '@/components/assets/ContractorView';
+import CommitteeView from '@/components/assets/CommitteeView';
 import { 
   Search, 
   Package, 
-  MapPin, 
-  Calendar,
-  Building,
-  AlertCircle,
-  CheckCircle2,
-  Clock,
-  AlertTriangle,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  User,
+  Building as BuildingIcon,
+  Users,
+  HardHat
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -39,11 +41,19 @@ const complianceStatusConfig = {
 
 export default function AssetRegister() {
   const { selectedBuildingId, managedBuildings } = useBuildingContext();
+  const { hasRole, isAdmin } = usePermissions();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMainCategory, setSelectedMainCategory] = useState(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [complianceFilter, setComplianceFilter] = useState('all');
+  const [viewMode, setViewMode] = useState('auto'); // auto, building_manager, strata_manager, contractor, committee
+  
+  // Determine user role
+  const isContractor = hasRole('contractor');
+  const isCommitteeMember = hasRole('committee');
+  const isStrataManager = hasRole('strata_manager') || isAdmin();
+  const isBuildingManager = hasRole('building_manager') || isAdmin();
 
   const { data: assets = [], isLoading } = useQuery({
     queryKey: ['assets', selectedBuildingId],
@@ -134,12 +144,39 @@ export default function AssetRegister() {
     );
   }
 
+  // Determine default view based on role
+  const getDefaultView = () => {
+    if (viewMode !== 'auto') return viewMode;
+    if (isCommitteeMember) return 'committee';
+    if (isContractor) return 'contractor';
+    if (isStrataManager) return 'strata_manager';
+    return 'building_manager';
+  };
+
+  const currentView = getDefaultView();
+
   return (
     <div className="space-y-6">
       <PageHeader 
         title="Asset Register" 
         subtitle={`${filteredAssets.length} assets tracked across ${selectedBuildingId ? 'this building' : 'all buildings'}`}
-      />
+      >
+        {/* Role View Selector - Only show if user has multiple roles */}
+        {(isBuildingManager && isStrataManager) || isAdmin() ? (
+          <Select value={viewMode} onValueChange={setViewMode}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="View Mode" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="auto">Auto (Role-Based)</SelectItem>
+              <SelectItem value="building_manager">Building Manager</SelectItem>
+              <SelectItem value="strata_manager">Strata Manager</SelectItem>
+              <SelectItem value="contractor">Contractor</SelectItem>
+              <SelectItem value="committee">Committee</SelectItem>
+            </SelectContent>
+          </Select>
+        ) : null}
+      </PageHeader>
 
       {/* Category Navigation */}
       {selectedMainCategory && (
@@ -289,121 +326,38 @@ export default function AssetRegister() {
                 : "No assets in this sub-category yet"}
             />
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-              {filteredAssets.map((asset) => {
-                const categoryConfig = ASSET_CATEGORIES[asset.asset_main_category];
-                const Icon = categoryConfig?.icon || Package;
-                const colorClass = categoryConfig?.color || 'text-slate-600 bg-slate-50 border-slate-200';
-                const complianceConfig = complianceStatusConfig[asset.compliance_status] || complianceStatusConfig.unknown;
-                const ComplianceIcon = complianceConfig.icon;
+            <>
+              {/* Role-Based Views */}
+              {currentView === 'building_manager' && (
+                <BuildingManagerView 
+                  assets={filteredAssets}
+                  getBuildingName={getBuildingName}
+                  getLocationName={getLocationName}
+                  selectedBuildingId={selectedBuildingId}
+                />
+              )}
 
-                return (
-                  <Card key={asset.id} className="hover:shadow-lg transition-shadow">
-                    <CardContent className="p-5">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-lg ${colorClass} flex items-center justify-center flex-shrink-0`}>
-                            <Icon className="h-5 w-5" />
-                          </div>
-                          <div className="min-w-0">
-                            <h3 className="font-semibold text-slate-900 truncate">{asset.name}</h3>
-                            <p className="text-xs text-slate-500 capitalize">{asset.asset_type?.replace(/_/g, ' ')}</p>
-                          </div>
-                        </div>
-                        <StatusBadge status={asset.status} />
-                      </div>
+              {currentView === 'strata_manager' && (
+                <StrataManagerView 
+                  assets={filteredAssets}
+                  getBuildingName={getBuildingName}
+                  selectedBuildingId={selectedBuildingId}
+                />
+              )}
 
-                  {asset.identifier && (
-                    <div className="mb-3 pb-3 border-b border-slate-100">
-                      <p className="text-xs text-slate-500">Identifier</p>
-                      <p className="text-sm font-mono text-slate-700">{asset.identifier}</p>
-                    </div>
-                  )}
+              {currentView === 'contractor' && (
+                <ContractorView 
+                  assets={filteredAssets}
+                  getLocationName={getLocationName}
+                />
+              )}
 
-                  <div className="space-y-2">
-                    {(asset.location || asset.location_id) && (
-                      <div className="flex items-center gap-2 text-sm text-slate-600">
-                        <MapPin className="h-4 w-4 text-slate-400" />
-                        <span className="truncate">
-                          {getLocationName(asset.location_id) || asset.location}
-                        </span>
-                      </div>
-                    )}
-
-                    {asset.floor && (
-                      <div className="flex items-center gap-2 text-sm text-slate-600">
-                        <Building className="h-4 w-4 text-slate-400" />
-                        <span>Floor {asset.floor}</span>
-                      </div>
-                    )}
-
-                    {asset.manufacturer && (
-                      <div className="text-xs text-slate-500">
-                        <span className="font-medium">Manufacturer:</span> {asset.manufacturer}
-                      </div>
-                    )}
-
-                    {asset.asset_category === 'lift' && asset.rated_load_kg && (
-                      <div className="text-xs text-slate-500">
-                        <span className="font-medium">Capacity:</span> {asset.rated_load_kg}kg ({asset.max_passengers} passengers)
-                      </div>
-                    )}
-
-                    {asset.asset_category === 'lift' && asset.design_registration_number && (
-                      <div className="text-xs text-slate-500">
-                        <span className="font-medium">Design Reg:</span> {asset.design_registration_number}
-                      </div>
-                    )}
-
-                    {asset.next_service_date && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Calendar className="h-4 w-4 text-slate-400" />
-                        <span className="text-slate-500">Next Service:</span>
-                        <span className="font-medium text-slate-700">
-                          {format(new Date(asset.next_service_date), 'MMM d, yyyy')}
-                        </span>
-                      </div>
-                    )}
-
-                    {asset.asset_category === 'lift' && asset.replacement_year && (
-                      <div className="mt-2 pt-2 border-t border-slate-100">
-                        <div className="text-xs text-slate-500 space-y-1">
-                          <div>
-                            <span className="font-medium">Replacement:</span> {asset.replacement_year} (Est. ${(asset.replacement_cost || 0).toLocaleString()})
-                          </div>
-                          {asset.annual_sinking_fund > 0 && (
-                            <div>
-                              <span className="font-medium">Annual Fund:</span> ${asset.annual_sinking_fund.toLocaleString()}/year
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {!selectedBuildingId && (
-                      <div className="text-xs text-slate-500 pt-2 border-t border-slate-100">
-                        <span className="font-medium">Building:</span> {getBuildingName(asset.building_id)}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-4 pt-3 border-t border-slate-100">
-                    <div className={`flex items-center gap-2 ${complianceConfig.color}`}>
-                      <ComplianceIcon className="h-4 w-4" />
-                      <span className="text-sm font-medium">{complianceConfig.label}</span>
-                    </div>
-                  </div>
-
-                      {(asset.notes && asset.notes !== 'null') && (
-                        <div className="mt-3 pt-3 border-t border-slate-100">
-                          <p className="text-xs text-slate-600 line-clamp-2">{asset.notes}</p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+              {currentView === 'committee' && (
+                <CommitteeView 
+                  assets={filteredAssets}
+                />
+              )}
+            </>
           )}
         </>
       )}

@@ -1,73 +1,73 @@
-import Dashboard from './pages/Dashboard';
-import Buildings from './pages/Buildings';
-import Residents from './pages/Residents';
-import WorkOrders from './pages/WorkOrders';
 import Amenities from './pages/Amenities';
-import Visitors from './pages/Visitors';
-import Documents from './pages/Documents';
-import Inspections from './pages/Inspections';
-import Contractors from './pages/Contractors';
-import Settings from './pages/Settings';
-import MaintenanceSchedule from './pages/MaintenanceSchedule';
-import ResidentPortal from './pages/ResidentPortal';
-import SmartDevices from './pages/SmartDevices';
-import ManagingAgentPortal from './pages/ManagingAgentPortal';
-import StrataKnowledgeBase from './pages/StrataKnowledgeBase';
-import BuildingProfile from './pages/BuildingProfile';
-import AssetRegister from './pages/AssetRegister';
-import ContractorPortal from './pages/ContractorPortal';
-import ResidentProfile from './pages/ResidentProfile';
-import RoleManagement from './pages/RoleManagement';
-import Reports from './pages/Reports';
-import Home from './pages/Home';
-import Notifications from './pages/Notifications';
-import Communications from './pages/Communications';
-import OperationsCenter from './pages/OperationsCenter';
-import ResidentsCenter from './pages/ResidentsCenter';
-import PartnerManagement from './pages/PartnerManagement';
-import PartnerDashboard from './pages/PartnerDashboard';
-import PlatformDashboard from './pages/PlatformDashboard';
-import VividStaffManagement from './pages/VividStaffManagement';
 import AsBuiltMechanicalProcessor from './pages/AsBuiltMechanicalProcessor';
-import Locations from './pages/Locations';
+import AssetRegister from './pages/AssetRegister';
+import BuildingProfile from './pages/BuildingProfile';
+import Buildings from './pages/Buildings';
 import CapitalWorksPlanning from './pages/CapitalWorksPlanning';
+import Communications from './pages/Communications';
+import ContractorPortal from './pages/ContractorPortal';
+import Contractors from './pages/Contractors';
+import Dashboard from './pages/Dashboard';
+import Documents from './pages/Documents';
+import Home from './pages/Home';
+import Inspections from './pages/Inspections';
+import Locations from './pages/Locations';
+import MaintenanceSchedule from './pages/MaintenanceSchedule';
+import ManagingAgentPortal from './pages/ManagingAgentPortal';
+import Notifications from './pages/Notifications';
+import OperationsCenter from './pages/OperationsCenter';
+import PartnerDashboard from './pages/PartnerDashboard';
+import PartnerManagement from './pages/PartnerManagement';
+import PlatformDashboard from './pages/PlatformDashboard';
+import Reports from './pages/Reports';
+import ResidentPortal from './pages/ResidentPortal';
+import ResidentProfile from './pages/ResidentProfile';
+import Residents from './pages/Residents';
+import ResidentsCenter from './pages/ResidentsCenter';
+import RoleManagement from './pages/RoleManagement';
+import Settings from './pages/Settings';
+import SmartDevices from './pages/SmartDevices';
+import StrataKnowledgeBase from './pages/StrataKnowledgeBase';
+import Visitors from './pages/Visitors';
+import VividStaffManagement from './pages/VividStaffManagement';
+import WorkOrders from './pages/WorkOrders';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Dashboard": Dashboard,
-    "Buildings": Buildings,
-    "Residents": Residents,
-    "WorkOrders": WorkOrders,
     "Amenities": Amenities,
-    "Visitors": Visitors,
-    "Documents": Documents,
-    "Inspections": Inspections,
-    "Contractors": Contractors,
-    "Settings": Settings,
-    "MaintenanceSchedule": MaintenanceSchedule,
-    "ResidentPortal": ResidentPortal,
-    "SmartDevices": SmartDevices,
-    "ManagingAgentPortal": ManagingAgentPortal,
-    "StrataKnowledgeBase": StrataKnowledgeBase,
-    "BuildingProfile": BuildingProfile,
-    "AssetRegister": AssetRegister,
-    "ContractorPortal": ContractorPortal,
-    "ResidentProfile": ResidentProfile,
-    "RoleManagement": RoleManagement,
-    "Reports": Reports,
-    "Home": Home,
-    "Notifications": Notifications,
-    "Communications": Communications,
-    "OperationsCenter": OperationsCenter,
-    "ResidentsCenter": ResidentsCenter,
-    "PartnerManagement": PartnerManagement,
-    "PartnerDashboard": PartnerDashboard,
-    "PlatformDashboard": PlatformDashboard,
-    "VividStaffManagement": VividStaffManagement,
     "AsBuiltMechanicalProcessor": AsBuiltMechanicalProcessor,
-    "Locations": Locations,
+    "AssetRegister": AssetRegister,
+    "BuildingProfile": BuildingProfile,
+    "Buildings": Buildings,
     "CapitalWorksPlanning": CapitalWorksPlanning,
+    "Communications": Communications,
+    "ContractorPortal": ContractorPortal,
+    "Contractors": Contractors,
+    "Dashboard": Dashboard,
+    "Documents": Documents,
+    "Home": Home,
+    "Inspections": Inspections,
+    "Locations": Locations,
+    "MaintenanceSchedule": MaintenanceSchedule,
+    "ManagingAgentPortal": ManagingAgentPortal,
+    "Notifications": Notifications,
+    "OperationsCenter": OperationsCenter,
+    "PartnerDashboard": PartnerDashboard,
+    "PartnerManagement": PartnerManagement,
+    "PlatformDashboard": PlatformDashboard,
+    "Reports": Reports,
+    "ResidentPortal": ResidentPortal,
+    "ResidentProfile": ResidentProfile,
+    "Residents": Residents,
+    "ResidentsCenter": ResidentsCenter,
+    "RoleManagement": RoleManagement,
+    "Settings": Settings,
+    "SmartDevices": SmartDevices,
+    "StrataKnowledgeBase": StrataKnowledgeBase,
+    "Visitors": Visitors,
+    "VividStaffManagement": VividStaffManagement,
+    "WorkOrders": WorkOrders,
 }
 
 export const pagesConfig = {
