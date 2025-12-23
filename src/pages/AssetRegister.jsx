@@ -29,16 +29,6 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 
-
-
-const complianceStatusConfig = {
-  compliant: { icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50', label: 'Compliant' },
-  due_soon: { icon: Clock, color: 'text-yellow-600', bg: 'bg-yellow-50', label: 'Due Soon' },
-  overdue: { icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-50', label: 'Overdue' },
-  requires_attention: { icon: AlertCircle, color: 'text-orange-600', bg: 'bg-orange-50', label: 'Needs Attention' },
-  unknown: { icon: AlertCircle, color: 'text-slate-600', bg: 'bg-slate-50', label: 'Unknown' },
-};
-
 export default function AssetRegister() {
   const { selectedBuildingId, managedBuildings } = useBuildingContext();
   const { hasRole, isAdmin } = usePermissions();
