@@ -181,51 +181,61 @@ export default function Dashboard() {
               </div>
             </CardHeader>
             <CardContent className="space-y-2 pt-4">
-              <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-transparent rounded-lg hover:from-blue-100 transition-all cursor-pointer border border-blue-100">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-md">
-                    <Building2 className="h-4 w-4 text-white" />
+              <Link to={createPageUrl('AssetRegister')}>
+                <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-transparent rounded-lg hover:from-blue-100 transition-all cursor-pointer border border-blue-100">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-md">
+                      <Building2 className="h-4 w-4 text-white" />
+                    </div>
+                    <span className="text-sm font-semibold text-slate-800">Assets</span>
                   </div>
-                  <span className="text-sm font-semibold text-slate-800">Assets</span>
+                  <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{filteredAssets.length}</span>
                 </div>
-                <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{filteredUnits.length}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-transparent rounded-lg hover:from-purple-100 transition-all cursor-pointer border border-purple-100">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-md">
-                    <Users className="h-4 w-4 text-white" />
+              </Link>
+              <Link to={createPageUrl('ResidentsCenter')}>
+                <div className="flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-transparent rounded-lg hover:from-purple-100 transition-all cursor-pointer border border-purple-100">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-md">
+                      <Users className="h-4 w-4 text-white" />
+                    </div>
+                    <span className="text-sm font-semibold text-slate-800">Residents</span>
                   </div>
-                  <span className="text-sm font-semibold text-slate-800">Residents</span>
+                  <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{filteredResidents.length}</span>
                 </div>
-                <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{filteredResidents.length}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-transparent rounded-lg hover:from-green-100 transition-all cursor-pointer border border-green-100">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-md">
-                    <Wrench className="h-4 w-4 text-white" />
+              </Link>
+              <Link to={createPageUrl('OperationsCenter')}>
+                <div className="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-transparent rounded-lg hover:from-green-100 transition-all cursor-pointer border border-green-100">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-md">
+                      <Wrench className="h-4 w-4 text-white" />
+                    </div>
+                    <span className="text-sm font-semibold text-slate-800">Work Orders</span>
                   </div>
-                  <span className="text-sm font-semibold text-slate-800">Work Orders</span>
+                  <span className="text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">{filteredWorkOrders.length}</span>
                 </div>
-                <span className="text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">{filteredWorkOrders.length}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-gradient-to-r from-orange-50 to-transparent rounded-lg hover:from-orange-100 transition-all cursor-pointer border border-orange-100">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-md">
-                    <HardHat className="h-4 w-4 text-white" />
+              </Link>
+              <Link to={createPageUrl('Contractors')}>
+                <div className="flex items-center justify-between p-3 bg-gradient-to-r from-orange-50 to-transparent rounded-lg hover:from-orange-100 transition-all cursor-pointer border border-orange-100">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-md">
+                      <HardHat className="h-4 w-4 text-white" />
+                    </div>
+                    <span className="text-sm font-semibold text-slate-800">Contractors</span>
                   </div>
-                  <span className="text-sm font-semibold text-slate-800">Contractors</span>
+                  <span className="text-xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">{contractors.length}</span>
                 </div>
-                <span className="text-xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">{contractors.length}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-gradient-to-r from-red-50 to-transparent rounded-lg hover:from-red-100 transition-all cursor-pointer border border-red-100">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-gradient-to-br from-red-500 to-red-600 rounded-lg shadow-md">
-                    <AlertCircle className="h-4 w-4 text-white" />
+              </Link>
+              <Link to={createPageUrl('OperationsCenter')}>
+                <div className="flex items-center justify-between p-3 bg-gradient-to-r from-red-50 to-transparent rounded-lg hover:from-red-100 transition-all cursor-pointer border border-red-100">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-gradient-to-br from-red-500 to-red-600 rounded-lg shadow-md">
+                      <AlertCircle className="h-4 w-4 text-white" />
+                    </div>
+                    <span className="text-sm font-semibold text-slate-800">Active Cases</span>
                   </div>
-                  <span className="text-sm font-semibold text-slate-800">Active Cases</span>
+                  <span className="text-xl font-bold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">{filteredActiveCases}</span>
                 </div>
-                <span className="text-xl font-bold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">{filteredActiveCases}</span>
-              </div>
+              </Link>
             </CardContent>
           </Card>
         </div>
