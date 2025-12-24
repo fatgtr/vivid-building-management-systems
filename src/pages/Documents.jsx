@@ -34,27 +34,31 @@ import {
 } from "@/components/ui/alert-dialog";
 import { format } from 'date-fns';
 import AsBuiltMechanicalExtractor from '@/components/buildings/AsBuiltMechanicalExtractor';
+import { ASSET_CATEGORIES } from '@/components/categories/assetCategories';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Pencil } from 'lucide-react';
+
+// Priority categories that appear at the top
+const priorityCategories = [
+  { value: 'subdivision_plan', label: 'Subdivision Plan', icon: FileText, color: 'bg-purple-50 border-purple-200 text-purple-700' },
+  { value: 'strata_roll', label: 'Strata Roll', icon: FileText, color: 'bg-blue-50 border-blue-200 text-blue-700' },
+  { value: 'bylaws', label: 'By-Laws', icon: FileText, color: 'bg-green-50 border-green-200 text-green-700' },
+  { value: 'strata_management_statement', label: 'Strata Management Statement', icon: FileText, color: 'bg-amber-50 border-amber-200 text-amber-700' },
+];
+
+// Build document categories from asset categories
+const assetDocumentCategories = Object.entries(ASSET_CATEGORIES).map(([key, category]) => ({
+  value: key,
+  label: category.label,
+  icon: category.icon,
+  color: category.color,
+  subcategories: category.subcategories
+}));
 
 const documentCategories = [
-  { value: 'strata_roll', label: 'Strata Roll', icon: FileText },
-  { value: 'subdivision_plan', label: 'Subdivision Plan', icon: FileText },
-  { value: 'bylaws', label: 'By-Laws', icon: FileText },
-  { value: 'strata_management_statement', label: 'Strata Management Statement', icon: FileText },
-  { value: 'afss_documentation', label: 'AFSS Documentation', icon: FileText },
-  { value: 'as_built_electrical', label: 'As-Built Electrical Plans', icon: FileText },
-  { value: 'as_built_mechanical', label: 'As-Built Mechanical Plans', icon: FileText },
-  { value: 'as_built_plumbing', label: 'As-Built Plumbing Plans', icon: FileText },
-  { value: 'as_built_windows', label: 'As-Built Windows Plans', icon: FileText },
-  { value: 'lift_plant_registration', label: 'Lift Plant Registration', icon: FileText },
-  { value: 'policy', label: 'Policy', icon: FileText },
-  { value: 'manual', label: 'Manual', icon: FileText },
-  { value: 'form', label: 'Form', icon: FileText },
-  { value: 'report', label: 'Report', icon: FileText },
-  { value: 'certificate', label: 'Certificate', icon: FileText },
-  { value: 'contract', label: 'Contract', icon: FileText },
-  { value: 'meeting_minutes', label: 'Meeting Minutes', icon: FileText },
-  { value: 'financial', label: 'Financial', icon: FileText },
-  { value: 'other', label: 'Other', icon: File },
+  ...priorityCategories,
+  ...assetDocumentCategories,
+  { value: 'other', label: 'Other Documents', icon: File, color: 'bg-slate-50 border-slate-200 text-slate-700' },
 ];
 
 export default function Documents() {
@@ -70,6 +74,7 @@ export default function Documents() {
   const [viewingVersions, setViewingVersions] = useState(null);
   const [ocrProcessing, setOcrProcessing] = useState({});
   const [showAsBuiltExtractor, setShowAsBuiltExtractor] = useState(false);
+  const [editingDocument, setEditingDocument] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -91,6 +96,19 @@ export default function Documents() {
       toast.success('Document deleted successfully');
     },
   });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Document.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      setEditingDocument(null);
+      toast.success('Document updated successfully');
+    },
+  });
+
+  const handleEdit = (doc) => {
+    setEditingDocument(doc);
+  };
 
   const getDocumentVersions = (doc) => {
     const parentId = doc.parent_document_id || doc.id;
@@ -244,38 +262,71 @@ export default function Documents() {
           actionLabel="Upload Document"
         />
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {documentCategories.map(categoryConfig => {
             const categoryDocs = documentsByCategory[categoryConfig.value] || [];
-            if (categoryDocs.length === 0) return null;
+            const CategoryIcon = categoryConfig.icon;
+            const hasAIAgent = ['subdivision_plan', 'strata_roll', 'bylaws', 'strata_management_statement'].includes(categoryConfig.value) || categoryConfig.subcategories;
             
+            return (
+              <Card 
+                key={categoryConfig.value} 
+                className={`border-2 shadow-sm hover:shadow-md transition-all cursor-pointer ${categoryConfig.color || 'bg-white border-slate-200'}`}
+                onClick={() => toggleCategory(categoryConfig.value)}
+              >
+                <div className="p-5">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className={`p-3 rounded-xl ${categoryConfig.color || 'bg-slate-100'}`}>
+                      <CategoryIcon className="h-6 w-6" />
+                    </div>
+                    {hasAIAgent && (
+                      <Badge variant="secondary" className="text-xs">
+                        AI Agent
+                      </Badge>
+                    )}
+                  </div>
+                  <h3 className="font-bold text-slate-900 mb-1 line-clamp-2">{categoryConfig.label}</h3>
+                  <p className="text-2xl font-bold mb-1">{categoryDocs.length}</p>
+                  <p className="text-xs text-slate-600">document{categoryDocs.length !== 1 ? 's' : ''}</p>
+                  {categoryConfig.subcategories && (
+                    <p className="text-xs text-slate-500 mt-2">{categoryConfig.subcategories.length} subcategories</p>
+                  )}
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Expanded Category View */}
+      {Object.keys(expandedCategories).some(key => expandedCategories[key]) && (
+        <div className="space-y-4 mt-8">
+          {documentCategories.map(categoryConfig => {
+            const categoryDocs = documentsByCategory[categoryConfig.value] || [];
             const isExpanded = expandedCategories[categoryConfig.value];
+            if (!isExpanded) return null;
+            
             const CategoryIcon = categoryConfig.icon;
             
             return (
-              <Card key={categoryConfig.value} className="border-0 shadow-sm overflow-hidden">
+              <Card key={`expanded-${categoryConfig.value}`} className="border-0 shadow-sm overflow-hidden">
                 <button
                   onClick={() => toggleCategory(categoryConfig.value)}
                   className="w-full p-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-50 rounded-lg">
-                      <Folder className="h-5 w-5 text-blue-600" />
+                    <div className={`p-2 rounded-lg ${categoryConfig.color || 'bg-blue-50'}`}>
+                      <CategoryIcon className="h-5 w-5" />
                     </div>
                     <div className="text-left">
                       <h3 className="font-semibold text-slate-900">{categoryConfig.label}</h3>
                       <p className="text-sm text-slate-500">{categoryDocs.length} document{categoryDocs.length !== 1 ? 's' : ''}</p>
                     </div>
                   </div>
-                  {isExpanded ? (
-                    <ChevronDown className="h-5 w-5 text-slate-400" />
-                  ) : (
-                    <ChevronRight className="h-5 w-5 text-slate-400" />
-                  )}
+                  <ChevronDown className="h-5 w-5 text-slate-400" />
                 </button>
                 
-                {isExpanded && (
-                  <div className="border-t border-slate-100">
+                <div className="border-t border-slate-100">
                     {categoryConfig.value === 'as_built_mechanical' && (
                       <div className="p-4 bg-slate-50 border-b border-slate-100">
                         <div className="flex items-center justify-between mb-3">
@@ -451,12 +502,60 @@ export default function Documents() {
                       </TableBody>
                     </Table>
                   </div>
-                )}
               </Card>
             );
           })}
         </div>
       )}
+
+      {/* Edit Document Dialog */}
+      <Dialog open={!!editingDocument} onOpenChange={() => setEditingDocument(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Document</DialogTitle>
+          </DialogHeader>
+          {editingDocument && (
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Title</label>
+                <Input
+                  value={editingDocument.title}
+                  onChange={(e) => setEditingDocument({ ...editingDocument, title: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Description</label>
+                <Input
+                  value={editingDocument.description || ''}
+                  onChange={(e) => setEditingDocument({ ...editingDocument, description: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Category</label>
+                <Select 
+                  value={editingDocument.category} 
+                  onValueChange={(value) => setEditingDocument({ ...editingDocument, category: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {documentCategories.map(c => (
+                      <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingDocument(null)}>Cancel</Button>
+            <Button onClick={() => updateMutation.mutate({ id: editingDocument.id, data: editingDocument })}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Upload Dialog */}
       <DocumentUploadDialog
