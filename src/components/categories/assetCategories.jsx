@@ -87,16 +87,16 @@ export const ASSET_CATEGORIES = {
       'fire_indicator_panel',
       'smoke_detectors',
       'heat_detectors',
-      'sprinkler_systems',
-      'fire_hydrants',
+      'manual_call_points',
+      'fire_sprinklers',
+      'hydrants',
       'hose_reels',
       'fire_extinguishers',
       'fire_doors',
       'fire_shutters',
       'ewis',
-      'exit_and_emergency_lighting',
-      'smoke_exhaust_systems',
-      'stair_pressurisation'
+      'smoke_exhaust',
+      'fire_stairs_pressurisation'
     ]
   },
   'vertical_transportation': {
