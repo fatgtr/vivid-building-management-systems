@@ -36,6 +36,7 @@ import {
   Tag
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { ASSET_CATEGORIES } from '@/components/categories/assetCategories';
 import { format } from 'date-fns';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import SubdivisionPlanExtractor from './SubdivisionPlanExtractor';
@@ -62,7 +63,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const documentTypes = [
+const specificDocumentTypes = [
   {
     category: 'subdivision_plan',
     label: 'Subdivision Plan',
@@ -95,55 +96,18 @@ const documentTypes = [
     color: 'violet',
     hasAI: true,
   },
-  {
-    category: 'afss_documentation',
-    label: 'AFSS Documentation',
-    icon: Flame,
-    description: 'Extract fire safety assets and auto-schedule maintenance',
-    color: 'orange',
-    hasAI: true,
-  },
-  {
-    category: 'as_built_electrical',
-    label: 'As-Built Electrical',
-    icon: Zap,
-    description: 'Extract electrical assets and create maintenance register',
-    color: 'yellow',
-    hasAI: true,
-  },
-  {
-    category: 'as_built_mechanical',
-    label: 'As-Built Mechanical',
-    icon: Wind,
-    description: 'Extract HVAC/mechanical assets and create register',
-    color: 'cyan',
-    hasAI: true,
-  },
-  {
-    category: 'as_built_plumbing',
-    label: 'As-Built Plumbing',
-    icon: Droplet,
-    description: 'Extract plumbing assets and create maintenance register',
-    color: 'blue',
-    hasAI: true,
-  },
-  {
-    category: 'as_built_windows',
-    label: 'As-Built Windows',
-    icon: Layers,
-    description: 'Window specifications and layouts',
-    color: 'teal',
-    hasAI: false,
-  },
-  {
-    category: 'lift_plant_registration',
-    label: 'Lift Plant Registration',
-    icon: Building,
-    description: 'Extract registration data and auto-schedule renewals',
-    color: 'purple',
-    hasAI: true,
-  },
 ];
+
+const assetDocumentTypes = Object.entries(ASSET_CATEGORIES).map(([key, category]) => ({
+  category: key,
+  label: category.label,
+  icon: category.icon,
+  description: `Extract and manage ${category.label.toLowerCase()} assets`,
+  color: key.split('_')[0],
+  hasAI: true,
+}));
+
+const documentTypes = [...specificDocumentTypes, ...assetDocumentTypes];
 
 const colorClasses = {
   indigo: 'bg-indigo-100 text-indigo-700 border-indigo-200',
@@ -155,6 +119,24 @@ const colorClasses = {
   cyan: 'bg-cyan-100 text-cyan-700 border-cyan-200',
   teal: 'bg-teal-100 text-teal-700 border-teal-200',
   purple: 'bg-purple-100 text-purple-700 border-purple-200',
+  slate: 'bg-slate-100 text-slate-700 border-slate-200',
+  core: 'bg-slate-100 text-slate-700 border-slate-200',
+  mechanical: 'bg-cyan-100 text-cyan-700 border-cyan-200',
+  electrical: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+  fire: 'bg-orange-100 text-orange-700 border-orange-200',
+  vertical: 'bg-purple-100 text-purple-700 border-purple-200',
+  hydraulic: 'bg-blue-100 text-blue-700 border-blue-200',
+  security: 'bg-red-100 text-red-700 border-red-200',
+  communications: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+  building: 'bg-teal-100 text-teal-700 border-teal-200',
+  external: 'bg-green-100 text-green-700 border-green-200',
+  common: 'bg-amber-100 text-amber-700 border-amber-200',
+  waste: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  parking: 'bg-gray-100 text-gray-700 border-gray-200',
+  compliance: 'bg-orange-100 text-orange-700 border-orange-200',
+  commercial: 'bg-violet-100 text-violet-700 border-violet-200',
+  residential: 'bg-pink-100 text-pink-700 border-pink-200',
+  documentation: 'bg-blue-100 text-blue-700 border-blue-200',
 };
 
 export default function BuildingDocumentManager({ buildingId, buildingName }) {
@@ -361,15 +343,16 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
         </TabsList>
 
         <TabsContent value="specialized" className="space-y-6 mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {documentTypes.map((docType) => {
           const Icon = docType.icon;
           const docs = getDocumentsForCategory(docType.category);
           const isUploading = uploadingType === docType.category;
+          const colorClass = colorClasses[docType.color] || colorClasses.slate;
 
           return (
             <Card key={docType.category} className="border-2 hover:shadow-md transition-shadow">
-              <CardHeader className={`pb-3 ${colorClasses[docType.color]} border-b-2`}>
+              <CardHeader className={`pb-3 ${colorClass} border-b-2`}>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
                     <Icon className="h-5 w-5" />
@@ -398,7 +381,7 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
                     />
                     <label htmlFor={`upload-${docType.category}`} className="cursor-pointer">
                       <div className="flex flex-col items-center gap-3">
-                        <div className={`w-12 h-12 rounded-full ${colorClasses[docType.color]} flex items-center justify-center`}>
+                        <div className={`w-12 h-12 rounded-full ${colorClass} flex items-center justify-center`}>
                           <Icon className="h-6 w-6" />
                         </div>
                         <div>
@@ -497,10 +480,146 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
                             <li>Send email reminders to strata & building managers</li>
                           </>
                         )}
-                      </ul>
-                    </AlertDescription>
-                  </Alert>
-                )}
+                        {docType.category.startsWith('core_building') && (
+                          <>
+                            <li>Structural elements and building components</li>
+                            <li>Foundation, roof, and facade details</li>
+                            <li>Waterproofing and expansion joints</li>
+                            <li>Create asset register entries</li>
+                          </>
+                        )}
+                        {docType.category.startsWith('mechanical') && (
+                          <>
+                            <li>HVAC systems and mechanical equipment</li>
+                            <li>Chillers, boilers, and cooling towers</li>
+                            <li>Ventilation and pump systems</li>
+                            <li>Create asset register entries</li>
+                          </>
+                        )}
+                        {docType.category.startsWith('electrical') && (
+                          <>
+                            <li>Switchboards and distribution systems</li>
+                            <li>Emergency lighting and generators</li>
+                            <li>Solar panels and UPS systems</li>
+                            <li>Create asset register entries</li>
+                          </>
+                        )}
+                        {docType.category.startsWith('fire') && (
+                          <>
+                            <li>Fire detection and suppression systems</li>
+                            <li>Sprinklers, hydrants, and extinguishers</li>
+                            <li>EWIS and emergency systems</li>
+                            <li>Create asset register entries</li>
+                          </>
+                        )}
+                        {docType.category.startsWith('vertical') && (
+                          <>
+                            <li>Lift systems and specifications</li>
+                            <li>Capacity, speed, and service records</li>
+                            <li>Registration and compliance data</li>
+                            <li>Create asset register entries</li>
+                          </>
+                        )}
+                        {docType.category.startsWith('hydraulic') && (
+                          <>
+                            <li>Water supply and hot water systems</li>
+                            <li>Pumps, tanks, and drainage systems</li>
+                            <li>Backflow devices and valves</li>
+                            <li>Create asset register entries</li>
+                          </>
+                        )}
+                        {docType.category.startsWith('security') && (
+                          <>
+                            <li>Access control and surveillance systems</li>
+                            <li>CCTV, intercoms, and alarm systems</li>
+                            <li>Roller doors and boom gates</li>
+                            <li>Create asset register entries</li>
+                          </>
+                        )}
+                        {docType.category.startsWith('communications') && (
+                          <>
+                            <li>Data cabling and network infrastructure</li>
+                            <li>NBN, MATV, and Wi-Fi systems</li>
+                            <li>MDF/IDF rooms and connectivity</li>
+                            <li>Create asset register entries</li>
+                          </>
+                        )}
+                        {docType.category.startsWith('building_management') && (
+                          <>
+                            <li>BMS controllers and sensors</li>
+                            <li>Energy monitoring systems</li>
+                            <li>HVAC and lighting controls</li>
+                            <li>Create asset register entries</li>
+                          </>
+                        )}
+                        {docType.category.startsWith('external') && (
+                          <>
+                            <li>Landscaping and irrigation systems</li>
+                            <li>Fencing, gates, and driveways</li>
+                            <li>External lighting and retaining walls</li>
+                            <li>Create asset register entries</li>
+                          </>
+                        )}
+                        {docType.category.startsWith('common') && (
+                          <>
+                            <li>Furniture, signage, and mailboxes</li>
+                            <li>Storage cages and bike racks</li>
+                            <li>Common area fixtures</li>
+                            <li>Create asset register entries</li>
+                          </>
+                        )}
+                        {docType.category.startsWith('waste') && (
+                          <>
+                            <li>Bin rooms and compactors</li>
+                            <li>Recycling equipment and chutes</li>
+                            <li>Waste management systems</li>
+                            <li>Create asset register entries</li>
+                          </>
+                        )}
+                        {docType.category.startsWith('parking') && (
+                          <>
+                            <li>Line marking and speed humps</li>
+                            <li>Traffic mirrors and bollards</li>
+                            <li>Parking access equipment</li>
+                            <li>Create asset register entries</li>
+                          </>
+                        )}
+                        {docType.category.startsWith('compliance') && (
+                          <>
+                            <li>Safety equipment and anchor points</li>
+                            <li>Abseil systems and guardrails</li>
+                            <li>Safety signage and ladders</li>
+                            <li>Create asset register entries</li>
+                          </>
+                        )}
+                        {docType.category.startsWith('commercial') && (
+                          <>
+                            <li>Commercial exhaust and kitchen hoods</li>
+                            <li>Loading docks and dock levellers</li>
+                            <li>Grease ducts and commercial equipment</li>
+                            <li>Create asset register entries</li>
+                          </>
+                        )}
+                        {docType.category.startsWith('residential') && (
+                          <>
+                            <li>Pools, spas, and gym equipment</li>
+                            <li>BBQ areas and shared laundries</li>
+                            <li>Residential amenity assets</li>
+                            <li>Create asset register entries</li>
+                          </>
+                        )}
+                        {docType.category.startsWith('documentation') && (
+                          <>
+                            <li>Asset registers and schedules</li>
+                            <li>Certificates, warranties, and manuals</li>
+                            <li>Compliance records and documentation</li>
+                            <li>Link and categorize documents</li>
+                          </>
+                        )}
+                        </ul>
+                        </AlertDescription>
+                        </Alert>
+                        )}
 
                 {docs.length > 0 && (
                   <>
