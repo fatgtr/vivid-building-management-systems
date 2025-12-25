@@ -16,8 +16,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Invite the contractor to register as a user
-    await base44.users.inviteUser(email, 'user');
+    // Invite the contractor to register as a user with redirect to ContractorPortal
+    const appUrl = new URL(req.url).origin;
+    const redirectUrl = `${appUrl}/#/ContractorPortal`;
+    await base44.users.inviteUser(email, 'user', { redirectUrl });
 
     return Response.json({ 
       success: true, 
