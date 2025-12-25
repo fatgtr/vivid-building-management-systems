@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
-import { Calendar, Search, Building2, MoreVertical, Pencil, Trash2, Eye, Upload, X, FileText, Image as ImageIcon } from 'lucide-react';
+import { Calendar, Search, Building2, MoreVertical, Pencil, Trash2, Eye, Upload, X, FileText, Image as ImageIcon, Sparkles, Loader2, AlertCircle } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -69,6 +69,8 @@ export default function MaintenanceSchedule() {
   const [uploadingFiles, setUploadingFiles] = useState(false);
   const [selectedDocuments, setSelectedDocuments] = useState([]);
   const [selectedPhotos, setSelectedPhotos] = useState([]);
+  const [generatingSchedules, setGeneratingSchedules] = useState(false);
+  const [aiResults, setAiResults] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -204,6 +206,25 @@ export default function MaintenanceSchedule() {
   const getBuildingName = (buildingId) => buildings.find(b => b.id === buildingId)?.name || 'Unknown';
   const getContractorName = (contractorId) => contractors.find(c => c.id === contractorId)?.company_name || '';
 
+  const generateAISchedules = async (buildingId = null) => {
+    setGeneratingSchedules(true);
+    setAiResults(null);
+    
+    try {
+      const { data } = await base44.functions.invoke('generateAssetMaintenanceSchedules', {
+        building_id: buildingId
+      });
+      
+      setAiResults(data);
+      queryClient.invalidateQueries({ queryKey: ['maintenanceSchedules'] });
+    } catch (error) {
+      console.error('AI generation error:', error);
+      setAiResults({ error: 'Failed to generate schedules', success: false });
+    } finally {
+      setGeneratingSchedules(false);
+    }
+  };
+
   const filteredSchedules = schedules.filter(schedule => {
     const matchesSearch = schedule.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          schedule.description?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -225,9 +246,83 @@ export default function MaintenanceSchedule() {
       <PageHeader 
         title="Maintenance Schedule" 
         subtitle={`${schedules.filter(s => s.status === 'active').length} active maintenance events`}
-        action={() => setShowDialog(true)}
-        actionLabel="New Event"
-      />
+      >
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => generateAISchedules()} 
+            variant="outline"
+            disabled={generatingSchedules}
+            className="gap-2"
+          >
+            {generatingSchedules ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Analyzing...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" />
+                AI Generate
+              </>
+            )}
+          </Button>
+          <Button onClick={() => setShowDialog(true)}>
+            New Event
+          </Button>
+        </div>
+      </PageHeader>
+
+      {/* AI Results */}
+      {aiResults && (
+        <Card className={`border-2 ${aiResults.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+          <CardContent className="p-4">
+            {aiResults.success ? (
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <Sparkles className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-green-900 mb-1">AI Analysis Complete</h3>
+                    <p className="text-sm text-green-700">
+                      Analyzed {aiResults.total_analyzed} assets • Created {aiResults.scheduled} schedules • Flagged {aiResults.flagged} critical assets
+                    </p>
+                  </div>
+                  <Button size="sm" variant="ghost" onClick={() => setAiResults(null)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                {aiResults.flagged_assets && aiResults.flagged_assets.length > 0 && (
+                  <div className="bg-white rounded-lg p-3 border border-orange-200">
+                    <h4 className="font-medium text-orange-900 mb-2 flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4" />
+                      Assets Requiring Immediate Attention
+                    </h4>
+                    <div className="space-y-2">
+                      {aiResults.flagged_assets.map((asset, idx) => (
+                        <div key={idx} className="text-sm bg-orange-50 p-2 rounded">
+                          <p className="font-medium text-orange-900">{asset.asset_name}</p>
+                          <p className="text-xs text-orange-700">Priority: {asset.priority} • {asset.reason}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="font-semibold text-red-900 mb-1">Generation Failed</h3>
+                  <p className="text-sm text-red-700">{aiResults.error || 'Unable to generate schedules'}</p>
+                </div>
+                <Button size="sm" variant="ghost" onClick={() => setAiResults(null)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4">
