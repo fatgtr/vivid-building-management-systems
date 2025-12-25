@@ -423,9 +423,25 @@ export default function Contractors() {
                       <span>{contractor.documents.length} document{contractor.documents.length !== 1 ? 's' : ''}</span>
                     </div>
                   )}
-                  </div>
+                    </div>
 
-                {contractor.specialty?.length > 0 && (
+                  {contractor.contract_end_date && (
+                   <div className="mt-3 pt-3 border-t border-slate-100">
+                     <div className="flex items-center gap-2 text-xs text-slate-600">
+                       <Calendar className="h-3 w-3 text-slate-400" />
+                       <span>Contract: {(() => {
+                         const endDate = new Date(contractor.contract_end_date);
+                         const today = new Date();
+                         const daysUntil = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+                         if (daysUntil < 0) return <span className="text-red-600 font-medium">Expired</span>;
+                         if (daysUntil <= 30) return <span className="text-orange-600 font-medium">Expires in {daysUntil} days</span>;
+                         return <span>Expires {endDate.toLocaleDateString()}</span>;
+                       })()}</span>
+                     </div>
+                   </div>
+                  )}
+
+                  {contractor.specialty?.length > 0 && (
                   <div className="flex flex-wrap gap-1 mb-3">
                     {contractor.specialty.slice(0, 3).map(spec => (
                       <Badge key={spec} variant="secondary" className="text-xs capitalize">
