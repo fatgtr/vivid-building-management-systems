@@ -22,7 +22,8 @@ import AISchedulingAssistant from '@/components/workorders/AISchedulingAssistant
 import DescriptionAIAssistant from '@/components/workorders/DescriptionAIAssistant';
 import ResponsibilityLookup from '@/components/workorders/ResponsibilityLookup';
 import MaintenanceSchedulingSuggestions from '@/components/workorders/MaintenanceSchedulingSuggestions';
-import { Wrench, Search, Building2, AlertCircle, Clock, CheckCircle2, XCircle, MoreVertical, Pencil, Trash2, Calendar, User, Eye, Upload, Image as ImageIcon, Video, X, LayoutGrid, List, Star, Repeat, Sparkles, Home } from 'lucide-react';
+import ContractorAssignmentDialog from '@/components/workorders/ContractorAssignmentDialog';
+import { Wrench, Search, Building2, AlertCircle, Clock, CheckCircle2, XCircle, MoreVertical, Pencil, Trash2, Calendar, User, Eye, Upload, Image as ImageIcon, Video, X, LayoutGrid, List, Star, Repeat, Sparkles, Home, Bot } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -83,6 +84,7 @@ export default function WorkOrders() {
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [selectedQuotes, setSelectedQuotes] = useState([]);
   const [selectedInvoices, setSelectedInvoices] = useState([]);
+  const [assigningContractor, setAssigningContractor] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -621,6 +623,11 @@ export default function WorkOrders() {
                       <DropdownMenuItem onClick={() => { setViewingOrder(order); setShowAIAssistant(true); }}>
                         <Sparkles className="mr-2 h-4 w-4" /> AI Insights
                       </DropdownMenuItem>
+                      {!order.assigned_contractor_id && (
+                        <DropdownMenuItem onClick={() => setAssigningContractor(order)}>
+                          <Bot className="mr-2 h-4 w-4" /> AI Assign Contractor
+                        </DropdownMenuItem>
+                      )}
                       {order.status === 'completed' && (
                         <DropdownMenuItem onClick={() => setRatingOrder(order)}>
                           <Star className="mr-2 h-4 w-4" /> Rate Work
@@ -977,7 +984,21 @@ export default function WorkOrders() {
                   </div>
 
                   <div className="md:col-span-2">
-                    <Label htmlFor="assigned_contractor_id" className="text-sm font-semibold">Assign Contractor</Label>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label htmlFor="assigned_contractor_id" className="text-sm font-semibold">Assign Contractor</Label>
+                      {editingOrder && !formData.assigned_contractor_id && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setAssigningContractor(editingOrder)}
+                          className="text-xs gap-1"
+                        >
+                          <Bot className="h-3 w-3" />
+                          AI Suggest
+                        </Button>
+                      )}
+                    </div>
                     <Select value={formData.assigned_contractor_id} onValueChange={(v) => setFormData({ ...formData, assigned_contractor_id: v })}>
                       <SelectTrigger className="mt-1.5">
                         <SelectValue placeholder="Select contractor (optional)" />
@@ -1385,6 +1406,19 @@ export default function WorkOrders() {
           open={!!ratingOrder}
           onClose={() => setRatingOrder(null)}
           onSubmit={handleRatingSubmit}
+        />
+      )}
+
+      {/* Contractor Assignment Dialog */}
+      {assigningContractor && (
+        <ContractorAssignmentDialog
+          workOrder={assigningContractor}
+          open={!!assigningContractor}
+          onOpenChange={(open) => !open && setAssigningContractor(null)}
+          onAssigned={() => {
+            queryClient.invalidateQueries({ queryKey: ['workOrders'] });
+            setAssigningContractor(null);
+          }}
         />
       )}
       </div>
