@@ -77,11 +77,19 @@ function LayoutInner({ children, currentPageName }) {
     if (currentPageName === 'LandingPage' || currentPageName === 'Home') {
       return;
     }
-    base44.auth.me().then((userData) => {
+    base44.auth.me().then(async (userData) => {
       setUser(userData);
       
+      // Check if user is a contractor by email match
+      const contractors = await base44.entities.Contractor.filter({ email: userData.email });
+      const isContractor = userData?.contractor_id || hasRole('contractor') || contractors.length > 0;
+      
+      // Update user with contractor_id if not set but contractor exists
+      if (contractors.length > 0 && !userData.contractor_id) {
+        await base44.auth.updateMe({ contractor_id: contractors[0].id });
+      }
+      
       // Redirect contractors to ContractorPortal if they're not already there
-      const isContractor = userData?.contractor_id || hasRole('contractor');
       if (isContractor && currentPageName !== 'ContractorPortal' && currentPageName !== 'Settings') {
         window.location.href = createPageUrl('ContractorPortal');
       }
