@@ -135,20 +135,24 @@ export default function Contractors() {
   const sendInviteMutation = useMutation({
     mutationFn: async (contractor) => {
       setSendingInviteTo(contractor.id);
-      await base44.functions.invoke('sendContractorInvite', {
+      const response = await base44.functions.invoke('sendContractorInvite', {
         contractorId: contractor.id,
         email: contractor.email,
         companyName: contractor.company_name,
         contactName: contractor.contact_name,
       });
+      console.log('Invite response:', response);
+      return response;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       setSendingInviteTo(null);
-      toast.success('Portal invite sent successfully!');
+      console.log('Invite sent successfully:', data);
+      toast.success(`Portal invite sent to ${data.data?.message || 'contractor'}!`);
     },
     onError: (error) => {
       setSendingInviteTo(null);
-      toast.error(`Failed to send invite: ${error.message}`);
+      console.error('Failed to send invite:', error);
+      toast.error(`Failed to send invite: ${error.response?.data?.error || error.message}`);
     },
   });
 
