@@ -14,7 +14,7 @@ import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
 import DocumentUploadDialog from '@/components/documents/DocumentUploadDialog';
 import DocumentVersionDialog from '@/components/documents/DocumentVersionDialog';
-import { FileText, Search, Building2, MoreVertical, Trash2, Download, Upload, Eye, File, FileImage, FileArchive, Folder, ChevronDown, ChevronRight, Scan, History, FileUp, Loader2, CheckCircle2, AlertCircle, Wrench, Tag } from 'lucide-react';
+import { FileText, Search, Building2, MoreVertical, Trash2, Download, Upload, Eye, File, FileImage, FileArchive, Folder, ChevronDown, ChevronRight, Scan, History, FileUp, Loader2, CheckCircle2, AlertCircle, Wrench, Tag, Sparkles, FileSearch, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   DropdownMenu,
@@ -75,6 +75,8 @@ export default function Documents() {
   const [ocrProcessing, setOcrProcessing] = useState({});
   const [showAsBuiltExtractor, setShowAsBuiltExtractor] = useState(false);
   const [editingDocument, setEditingDocument] = useState(null);
+  const [expandedSummaries, setExpandedSummaries] = useState({});
+  const [generatingSummary, setGeneratingSummary] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -108,6 +110,37 @@ export default function Documents() {
 
   const handleEdit = (doc) => {
     setEditingDocument(doc);
+  };
+
+  const generateSummaryMutation = useMutation({
+    mutationFn: async (documentId) => {
+      const { data } = await base44.functions.invoke('generateDocumentSummary', {
+        document_id: documentId
+      });
+      return data;
+    },
+    onSuccess: (data, documentId) => {
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      setGeneratingSummary(null);
+      setExpandedSummaries({ ...expandedSummaries, [documentId]: true });
+      toast.success('Summary generated successfully');
+    },
+    onError: () => {
+      setGeneratingSummary(null);
+      toast.error('Failed to generate summary');
+    }
+  });
+
+  const handleGenerateSummary = (docId) => {
+    setGeneratingSummary(docId);
+    generateSummaryMutation.mutate(docId);
+  };
+
+  const toggleSummary = (docId) => {
+    setExpandedSummaries({
+      ...expandedSummaries,
+      [docId]: !expandedSummaries[docId]
+    });
   };
 
   const getDocumentVersions = (doc) => {
@@ -389,20 +422,56 @@ export default function Documents() {
                                       <p className="text-xs text-slate-500 line-clamp-1">{doc.description}</p>
                                     )}
                                     {doc.tags && doc.tags.length > 0 && (
-                                      <div className="flex gap-1 mt-1">
-                                        {doc.tags.slice(0, 3).map(tag => (
-                                          <Badge key={tag} variant="secondary" className="text-xs">
-                                            {tag}
-                                          </Badge>
-                                        ))}
-                                        {doc.tags.length > 3 && (
-                                          <span className="text-xs text-slate-500">+{doc.tags.length - 3}</span>
-                                        )}
-                                      </div>
+                                     <div className="flex gap-1 mt-1">
+                                       {doc.tags.slice(0, 3).map(tag => (
+                                         <Badge key={tag} variant="secondary" className="text-xs">
+                                           {tag}
+                                         </Badge>
+                                       ))}
+                                       {doc.tags.length > 3 && (
+                                         <span className="text-xs text-slate-500">+{doc.tags.length - 3}</span>
+                                       )}
+                                     </div>
                                     )}
-                                  </div>
-                                </div>
-                              </TableCell>
+                                    {doc.ai_summary && (
+                                     <button
+                                       onClick={(e) => {
+                                         e.stopPropagation();
+                                         toggleSummary(doc.id);
+                                       }}
+                                       className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 mt-1"
+                                     >
+                                       <Sparkles className="h-3 w-3" />
+                                       AI Summary
+                                       {expandedSummaries[doc.id] ? (
+                                         <ChevronUp className="h-3 w-3" />
+                                       ) : (
+                                         <ChevronDown className="h-3 w-3" />
+                                       )}
+                                     </button>
+                                    )}
+                                    </div>
+                                    </div>
+                                    {doc.ai_summary && expandedSummaries[doc.id] && (
+                                    <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-100" onClick={(e) => e.stopPropagation()}>
+                                    <div className="prose prose-sm max-w-none text-slate-700 text-xs">
+                                     {doc.ai_summary.split('\n').map((line, idx) => {
+                                       if (line.startsWith('## ')) {
+                                         return <h4 key={idx} className="font-semibold text-slate-900 mt-1 mb-0.5 text-xs">{line.replace('## ', '')}</h4>;
+                                       } else if (line.startsWith('- ')) {
+                                         return <li key={idx} className="ml-3 text-xs">{line.replace('- ', '')}</li>;
+                                       } else if (line.trim()) {
+                                         return <p key={idx} className="mb-0.5 text-xs">{line}</p>;
+                                       }
+                                       return null;
+                                     })}
+                                    </div>
+                                    <p className="text-[10px] text-slate-500 mt-1">
+                                     Generated {format(new Date(doc.ai_summary_generated_date), 'PPp')}
+                                    </p>
+                                    </div>
+                                    )}
+                                    </TableCell>
                               <TableCell>
                                 <span className="text-slate-600">{getBuildingName(doc.building_id)}</span>
                               </TableCell>
@@ -484,6 +553,15 @@ export default function Documents() {
                                         <DropdownMenuItem onClick={() => retriggerOCR(doc.id)}>
                                           <Scan className="mr-2 h-4 w-4" /> 
                                           {doc.ocr_status === 'completed' ? 'Re-index' : 'Index'} Document
+                                        </DropdownMenuItem>
+                                      )}
+                                      {!doc.ai_summary && (
+                                        <DropdownMenuItem onClick={() => handleGenerateSummary(doc.id)} disabled={generatingSummary === doc.id}>
+                                          {generatingSummary === doc.id ? (
+                                            <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...</>
+                                          ) : (
+                                            <><FileSearch className="mr-2 h-4 w-4" /> Generate AI Summary</>
+                                          )}
                                         </DropdownMenuItem>
                                       )}
                                       <DropdownMenuItem onClick={() => handleEdit(doc)}>
