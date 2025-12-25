@@ -13,7 +13,9 @@ import { Badge } from "@/components/ui/badge";
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
-import { HardHat, Search, MoreVertical, Pencil, Trash2, Phone, Mail, MapPin, Star, DollarSign, Shield, Upload, FileText, X, Send, Loader2 } from 'lucide-react';
+import ContractorPerformanceMetrics from '@/components/contractor/ContractorPerformanceMetrics';
+import ContractorContractInfo from '@/components/contractor/ContractorContractInfo';
+import { HardHat, Search, MoreVertical, Pencil, Trash2, Phone, Mail, MapPin, Star, DollarSign, Shield, Upload, FileText, X, Send, Loader2, TrendingUp, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   DropdownMenu,
@@ -63,6 +65,10 @@ const initialFormState = {
   work_cover_expiry_date: '',
   public_liability_details: '',
   public_liability_expiry_date: '',
+  contract_type: '',
+  contract_start_date: '',
+  contract_end_date: '',
+  contract_document_url: '',
   hourly_rate: '',
   status: 'active',
   notes: '',
@@ -80,6 +86,8 @@ export default function Contractors() {
   const [uploadingDocument, setUploadingDocument] = useState(false);
   const [sendingToStrata, setSendingToStrata] = useState(null);
   const [sendingInviteTo, setSendingInviteTo] = useState(null);
+  const [viewingMetrics, setViewingMetrics] = useState(null);
+  const [uploadingContract, setUploadingContract] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -181,6 +189,10 @@ export default function Contractors() {
       work_cover_expiry_date: contractor.work_cover_expiry_date || '',
       public_liability_details: contractor.public_liability_details || '',
       public_liability_expiry_date: contractor.public_liability_expiry_date || '',
+      contract_type: contractor.contract_type || '',
+      contract_start_date: contractor.contract_start_date || '',
+      contract_end_date: contractor.contract_end_date || '',
+      contract_document_url: contractor.contract_document_url || '',
       hourly_rate: contractor.hourly_rate || '',
       status: contractor.status || 'active',
       notes: contractor.notes || '',
@@ -204,6 +216,21 @@ export default function Contractors() {
       console.error('Document upload failed:', error);
     } finally {
       setUploadingDocument(false);
+    }
+  };
+
+  const handleContractUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingContract(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setFormData({ ...formData, contract_document_url: file_url });
+    } catch (error) {
+      console.error('Contract upload failed:', error);
+    } finally {
+      setUploadingContract(false);
     }
   };
 
@@ -328,6 +355,9 @@ export default function Contractors() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setViewingMetrics(contractor)}>
+                        <TrendingUp className="mr-2 h-4 w-4" /> View Metrics
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleEdit(contractor)}>
                         <Pencil className="mr-2 h-4 w-4" /> Edit
                       </DropdownMenuItem>
@@ -561,13 +591,84 @@ export default function Contractors() {
                 />
               </div>
               <div>
-                <Label htmlFor="public_liability_expiry_date">Public Liability Expiry Date</Label>
-                <Input
-                  id="public_liability_expiry_date"
-                  type="date"
-                  value={formData.public_liability_expiry_date}
-                  onChange={(e) => setFormData({ ...formData, public_liability_expiry_date: e.target.value })}
-                />
+               <Label htmlFor="public_liability_expiry_date">Public Liability Expiry Date</Label>
+               <Input
+                 id="public_liability_expiry_date"
+                 type="date"
+                 value={formData.public_liability_expiry_date}
+                 onChange={(e) => setFormData({ ...formData, public_liability_expiry_date: e.target.value })}
+               />
+              </div>
+
+              <div className="md:col-span-2">
+               <h4 className="font-medium text-slate-900 mb-3 mt-2">Contract Information</h4>
+              </div>
+              <div>
+               <Label htmlFor="contract_type">Contract Type</Label>
+               <Input
+                 id="contract_type"
+                 value={formData.contract_type}
+                 onChange={(e) => setFormData({ ...formData, contract_type: e.target.value })}
+                 placeholder="e.g., Fixed-Term, Ongoing"
+               />
+              </div>
+              <div>
+               <Label htmlFor="contract_start_date">Contract Start Date</Label>
+               <Input
+                 id="contract_start_date"
+                 type="date"
+                 value={formData.contract_start_date}
+                 onChange={(e) => setFormData({ ...formData, contract_start_date: e.target.value })}
+               />
+              </div>
+              <div>
+               <Label htmlFor="contract_end_date">Contract End Date</Label>
+               <Input
+                 id="contract_end_date"
+                 type="date"
+                 value={formData.contract_end_date}
+                 onChange={(e) => setFormData({ ...formData, contract_end_date: e.target.value })}
+               />
+              </div>
+              <div>
+               <Label>Contract Document</Label>
+               <div className="mt-2">
+                 {formData.contract_document_url ? (
+                   <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg border">
+                     <a href={formData.contract_document_url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
+                       View Contract
+                     </a>
+                     <Button
+                       type="button"
+                       variant="ghost"
+                       size="icon"
+                       className="h-6 w-6"
+                       onClick={() => setFormData({ ...formData, contract_document_url: '' })}
+                     >
+                       <X className="h-3 w-3" />
+                     </Button>
+                   </div>
+                 ) : (
+                   <Button
+                     type="button"
+                     variant="outline"
+                     className="w-full"
+                     disabled={uploadingContract}
+                     asChild
+                   >
+                     <label className="cursor-pointer">
+                       <Upload className="h-4 w-4 mr-2" />
+                       {uploadingContract ? 'Uploading...' : 'Upload Contract'}
+                       <input
+                         type="file"
+                         className="hidden"
+                         onChange={handleContractUpload}
+                         accept=".pdf,.doc,.docx"
+                       />
+                     </label>
+                   </Button>
+                 )}
+               </div>
               </div>
               <div>
                 <Label htmlFor="hourly_rate">Hourly Rate ($)</Label>
@@ -673,6 +774,29 @@ export default function Contractors() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Performance Metrics Dialog */}
+      <Dialog open={!!viewingMetrics} onOpenChange={() => setViewingMetrics(null)}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-blue-600" />
+              Performance Metrics: {viewingMetrics?.company_name}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {viewingMetrics && (
+            <div className="space-y-6">
+              <ContractorContractInfo contractor={viewingMetrics} />
+              <ContractorPerformanceMetrics contractorId={viewingMetrics.id} />
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button onClick={() => setViewingMetrics(null)}>Close</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
