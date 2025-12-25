@@ -77,7 +77,9 @@ function LayoutInner({ children, currentPageName }) {
     if (currentPageName === 'LandingPage' || currentPageName === 'Home') {
       return;
     }
-    base44.auth.me().then(setUser).catch(() => {});
+    base44.auth.me().then(setUser).catch(() => {
+      base44.auth.redirectToLogin(window.location.pathname + window.location.search);
+    });
   }, [currentPageName]);
 
   // Check if user is a contractor
