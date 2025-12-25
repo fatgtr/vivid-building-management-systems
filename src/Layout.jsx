@@ -77,10 +77,18 @@ function LayoutInner({ children, currentPageName }) {
     if (currentPageName === 'LandingPage' || currentPageName === 'Home') {
       return;
     }
-    base44.auth.me().then(setUser).catch(() => {
+    base44.auth.me().then((userData) => {
+      setUser(userData);
+      
+      // Redirect contractors to ContractorPortal if they're not already there
+      const isContractor = userData?.contractor_id || hasRole('contractor');
+      if (isContractor && currentPageName !== 'ContractorPortal' && currentPageName !== 'Settings') {
+        window.location.href = createPageUrl('ContractorPortal');
+      }
+    }).catch(() => {
       base44.auth.redirectToLogin(window.location.pathname + window.location.search);
     });
-  }, [currentPageName]);
+  }, [currentPageName, hasRole]);
 
   // Check if user is a contractor
   const isContractor = user?.contractor_id || hasRole('contractor');
