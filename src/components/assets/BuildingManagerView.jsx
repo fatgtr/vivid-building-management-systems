@@ -7,6 +7,7 @@ import StatusBadge from '@/components/common/StatusBadge';
 import { ASSET_CATEGORIES } from '@/components/categories/assetCategories';
 import AssetPhotos from './AssetPhotos';
 import ServiceHistoryLog from './ServiceHistoryLog';
+import ComplianceReportDialog from './ComplianceReportDialog';
 import { 
   Package, 
   MapPin, 
@@ -18,7 +19,8 @@ import {
   AlertCircle,
   Wrench,
   Shield,
-  Eye
+  Eye,
+  FileText
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from "@/components/ui/button";
@@ -33,6 +35,7 @@ const complianceStatusConfig = {
 
 export default function BuildingManagerView({ assets, getBuildingName, getLocationName, selectedBuildingId }) {
   const [selectedAsset, setSelectedAsset] = useState(null);
+  const [complianceReportAsset, setComplianceReportAsset] = useState(null);
 
   return (
     <>
@@ -141,7 +144,7 @@ export default function BuildingManagerView({ assets, getBuildingName, getLocati
                 </div>
               )}
 
-              <div className="mt-3 pt-3 border-t border-slate-100">
+              <div className="mt-3 pt-3 border-t border-slate-100 space-y-2">
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -150,6 +153,15 @@ export default function BuildingManagerView({ assets, getBuildingName, getLocati
                 >
                   <Eye className="h-4 w-4 mr-2" />
                   View Details
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => setComplianceReportAsset(asset)}
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  AI Compliance Report
                 </Button>
               </div>
             </CardContent>
@@ -261,6 +273,15 @@ export default function BuildingManagerView({ assets, getBuildingName, getLocati
         )}
       </DialogContent>
     </Dialog>
+
+    {/* Compliance Report Dialog */}
+    {complianceReportAsset && (
+      <ComplianceReportDialog
+        asset={complianceReportAsset}
+        open={!!complianceReportAsset}
+        onOpenChange={(open) => !open && setComplianceReportAsset(null)}
+      />
+    )}
     </>
   );
 }

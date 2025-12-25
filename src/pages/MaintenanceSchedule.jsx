@@ -14,7 +14,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
-import { Calendar, Search, Building2, MoreVertical, Pencil, Trash2, Eye, Upload, X, FileText, Image as ImageIcon, Sparkles, Loader2, AlertCircle } from 'lucide-react';
+import ComplianceReportDialog from '@/components/assets/ComplianceReportDialog';
+import { Calendar, Search, Building2, MoreVertical, Pencil, Trash2, Eye, Upload, X, FileText, Image as ImageIcon, Sparkles, Loader2, AlertCircle, FileBarChart } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -71,6 +72,7 @@ export default function MaintenanceSchedule() {
   const [selectedPhotos, setSelectedPhotos] = useState([]);
   const [generatingSchedules, setGeneratingSchedules] = useState(false);
   const [aiResults, setAiResults] = useState(null);
+  const [complianceReportAsset, setComplianceReportAsset] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -87,6 +89,11 @@ export default function MaintenanceSchedule() {
   const { data: contractors = [] } = useQuery({
     queryKey: ['contractors'],
     queryFn: () => base44.entities.Contractor.list(),
+  });
+
+  const { data: assets = [] } = useQuery({
+    queryKey: ['assets'],
+    queryFn: () => base44.entities.Asset.list(),
   });
 
   const createMutation = useMutation({
@@ -393,6 +400,17 @@ export default function MaintenanceSchedule() {
                         <DropdownMenuItem onClick={() => handleEdit(schedule)}>
                           <Pencil className="mr-2 h-4 w-4" /> Edit
                         </DropdownMenuItem>
+                        {schedule.asset && (() => {
+                          const asset = assets.find(a => a.name === schedule.asset);
+                          if (asset) {
+                            return (
+                              <DropdownMenuItem onClick={() => setComplianceReportAsset(asset)}>
+                                <FileBarChart className="mr-2 h-4 w-4" /> Compliance Report
+                              </DropdownMenuItem>
+                            );
+                          }
+                          return null;
+                        })()}
                         <DropdownMenuItem onClick={() => setDeleteSchedule(schedule)} className="text-red-600">
                           <Trash2 className="mr-2 h-4 w-4" /> Delete
                         </DropdownMenuItem>
@@ -763,6 +781,15 @@ export default function MaintenanceSchedule() {
             </div>
           </DialogContent>
         </Dialog>
+      )}
+
+      {/* Compliance Report Dialog */}
+      {complianceReportAsset && (
+        <ComplianceReportDialog
+          asset={complianceReportAsset}
+          open={!!complianceReportAsset}
+          onOpenChange={(open) => !open && setComplianceReportAsset(null)}
+        />
       )}
     </div>
   );
