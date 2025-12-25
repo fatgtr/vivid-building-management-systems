@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StatusBadge from '@/components/common/StatusBadge';
 import { ASSET_CATEGORIES } from '@/components/categories/assetCategories';
+import AssetPhotos from './AssetPhotos';
+import ServiceHistoryLog from './ServiceHistoryLog';
 import { 
   Package, 
   MapPin, 
@@ -13,9 +17,11 @@ import {
   Clock,
   AlertCircle,
   Wrench,
-  Shield
+  Shield,
+  Eye
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { Button } from "@/components/ui/button";
 
 const complianceStatusConfig = {
   compliant: { icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50', label: 'Compliant' },
@@ -26,7 +32,10 @@ const complianceStatusConfig = {
 };
 
 export default function BuildingManagerView({ assets, getBuildingName, getLocationName, selectedBuildingId }) {
+  const [selectedAsset, setSelectedAsset] = useState(null);
+
   return (
+    <>
     <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
       {assets.map((asset) => {
         const categoryConfig = ASSET_CATEGORIES[asset.asset_main_category];
@@ -131,10 +140,127 @@ export default function BuildingManagerView({ assets, getBuildingName, getLocati
                   <p className="text-xs text-slate-600 line-clamp-2">{asset.notes}</p>
                 </div>
               )}
+
+              <div className="mt-3 pt-3 border-t border-slate-100">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => setSelectedAsset(asset)}
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  View Details
+                </Button>
+              </div>
             </CardContent>
           </Card>
         );
       })}
     </div>
+
+    {/* Asset Detail Dialog */}
+    <Dialog open={!!selectedAsset} onOpenChange={() => setSelectedAsset(null)}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-3">
+            {selectedAsset && (() => {
+              const categoryConfig = ASSET_CATEGORIES[selectedAsset.asset_main_category];
+              const Icon = categoryConfig?.icon || Package;
+              return (
+                <>
+                  <div className={`w-10 h-10 rounded-lg ${categoryConfig?.color || 'bg-slate-100'} flex items-center justify-center`}>
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold">{selectedAsset.name}</h2>
+                    <p className="text-sm text-slate-500 font-normal capitalize">
+                      {selectedAsset.asset_type?.replace(/_/g, ' ')}
+                    </p>
+                  </div>
+                </>
+              );
+            })()}
+          </DialogTitle>
+        </DialogHeader>
+
+        {selectedAsset && (
+          <Tabs defaultValue="details" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="details">Details</TabsTrigger>
+              <TabsTrigger value="photos">Photos</TabsTrigger>
+              <TabsTrigger value="history">Service History</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="details" className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                {selectedAsset.identifier && (
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">Identifier</p>
+                    <p className="text-sm font-mono">{selectedAsset.identifier}</p>
+                  </div>
+                )}
+                {selectedAsset.manufacturer && (
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">Manufacturer</p>
+                    <p className="text-sm">{selectedAsset.manufacturer}</p>
+                  </div>
+                )}
+                {selectedAsset.model && (
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">Model</p>
+                    <p className="text-sm">{selectedAsset.model}</p>
+                  </div>
+                )}
+                {selectedAsset.location && (
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">Location</p>
+                    <p className="text-sm">{selectedAsset.location}</p>
+                  </div>
+                )}
+                {selectedAsset.floor && (
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">Floor</p>
+                    <p className="text-sm">{selectedAsset.floor}</p>
+                  </div>
+                )}
+                {selectedAsset.installation_date && (
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">Installed</p>
+                    <p className="text-sm">{format(new Date(selectedAsset.installation_date), 'MMM d, yyyy')}</p>
+                  </div>
+                )}
+                {selectedAsset.service_frequency && (
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">Service Frequency</p>
+                    <p className="text-sm capitalize">{selectedAsset.service_frequency.replace(/_/g, ' ')}</p>
+                  </div>
+                )}
+                {selectedAsset.next_service_date && (
+                  <div>
+                    <p className="text-xs text-slate-500 mb-1">Next Service</p>
+                    <p className="text-sm">{format(new Date(selectedAsset.next_service_date), 'MMM d, yyyy')}</p>
+                  </div>
+                )}
+              </div>
+              {selectedAsset.notes && selectedAsset.notes !== 'null' && (
+                <div>
+                  <p className="text-xs text-slate-500 mb-1">Notes</p>
+                  <p className="text-sm text-slate-700">{selectedAsset.notes}</p>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="photos">
+              <AssetPhotos asset={selectedAsset} />
+            </TabsContent>
+
+            <TabsContent value="history">
+              <ServiceHistoryLog assetId={selectedAsset.id} />
+            </TabsContent>
+          </Tabs>
+        )}
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
