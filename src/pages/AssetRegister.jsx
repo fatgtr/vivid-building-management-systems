@@ -25,7 +25,10 @@ import {
   User,
   Building as BuildingIcon,
   Users,
-  HardHat
+  HardHat,
+  ArrowUpDown,
+  SortAsc,
+  SortDesc
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -38,6 +41,8 @@ export default function AssetRegister() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [complianceFilter, setComplianceFilter] = useState('all');
   const [viewMode, setViewMode] = useState('auto'); // auto, building_manager, strata_manager, contractor, committee
+  const [sortBy, setSortBy] = useState('name');
+  const [sortDirection, setSortDirection] = useState('asc');
   
   // Determine user role
   const isContractor = hasRole('contractor');
@@ -74,7 +79,9 @@ export default function AssetRegister() {
       asset.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       asset.asset_type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       asset.identifier?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      asset.location?.toLowerCase().includes(searchQuery.toLowerCase());
+      asset.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      asset.manufacturer?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      asset.model?.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesMainCategory = !selectedMainCategory || asset.asset_main_category === selectedMainCategory;
     const matchesSubcategory = !selectedSubcategory || asset.asset_subcategory === selectedSubcategory;
@@ -82,6 +89,38 @@ export default function AssetRegister() {
     const matchesCompliance = complianceFilter === 'all' || asset.compliance_status === complianceFilter;
     
     return matchesSearch && matchesMainCategory && matchesSubcategory && matchesStatus && matchesCompliance;
+  }).sort((a, b) => {
+    let aVal, bVal;
+    
+    switch (sortBy) {
+      case 'name':
+        aVal = a.name?.toLowerCase() || '';
+        bVal = b.name?.toLowerCase() || '';
+        break;
+      case 'location':
+        aVal = a.location?.toLowerCase() || '';
+        bVal = b.location?.toLowerCase() || '';
+        break;
+      case 'installation_date':
+        aVal = a.installation_date ? new Date(a.installation_date).getTime() : 0;
+        bVal = b.installation_date ? new Date(b.installation_date).getTime() : 0;
+        break;
+      case 'next_service_date':
+        aVal = a.next_service_date ? new Date(a.next_service_date).getTime() : Infinity;
+        bVal = b.next_service_date ? new Date(b.next_service_date).getTime() : Infinity;
+        break;
+      case 'compliance_status':
+        const complianceOrder = { 'overdue': 0, 'requires_attention': 1, 'due_soon': 2, 'compliant': 3, 'unknown': 4 };
+        aVal = complianceOrder[a.compliance_status] ?? 5;
+        bVal = complianceOrder[b.compliance_status] ?? 5;
+        break;
+      default:
+        return 0;
+    }
+    
+    if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
   });
 
   const getBuildingName = (buildingId) => {
@@ -259,15 +298,15 @@ export default function AssetRegister() {
         </>
       )}
 
-      {/* Filters - Only show when viewing asset list */}
+      {/* Filters and Sorting - Only show when viewing asset list */}
       {selectedSubcategory && (
         <Card>
           <CardContent className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="relative">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="relative lg:col-span-2">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
-                  placeholder="Search assets..."
+                  placeholder="Search by name, type, location, manufacturer..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
@@ -299,6 +338,34 @@ export default function AssetRegister() {
                   <SelectItem value="decommissioned">Decommissioned</SelectItem>
                 </SelectContent>
               </Select>
+
+              <div className="flex gap-2">
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger>
+                    <ArrowUpDown className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="Sort By" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="name">Name</SelectItem>
+                    <SelectItem value="location">Location</SelectItem>
+                    <SelectItem value="installation_date">Install Date</SelectItem>
+                    <SelectItem value="next_service_date">Next Service</SelectItem>
+                    <SelectItem value="compliance_status">Compliance</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
+                  title={`Sort ${sortDirection === 'asc' ? 'Ascending' : 'Descending'}`}
+                >
+                  {sortDirection === 'asc' ? (
+                    <SortAsc className="h-4 w-4" />
+                  ) : (
+                    <SortDesc className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
