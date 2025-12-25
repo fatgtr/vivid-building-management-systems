@@ -13,7 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
-import { HardHat, Search, MoreVertical, Pencil, Trash2, Phone, Mail, MapPin, Star, DollarSign, Shield, Upload, FileText, X, Send } from 'lucide-react';
+import { HardHat, Search, MoreVertical, Pencil, Trash2, Phone, Mail, MapPin, Star, DollarSign, Shield, Upload, FileText, X, Send, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -78,6 +79,7 @@ export default function Contractors() {
   const [deleteContractor, setDeleteContractor] = useState(null);
   const [uploadingDocument, setUploadingDocument] = useState(false);
   const [sendingToStrata, setSendingToStrata] = useState(null);
+  const [sendingInviteTo, setSendingInviteTo] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -127,6 +129,26 @@ export default function Contractors() {
     mutationFn: (contractorId) => base44.functions.invoke('sendContractorToStrata', { contractor_id: contractorId }),
     onSuccess: () => {
       setSendingToStrata(null);
+    },
+  });
+
+  const sendInviteMutation = useMutation({
+    mutationFn: async (contractor) => {
+      setSendingInviteTo(contractor.id);
+      await base44.functions.invoke('sendContractorInvite', {
+        contractorId: contractor.id,
+        email: contractor.email,
+        companyName: contractor.company_name,
+        contactName: contractor.contact_name,
+      });
+    },
+    onSuccess: () => {
+      setSendingInviteTo(null);
+      toast.success('Portal invite sent successfully!');
+    },
+    onError: (error) => {
+      setSendingInviteTo(null);
+      toast.error(`Failed to send invite: ${error.message}`);
     },
   });
 
@@ -304,6 +326,16 @@ export default function Contractors() {
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => handleEdit(contractor)}>
                         <Pencil className="mr-2 h-4 w-4" /> Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => sendInviteMutation.mutate(contractor)} 
+                        disabled={sendInviteMutation.isPending && sendingInviteTo === contractor.id}
+                      >
+                        {sendInviteMutation.isPending && sendingInviteTo === contractor.id ? (
+                          <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...</>
+                        ) : (
+                          <><Send className="mr-2 h-4 w-4" /> Send Portal Invite</>
+                        )}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => {
                         setSendingToStrata(contractor.id);
