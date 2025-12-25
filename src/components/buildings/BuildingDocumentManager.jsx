@@ -44,6 +44,7 @@ import StrataRollUploader from './StrataRollUploader';
 import AFSSExtractor from './AFSSExtractor';
 import AsBuiltExtractor from './AsBuiltExtractor';
 import LiftRegistrationExtractor from './LiftRegistrationExtractor';
+import GenericAssetExtractor from './GenericAssetExtractor';
 import {
   Dialog,
   DialogContent,
@@ -1107,6 +1108,25 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
               onComplete={() => {
                 handleCloseAIDialog();
                 queryClient.invalidateQueries({ queryKey: ['maintenanceSchedules'] });
+              }}
+            />
+          )}
+
+          {/* Generic Asset Extractor for all other asset categories */}
+          {currentAIType && 
+           !['subdivision_plan', 'strata_roll', 'bylaws', 'strata_management_statement', 
+             'afss_documentation', 'as_built_electrical', 'as_built_mechanical', 
+             'as_built_plumbing', 'lift_plant_registration'].includes(currentAIType) && 
+           uploadedFileUrl && (
+            <GenericAssetExtractor
+              buildingId={buildingId}
+              buildingName={buildingName}
+              fileUrl={uploadedFileUrl}
+              assetCategory={currentAIType}
+              categoryLabel={documentTypes.find(dt => dt.category === currentAIType)?.label || currentAIType}
+              onComplete={() => {
+                handleCloseAIDialog();
+                queryClient.invalidateQueries({ queryKey: ['assets'] });
               }}
             />
           )}
