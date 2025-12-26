@@ -74,9 +74,10 @@ function LayoutInner({ children, currentPageName }) {
 
   useEffect(() => {
     // Don't require auth for landing page
-    if (currentPageName === 'LandingPage' || currentPageName === 'Home') {
+    if (currentPageName === 'LandingPage') {
       return;
     }
+    
     base44.auth.me().then(async (userData) => {
       setUser(userData);
       
@@ -94,7 +95,10 @@ function LayoutInner({ children, currentPageName }) {
         window.location.href = createPageUrl('ContractorPortal');
       }
     }).catch(() => {
-      base44.auth.redirectToLogin(window.location.pathname + window.location.search);
+      // Don't redirect to login if on Home page (public page)
+      if (currentPageName !== 'Home') {
+        base44.auth.redirectToLogin(window.location.pathname + window.location.search);
+      }
     });
   }, [currentPageName, hasRole]);
 
