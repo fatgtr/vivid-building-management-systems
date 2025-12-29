@@ -8,7 +8,8 @@ import PageHeader from '@/components/common/PageHeader';
 import ContractorWorkOrderCard from '@/components/contractor/ContractorWorkOrderCard';
 import ContractorDocuments from '@/components/contractor/ContractorDocuments';
 import ComplianceReminders from '@/components/contractor/ComplianceReminders';
-import { Wrench, FileText, Clock, CheckCircle, Shield } from 'lucide-react';
+import ContractorTaskCard from '@/components/contractor/ContractorTaskCard';
+import { Wrench, FileText, Clock, CheckCircle, Shield, ListTodo } from 'lucide-react';
 
 export default function ContractorPortal() {
   const [user, setUser] = useState(null);
@@ -45,9 +46,19 @@ export default function ContractorPortal() {
     queryFn: () => base44.entities.WorkOrder.list('-created_date'),
   });
 
+  const { data: tasks = [] } = useQuery({
+    queryKey: ['contractor-tasks', contractor?.id],
+    queryFn: () => contractor?.id ? base44.entities.Task.filter({ assigned_to_contractor_id: contractor.id }, '-created_date') : [],
+    enabled: !!contractor?.id,
+  });
+
   const myWorkOrders = workOrders.filter(wo => wo.assigned_contractor_id === contractor?.id);
   const openOrders = myWorkOrders.filter(wo => ['open', 'in_progress'].includes(wo.status));
   const completedOrders = myWorkOrders.filter(wo => wo.status === 'completed');
+
+  const myTasks = tasks;
+  const openTasks = myTasks.filter(t => ['pending', 'in_progress'].includes(t.status));
+  const completedTasks = myTasks.filter(t => t.status === 'completed');
 
   if (!contractor) {
     return (
@@ -71,7 +82,7 @@ export default function ContractorPortal() {
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
@@ -88,11 +99,24 @@ export default function ContractorPortal() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-blue-100">
+                <ListTodo className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-slate-900">{openTasks.length}</p>
+                <p className="text-sm text-slate-500">Active Tasks</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-green-100">
                 <CheckCircle className="h-6 w-6 text-green-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-slate-900">{completedOrders.length}</p>
+                <p className="text-2xl font-bold text-slate-900">{completedOrders.length + completedTasks.length}</p>
                 <p className="text-sm text-slate-500">Completed This Month</p>
               </div>
             </div>
@@ -101,8 +125,8 @@ export default function ContractorPortal() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-blue-100">
-                <FileText className="h-6 w-6 text-blue-600" />
+              <div className="p-3 rounded-xl bg-purple-100">
+                <FileText className="h-6 w-6 text-purple-600" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-slate-900">{contractor.documents?.length || 0}</p>
@@ -116,8 +140,9 @@ export default function ContractorPortal() {
       {/* Tabs */}
       <Tabs defaultValue="active" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="active">Active Orders ({openOrders.length})</TabsTrigger>
-          <TabsTrigger value="completed">Completed ({completedOrders.length})</TabsTrigger>
+          <TabsTrigger value="active">Work Orders ({openOrders.length})</TabsTrigger>
+          <TabsTrigger value="tasks">Tasks ({openTasks.length})</TabsTrigger>
+          <TabsTrigger value="completed">Completed ({completedOrders.length + completedTasks.length})</TabsTrigger>
           <TabsTrigger value="compliance">
             <Shield className="h-4 w-4 mr-1" />
             Compliance
@@ -138,17 +163,45 @@ export default function ContractorPortal() {
           )}
         </TabsContent>
 
-        <TabsContent value="completed" className="space-y-4">
-          {completedOrders.length === 0 ? (
+        <TabsContent value="tasks" className="space-y-4">
+          {openTasks.length === 0 ? (
             <Card className="p-8 text-center">
               <CardContent>
-                <CheckCircle className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                <p className="text-slate-600">No completed work orders</p>
+                <ListTodo className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                <p className="text-slate-600">No active tasks assigned</p>
               </CardContent>
             </Card>
           ) : (
-            completedOrders.map(wo => <ContractorWorkOrderCard key={wo.id} workOrder={wo} />)
+            openTasks.map(task => <ContractorTaskCard key={task.id} task={task} />)
           )}
+        </TabsContent>
+
+        <TabsContent value="completed" className="space-y-4">
+          <div className="space-y-4">
+            {completedOrders.length === 0 && completedTasks.length === 0 ? (
+              <Card className="p-8 text-center">
+                <CardContent>
+                  <CheckCircle className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                  <p className="text-slate-600">No completed items</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                {completedOrders.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-700 mb-3">Work Orders</h3>
+                    {completedOrders.map(wo => <ContractorWorkOrderCard key={wo.id} workOrder={wo} />)}
+                  </div>
+                )}
+                {completedTasks.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-700 mb-3">Tasks</h3>
+                    {completedTasks.map(task => <ContractorTaskCard key={task.id} task={task} />)}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </TabsContent>
 
         <TabsContent value="compliance">

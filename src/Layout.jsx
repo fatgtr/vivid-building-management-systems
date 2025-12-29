@@ -54,6 +54,7 @@ const navItems = [
   { name: 'Buildings', icon: Building2, page: 'Buildings', requirePermission: { resource: 'buildings', action: 'view' } },
   { name: 'Residents Center', icon: Users, page: 'ResidentsCenter', requirePermission: { resource: 'residents', action: 'view' } },
   { name: 'Operations Center', icon: Wrench, page: 'OperationsCenter', requirePermission: { resource: 'work_orders', action: 'view' } },
+  { name: 'Task Management', icon: ClipboardCheck, page: 'TaskManagement', requirePermission: { resource: 'work_orders', action: 'view' } },
   { name: 'Capital Works', icon: TrendingUp, page: 'CapitalWorksPlanning', requirePermission: { resource: 'buildings', action: 'view' } },
   { name: 'Communications', icon: MessageSquare, page: 'Communications', requirePermission: { resource: 'announcements', action: 'view' } },
   { name: 'Contractor Portal', icon: HardHat, page: 'ContractorPortal', contractorOnly: true },

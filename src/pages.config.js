@@ -31,6 +31,7 @@ import StrataKnowledgeBase from './pages/StrataKnowledgeBase';
 import Visitors from './pages/Visitors';
 import VividStaffManagement from './pages/VividStaffManagement';
 import WorkOrders from './pages/WorkOrders';
+import TaskManagement from './pages/TaskManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -68,6 +69,7 @@ export const PAGES = {
     "Visitors": Visitors,
     "VividStaffManagement": VividStaffManagement,
     "WorkOrders": WorkOrders,
+    "TaskManagement": TaskManagement,
 }
 
 export const pagesConfig = {
