@@ -37,6 +37,7 @@ import AsBuiltMechanicalExtractor from '@/components/buildings/AsBuiltMechanical
 import { ASSET_CATEGORIES } from '@/components/categories/assetCategories';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Pencil } from 'lucide-react';
+import { canAccessLeaseDocument } from '@/components/utils/leaseAccessControl';
 
 // Priority categories that appear at the top
 const priorityCategories = [
@@ -77,8 +78,15 @@ export default function Documents() {
   const [editingDocument, setEditingDocument] = useState(null);
   const [expandedSummaries, setExpandedSummaries] = useState({});
   const [generatingSummary, setGeneratingSummary] = useState(null);
+  const [user, setUser] = useState(null);
+  const [accessibleDocuments, setAccessibleDocuments] = useState([]);
 
   const queryClient = useQueryClient();
+
+  // Fetch current user for lease access control
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
 
   const { data: documents = [], isLoading } = useQuery({
     queryKey: ['documents'],
@@ -89,6 +97,27 @@ export default function Documents() {
     queryKey: ['buildings'],
     queryFn: () => base44.entities.Building.list(),
   });
+
+  // Filter documents with lease access control
+  useEffect(() => {
+    const filterDocs = async () => {
+      if (!user || documents.length === 0) {
+        setAccessibleDocuments(documents);
+        return;
+      }
+
+      const filtered = [];
+      for (const doc of documents) {
+        const canAccess = await canAccessLeaseDocument(doc, user);
+        if (canAccess) {
+          filtered.push(doc);
+        }
+      }
+      setAccessibleDocuments(filtered);
+    };
+
+    filterDocs();
+  }, [documents, user]);
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Document.delete(id),
@@ -193,7 +222,7 @@ export default function Documents() {
     return File;
   };
 
-  const filteredDocuments = documents.filter(d => {
+  const filteredDocuments = accessibleDocuments.filter(d => {
     const matchesSearch = d.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          d.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          d.ocr_content?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -232,7 +261,7 @@ export default function Documents() {
     <div className="space-y-6">
       <PageHeader 
         title="Documents" 
-        subtitle={`${filteredDocuments.length} of ${documents.length} documents`}
+        subtitle={`${filteredDocuments.length} of ${accessibleDocuments.length} documents`}
         action={() => setShowUploadDialog(true)}
         actionLabel="Upload Document"
         actionIcon={Upload}

@@ -41,12 +41,13 @@ export default function LeaseAgreementView({ residentEmail, buildingId }) {
 
   const queryClient = useQueryClient();
 
-  // Fetch all rental agreements for this resident
+  // Fetch rental agreements for this specific resident only
   const { data: rentalAgreements = [] } = useQuery({
     queryKey: ['rentalAgreements', residentEmail],
     queryFn: async () => {
       const residents = await base44.entities.Resident.filter({ email: residentEmail });
       if (!residents || residents.length === 0) return [];
+      // Only fetch agreements for this specific resident
       return base44.entities.RentalAgreement.filter({ resident_id: residents[0].id });
     },
     enabled: !!residentEmail,
@@ -61,18 +62,27 @@ export default function LeaseAgreementView({ residentEmail, buildingId }) {
 
   const leaseAnalysis = leaseAnalyses.length > 0 ? leaseAnalyses[0] : null;
 
-  // Fetch lease agreement documents
+  // Fetch lease agreement documents - only those linked to this resident's agreements
   const { data: leaseDocuments = [] } = useQuery({
-    queryKey: ['leaseDocuments', buildingId],
+    queryKey: ['leaseDocuments', buildingId, residentEmail],
     queryFn: async () => {
-      if (!buildingId) return [];
-      return base44.entities.Document.filter({ 
-        building_id: buildingId,
-        category: 'lease_agreement',
-        status: 'active'
-      });
+      if (!buildingId || rentalAgreements.length === 0) return [];
+      // Only fetch documents that are linked to this resident's rental agreements
+      const docIds = rentalAgreements.map(a => a.document_id).filter(Boolean);
+      if (docIds.length === 0) return [];
+      
+      const docs = [];
+      for (const docId of docIds) {
+        try {
+          const doc = await base44.entities.Document.get(docId);
+          if (doc) docs.push(doc);
+        } catch (e) {
+          // Document might not exist
+        }
+      }
+      return docs;
     },
-    enabled: !!buildingId,
+    enabled: !!buildingId && rentalAgreements.length > 0,
   });
 
   // Fetch building documents (bylaws, policies)

@@ -28,10 +28,10 @@ import RoleManagement from './pages/RoleManagement';
 import Settings from './pages/Settings';
 import SmartDevices from './pages/SmartDevices';
 import StrataKnowledgeBase from './pages/StrataKnowledgeBase';
+import TaskManagement from './pages/TaskManagement';
 import Visitors from './pages/Visitors';
 import VividStaffManagement from './pages/VividStaffManagement';
 import WorkOrders from './pages/WorkOrders';
-import TaskManagement from './pages/TaskManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -66,10 +66,10 @@ export const PAGES = {
     "Settings": Settings,
     "SmartDevices": SmartDevices,
     "StrataKnowledgeBase": StrataKnowledgeBase,
+    "TaskManagement": TaskManagement,
     "Visitors": Visitors,
     "VividStaffManagement": VividStaffManagement,
     "WorkOrders": WorkOrders,
-    "TaskManagement": TaskManagement,
 }
 
 export const pagesConfig = {

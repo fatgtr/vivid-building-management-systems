@@ -351,6 +351,7 @@ export default function ResidentPortal() {
     return styles[type] || styles.general;
   };
 
+  // Exclude lease agreements - they are shown in separate tab with proper access control
   const visibleDocuments = documents.filter(doc => 
     doc.category !== 'lease_agreement' &&
     (doc.visibility === 'public' || 
