@@ -338,9 +338,7 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
     },
   });
 
-  const allGeneralDocuments = documents.filter(doc => 
-    !documentTypes.some(dt => dt.category === doc.category)
-  );
+  const allGeneralDocuments = documents;
 
   const filteredGeneralDocuments = allGeneralDocuments.filter(doc => {
     const matchesSearch = !searchQuery || 
@@ -759,6 +757,15 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="subdivision_plan">Subdivision Plan</SelectItem>
+                  <SelectItem value="strata_roll">Strata Roll</SelectItem>
+                  <SelectItem value="bylaws">Bylaws</SelectItem>
+                  <SelectItem value="strata_management_statement">Strata Management Statement</SelectItem>
+                  <SelectItem value="afss_documentation">AFSS Documentation</SelectItem>
+                  <SelectItem value="as_built_electrical">As-Built Electrical</SelectItem>
+                  <SelectItem value="as_built_mechanical">As-Built Mechanical</SelectItem>
+                  <SelectItem value="as_built_plumbing">As-Built Plumbing</SelectItem>
+                  <SelectItem value="lift_plant_registration">Lift Plant Registration</SelectItem>
                   <SelectItem value="policy">Policy</SelectItem>
                   <SelectItem value="manual">Manual</SelectItem>
                   <SelectItem value="form">Form</SelectItem>
