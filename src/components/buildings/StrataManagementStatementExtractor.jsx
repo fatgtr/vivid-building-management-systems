@@ -112,23 +112,13 @@ export default function StrataManagementStatementExtractor({ buildingId, buildin
         <Alert>
           <Sparkles className="h-4 w-4" />
           <AlertDescription>
-            <p className="font-medium mb-2">Ready to extract management information</p>
-            <p className="text-sm">
-              The AI will analyze the strata management statement and extract:
+            <p className="font-medium mb-2">Ready to analyze entire document</p>
+            <p className="text-sm text-slate-600 mb-2">
+              The AI will read and process the complete Strata Management Statement including all clauses, schedules, and appendices throughout the entire document to extract:
             </p>
-            <ul className="list-disc list-inside mt-2 text-sm space-y-1">
-              <li>Committee structure and roles</li>
-              <li>Meeting frequency and requirements</li>
-              <li>Levy structures (admin fund, sinking fund)</li>
-              <li>Insurance requirements</li>
-              <li>Maintenance responsibilities</li>
-              <li>Service contract details</li>
-              <li>Financial reporting requirements</li>
-              <li>Dispute resolution procedures</li>
-              <li>Voting procedures and quorum</li>
-              <li>Proxy rules and regulations</li>
-              <li><strong>Schedule 1 & 2: All shared facilities with item numbers, descriptions, member benefits, and locations</strong></li>
-            </ul>
+            <p className="text-sm text-slate-500 italic">
+              Management structure, committee roles, meeting requirements, levy structures, insurance, maintenance responsibilities, service contracts, financial reporting, dispute resolution, voting procedures, proxy rules, shared facilities (Schedules 1 & 2 with item numbers, descriptions, benefits, and locations), and all other relevant provisions.
+            </p>
           </AlertDescription>
         </Alert>
 

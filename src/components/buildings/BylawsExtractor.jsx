@@ -112,20 +112,13 @@ export default function BylawsExtractor({ buildingId, buildingName, fileUrl, doc
         <Alert>
           <Sparkles className="h-4 w-4" />
           <AlertDescription>
-            <p className="font-medium mb-2">Ready to extract bylaws</p>
-            <p className="text-sm">
-              The AI will analyze the bylaws document and extract:
+            <p className="font-medium mb-2">Ready to analyze complete bylaws</p>
+            <p className="text-sm text-slate-600 mb-2">
+              The AI will read and process the entire bylaws document including all sections, clauses, and amendments throughout the complete document to extract:
             </p>
-            <ul className="list-disc list-inside mt-2 text-sm space-y-1">
-              <li>Pet policies and restrictions</li>
-              <li>Parking rules and regulations</li>
-              <li>Noise restrictions and quiet hours</li>
-              <li>Renovation and alteration policies</li>
-              <li>Rental and leasing restrictions</li>
-              <li>Common property usage rules</li>
-              <li>Balcony and outdoor area guidelines</li>
-              <li>All other bylaws and amendments</li>
-            </ul>
+            <p className="text-sm text-slate-500 italic">
+              Pet policies, parking rules, noise restrictions, renovation guidelines, rental regulations, common property usage, balcony/outdoor guidelines, waste disposal, conduct rules, penalty provisions, amendment history, effective dates, and all other bylaws.
+            </p>
           </AlertDescription>
         </Alert>
 
