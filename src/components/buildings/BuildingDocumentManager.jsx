@@ -1184,6 +1184,21 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
             />
           )}
 
+          {/* Fallback for document types without extractors yet */}
+          {currentAIType && 
+           ['bylaws', 'strata_management_statement'].includes(currentAIType) && (
+            <Alert>
+              <Sparkles className="h-4 w-4" />
+              <AlertDescription>
+                <p className="font-medium mb-2">AI extraction for {documentTypes.find(dt => dt.category === currentAIType)?.label} is coming soon!</p>
+                <p className="text-sm text-slate-600">
+                  For now, this document has been uploaded and is available for viewing and download. 
+                  You can manually process the information it contains.
+                </p>
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="flex justify-end">
             <Button variant="outline" onClick={handleCloseAIDialog}>
               Close
