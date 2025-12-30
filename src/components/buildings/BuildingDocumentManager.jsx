@@ -847,17 +847,16 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
                         )}
                       </div>
                       <div className="flex items-center gap-1">
-                        {(doc.ocr_status === 'pending' || doc.ocr_status === 'failed' || !doc.ocr_status) && 
-                         (doc.file_type === 'application/pdf' || doc.file_type?.startsWith('image/')) && (
+                        {(doc.file_type === 'application/pdf' || doc.file_type?.startsWith('image/')) && (
                           <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => handleManualOCR(doc.id)}
-                            disabled={processingOCR[doc.id]}
-                            title="Process for OCR"
+                            disabled={processingOCR[doc.id] || doc.ocr_status === 'processing'}
+                            title={doc.ocr_status === 'completed' ? 'Reprocess OCR' : 'Process for OCR'}
                             className="text-blue-600 hover:text-blue-700"
                           >
-                            {processingOCR[doc.id] ? (
+                            {processingOCR[doc.id] || doc.ocr_status === 'processing' ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
                               <Sparkles className="h-4 w-4" />
