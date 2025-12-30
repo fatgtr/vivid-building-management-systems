@@ -19,6 +19,7 @@ const infoTypeLabels = {
   dispute_resolution: 'Dispute Resolution',
   voting_procedures: 'Voting Procedures',
   proxy_rules: 'Proxy Rules',
+  shared_facility_schedule: 'Shared Facility',
   other: 'Other'
 };
 
@@ -33,6 +34,7 @@ const infoTypeColors = {
   dispute_resolution: 'bg-red-100 text-red-700',
   voting_procedures: 'bg-pink-100 text-pink-700',
   proxy_rules: 'bg-violet-100 text-violet-700',
+  shared_facility_schedule: 'bg-teal-100 text-teal-700',
   other: 'bg-gray-100 text-gray-700'
 };
 
@@ -125,6 +127,7 @@ export default function StrataManagementStatementExtractor({ buildingId, buildin
               <li>Dispute resolution procedures</li>
               <li>Voting procedures and quorum</li>
               <li>Proxy rules and regulations</li>
+              <li><strong>Schedule 1 & 2: All shared facilities with item numbers, descriptions, member benefits, and locations</strong></li>
             </ul>
           </AlertDescription>
         </Alert>
@@ -180,32 +183,71 @@ export default function StrataManagementStatementExtractor({ buildingId, buildin
             <CardContent className="space-y-2">
               <p className="text-sm text-slate-600">{item.description}</p>
               
-              {item.requirements && (
-                <div className="text-sm">
-                  <span className="font-medium text-slate-700">Requirements: </span>
-                  <span className="text-slate-600">{item.requirements}</span>
-                </div>
+              {item.info_type === 'shared_facility_schedule' && (
+                <>
+                  {item.item_number && (
+                    <div className="text-sm">
+                      <span className="font-medium text-slate-700">Item No.: </span>
+                      <span className="text-slate-600">{item.item_number}</span>
+                    </div>
+                  )}
+                  {item.shared_facility_name && (
+                    <div className="text-sm">
+                      <span className="font-medium text-slate-700">Facility: </span>
+                      <span className="text-slate-600">{item.shared_facility_name}</span>
+                    </div>
+                  )}
+                  {item.shared_facility_description && (
+                    <div className="text-sm">
+                      <span className="font-medium text-slate-700">Description: </span>
+                      <span className="text-slate-600">{item.shared_facility_description}</span>
+                    </div>
+                  )}
+                  {item.member_benefit && (
+                    <div className="text-sm">
+                      <span className="font-medium text-slate-700">Member Benefit: </span>
+                      <span className="text-slate-600">{item.member_benefit}</span>
+                    </div>
+                  )}
+                  {item.facility_location && (
+                    <div className="text-sm">
+                      <span className="font-medium text-slate-700">Location: </span>
+                      <span className="text-slate-600">{item.facility_location}</span>
+                    </div>
+                  )}
+                </>
               )}
 
-              {item.frequency && (
-                <div className="text-sm">
-                  <span className="font-medium text-slate-700">Frequency: </span>
-                  <span className="text-slate-600">{item.frequency}</span>
-                </div>
-              )}
+              {item.info_type !== 'shared_facility_schedule' && (
+                <>
+                  {item.requirements && (
+                    <div className="text-sm">
+                      <span className="font-medium text-slate-700">Requirements: </span>
+                      <span className="text-slate-600">{item.requirements}</span>
+                    </div>
+                  )}
 
-              {item.responsible_party && (
-                <div className="text-sm">
-                  <span className="font-medium text-slate-700">Responsible Party: </span>
-                  <span className="text-slate-600">{item.responsible_party}</span>
-                </div>
-              )}
+                  {item.frequency && (
+                    <div className="text-sm">
+                      <span className="font-medium text-slate-700">Frequency: </span>
+                      <span className="text-slate-600">{item.frequency}</span>
+                    </div>
+                  )}
 
-              {item.notes && (
-                <div className="text-sm">
-                  <span className="font-medium text-slate-700">Notes: </span>
-                  <span className="text-slate-600">{item.notes}</span>
-                </div>
+                  {item.responsible_party && (
+                    <div className="text-sm">
+                      <span className="font-medium text-slate-700">Responsible Party: </span>
+                      <span className="text-slate-600">{item.responsible_party}</span>
+                    </div>
+                  )}
+
+                  {item.notes && (
+                    <div className="text-sm">
+                      <span className="font-medium text-slate-700">Notes: </span>
+                      <span className="text-slate-600">{item.notes}</span>
+                    </div>
+                  )}
+                </>
               )}
 
               {item.effective_date && (
