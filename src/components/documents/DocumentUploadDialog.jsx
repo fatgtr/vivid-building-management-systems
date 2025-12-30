@@ -78,6 +78,24 @@ export default function DocumentUploadDialog({ open, onOpenChange, buildingId, l
 
       const document = await base44.entities.Document.create(documentData);
 
+      // Automatically trigger OCR processing for PDFs and images
+      if (file.type === 'application/pdf' || file.type.startsWith('image/')) {
+        try {
+          await base44.entities.Document.update(document.id, { ocr_status: 'processing' });
+          base44.functions.invoke('processDocumentOCR', { document_id: document.id })
+            .then(() => {
+              queryClient.invalidateQueries({ queryKey: ['documents'] });
+              toast.success('OCR processing completed');
+            })
+            .catch(() => {
+              base44.entities.Document.update(document.id, { ocr_status: 'failed' });
+              queryClient.invalidateQueries({ queryKey: ['documents'] });
+            });
+        } catch (error) {
+          console.error('OCR processing error:', error);
+        }
+      }
+
       // If linked to an entity, update that entity's documents array
       if (linkedEntityType && linkedEntityId) {
         const entity = await base44.entities[linkedEntityType].filter({ id: linkedEntityId });

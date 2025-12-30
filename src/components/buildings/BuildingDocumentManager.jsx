@@ -156,6 +156,7 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [viewingDocument, setViewingDocument] = useState(null);
+  const [processingOCR, setProcessingOCR] = useState({});
 
   const queryClient = useQueryClient();
 
@@ -235,6 +236,25 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
     setSelectedDocumentId(null);
   };
 
+  const handleManualOCR = async (docId) => {
+    setProcessingOCR({ ...processingOCR, [docId]: true });
+    try {
+      await base44.entities.Document.update(docId, { ocr_status: 'processing' });
+      queryClient.invalidateQueries({ queryKey: ['buildingDocuments', buildingId] });
+      
+      await base44.functions.invoke('processDocumentOCR', { document_id: docId });
+      
+      toast.success('OCR processing completed');
+      queryClient.invalidateQueries({ queryKey: ['buildingDocuments', buildingId] });
+    } catch (error) {
+      toast.error('OCR processing failed: ' + error.message);
+      await base44.entities.Document.update(docId, { ocr_status: 'failed' });
+      queryClient.invalidateQueries({ queryKey: ['buildingDocuments', buildingId] });
+    } finally {
+      setProcessingOCR({ ...processingOCR, [docId]: false });
+    }
+  };
+
   const generalUploadMutation = useMutation({
     mutationFn: async ({ file }) => {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
@@ -255,16 +275,21 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
         ocr_status: 'pending',
       });
 
-      // Trigger OCR processing if it's a PDF or image
+      // Automatically trigger OCR processing for PDFs and images
       if (file.type === 'application/pdf' || file.type.startsWith('image/')) {
-        setIsProcessingOCR(true);
         try {
-          await base44.functions.invoke('processDocumentOCR', { document_id: document.id });
-          toast.success('Document uploaded and OCR processing started');
+          await base44.entities.Document.update(document.id, { ocr_status: 'processing' });
+          base44.functions.invoke('processDocumentOCR', { document_id: document.id })
+            .then(() => {
+              queryClient.invalidateQueries({ queryKey: ['buildingDocuments', buildingId] });
+            })
+            .catch(() => {
+              base44.entities.Document.update(document.id, { ocr_status: 'failed' });
+              queryClient.invalidateQueries({ queryKey: ['buildingDocuments', buildingId] });
+            });
         } catch (error) {
-          toast.warning('Document uploaded but OCR processing failed');
+          console.error('OCR processing error:', error);
         }
-        setIsProcessingOCR(false);
       }
 
       return document;
@@ -782,10 +807,22 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
                           {doc.version > 1 && (
                             <Badge variant="secondary">v{doc.version}</Badge>
                           )}
+                          {doc.ocr_status === 'processing' && (
+                            <Badge variant="outline" className="text-blue-600">
+                              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                              Processing
+                            </Badge>
+                          )}
                           {doc.ocr_status === 'completed' && (
                             <Badge variant="outline" className="text-green-600">
                               <Sparkles className="h-3 w-3 mr-1" />
                               Searchable
+                            </Badge>
+                          )}
+                          {doc.ocr_status === 'failed' && (
+                            <Badge variant="outline" className="text-red-600">
+                              <AlertCircle className="h-3 w-3 mr-1" />
+                              Failed
                             </Badge>
                           )}
                         </div>
@@ -810,6 +847,23 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
                         )}
                       </div>
                       <div className="flex items-center gap-1">
+                        {(doc.ocr_status === 'pending' || doc.ocr_status === 'failed' || !doc.ocr_status) && 
+                         (doc.file_type === 'application/pdf' || doc.file_type?.startsWith('image/')) && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleManualOCR(doc.id)}
+                            disabled={processingOCR[doc.id]}
+                            title="Process for OCR"
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            {processingOCR[doc.id] ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Sparkles className="h-4 w-4" />
+                            )}
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"
