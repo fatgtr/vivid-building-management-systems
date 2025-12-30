@@ -45,6 +45,8 @@ import AFSSExtractor from './AFSSExtractor';
 import AsBuiltExtractor from './AsBuiltExtractor';
 import LiftRegistrationExtractor from './LiftRegistrationExtractor';
 import GenericAssetExtractor from './GenericAssetExtractor';
+import BylawsExtractor from './BylawsExtractor';
+import StrataManagementStatementExtractor from './StrataManagementStatementExtractor';
 import {
   Dialog,
   DialogContent,
@@ -1191,19 +1193,32 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
             />
           )}
 
-          {/* Fallback for document types without extractors yet */}
-          {currentAIType && 
-           ['bylaws', 'strata_management_statement'].includes(currentAIType) && (
-            <Alert>
-              <Sparkles className="h-4 w-4" />
-              <AlertDescription>
-                <p className="font-medium mb-2">AI extraction for {documentTypes.find(dt => dt.category === currentAIType)?.label} is coming soon!</p>
-                <p className="text-sm text-slate-600">
-                  For now, this document has been uploaded and is available for viewing and download. 
-                  You can manually process the information it contains.
-                </p>
-              </AlertDescription>
-            </Alert>
+          {/* Bylaws Extractor */}
+          {currentAIType === 'bylaws' && uploadedFileUrl && (
+            <BylawsExtractor
+              buildingId={buildingId}
+              buildingName={buildingName}
+              fileUrl={uploadedFileUrl}
+              documentId={selectedDocumentId}
+              onComplete={() => {
+                handleCloseAIDialog();
+                queryClient.invalidateQueries({ queryKey: ['buildingBylaws', buildingId] });
+              }}
+            />
+          )}
+
+          {/* Strata Management Statement Extractor */}
+          {currentAIType === 'strata_management_statement' && uploadedFileUrl && (
+            <StrataManagementStatementExtractor
+              buildingId={buildingId}
+              buildingName={buildingName}
+              fileUrl={uploadedFileUrl}
+              documentId={selectedDocumentId}
+              onComplete={() => {
+                handleCloseAIDialog();
+                queryClient.invalidateQueries({ queryKey: ['strataManagementInfo', buildingId] });
+              }}
+            />
           )}
 
           <div className="flex justify-end">
