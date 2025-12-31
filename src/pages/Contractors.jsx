@@ -48,6 +48,41 @@ const specialties = [
   { value: 'general', label: 'General' },
 ];
 
+// Calculate compliance status for a contractor
+const getComplianceStatus = (contractor) => {
+  const today = new Date();
+  const thirtyDaysFromNow = new Date(today);
+  thirtyDaysFromNow.setDate(today.getDate() + 30);
+
+  const expiryDates = [
+    contractor.license_expiry_date,
+    contractor.insurance_expiry,
+    contractor.work_cover_expiry_date,
+    contractor.public_liability_expiry_date,
+  ].filter(Boolean);
+
+  if (expiryDates.length === 0) {
+    return { status: 'unknown', label: 'Unknown', color: 'bg-slate-100 text-slate-600 border-slate-200' };
+  }
+
+  // Check if any are expired
+  const hasExpired = expiryDates.some(date => new Date(date) < today);
+  if (hasExpired) {
+    return { status: 'non_compliant', label: 'Non-Compliant', color: 'bg-red-100 text-red-700 border-red-200' };
+  }
+
+  // Check if any are expiring soon (within 30 days)
+  const hasExpiringSoon = expiryDates.some(date => {
+    const expiryDate = new Date(date);
+    return expiryDate >= today && expiryDate <= thirtyDaysFromNow;
+  });
+  if (hasExpiringSoon) {
+    return { status: 'expiring_soon', label: 'Expiring Soon', color: 'bg-yellow-100 text-yellow-700 border-yellow-200' };
+  }
+
+  return { status: 'compliant', label: 'Compliant', color: 'bg-green-100 text-green-700 border-green-200' };
+};
+
 const initialFormState = {
   company_name: '',
   abn: '',
@@ -82,6 +117,7 @@ export default function Contractors() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterSpecialty, setFilterSpecialty] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [filterCompliance, setFilterCompliance] = useState('all');
   const [deleteContractor, setDeleteContractor] = useState(null);
   const [uploadingDocument, setUploadingDocument] = useState(false);
   const [sendingToStrata, setSendingToStrata] = useState(null);
@@ -268,7 +304,9 @@ export default function Contractors() {
                          c.contact_name?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesSpecialty = filterSpecialty === 'all' || c.specialty?.includes(filterSpecialty);
     const matchesStatus = filterStatus === 'all' || c.status === filterStatus;
-    return matchesSearch && matchesSpecialty && matchesStatus;
+    const complianceStatus = getComplianceStatus(c).status;
+    const matchesCompliance = filterCompliance === 'all' || complianceStatus === filterCompliance;
+    return matchesSearch && matchesSpecialty && matchesStatus && matchesCompliance;
   });
 
   if (isLoading) {
@@ -321,6 +359,18 @@ export default function Contractors() {
             <SelectItem value="inactive">Inactive</SelectItem>
             <SelectItem value="pending_approval">Pending</SelectItem>
             <SelectItem value="pending_compliance_review">Compliance Review</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={filterCompliance} onValueChange={setFilterCompliance}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="Compliance" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Compliance</SelectItem>
+            <SelectItem value="compliant">Compliant</SelectItem>
+            <SelectItem value="expiring_soon">Expiring Soon</SelectItem>
+            <SelectItem value="non_compliant">Non-Compliant</SelectItem>
+            <SelectItem value="unknown">Unknown</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -457,7 +507,13 @@ export default function Contractors() {
                 )}
 
                 <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                  <StatusBadge status={contractor.status} />
+                  <div className="flex items-center gap-2">
+                    <StatusBadge status={contractor.status} />
+                    <Badge variant="outline" className={getComplianceStatus(contractor).color}>
+                      <Shield className="h-3 w-3 mr-1" />
+                      {getComplianceStatus(contractor).label}
+                    </Badge>
+                  </div>
                   {contractor.rating && (
                     <div className="flex items-center gap-1 text-sm">
                       <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
