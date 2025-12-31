@@ -32,6 +32,8 @@ import TaskManagement from './pages/TaskManagement';
 import Visitors from './pages/Visitors';
 import VividStaffManagement from './pages/VividStaffManagement';
 import WorkOrders from './pages/WorkOrders';
+import ContractorSignup from './pages/ContractorSignup';
+import VerifyContractor from './pages/VerifyContractor';
 import __Layout from './Layout.jsx';
 
 
@@ -70,6 +72,8 @@ export const PAGES = {
     "Visitors": Visitors,
     "VividStaffManagement": VividStaffManagement,
     "WorkOrders": WorkOrders,
+    "ContractorSignup": ContractorSignup,
+    "VerifyContractor": VerifyContractor,
 }
 
 export const pagesConfig = {
