@@ -15,8 +15,10 @@ import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
 import ContractorPerformanceMetrics from '@/components/contractor/ContractorPerformanceMetrics';
 import ContractorContractInfo from '@/components/contractor/ContractorContractInfo';
+import ContractorApplicationReviewQueue from '@/components/contractor/ContractorApplicationReviewQueue';
 import { HardHat, Search, MoreVertical, Pencil, Trash2, Phone, Mail, MapPin, Star, DollarSign, Shield, Upload, FileText, X, Send, Loader2, TrendingUp, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -130,6 +132,11 @@ export default function Contractors() {
   const { data: contractors = [], isLoading } = useQuery({
     queryKey: ['contractors'],
     queryFn: () => base44.entities.Contractor.list(),
+  });
+
+  const { data: applications = [] } = useQuery({
+    queryKey: ['contractorApplications'],
+    queryFn: () => base44.entities.ContractorApplication.filter({ status: 'pending_review' }),
   });
 
   const createMutation = useMutation({
@@ -325,10 +332,30 @@ export default function Contractors() {
         subtitle={`${contractors.filter(c => c.status === 'active').length} active contractors`}
         action={() => setShowDialog(true)}
         actionLabel="Add Contractor"
-      />
+      >
+        {applications.length > 0 && (
+          <Badge variant="outline" className="text-orange-600 border-orange-200">
+            {applications.length} pending review
+          </Badge>
+        )}
+      </PageHeader>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-4">
+      <Tabs defaultValue="contractors" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="contractors">
+            Contractors ({filteredContractors.length})
+          </TabsTrigger>
+          <TabsTrigger value="applications">
+            Applications
+            {applications.length > 0 && (
+              <Badge variant="secondary" className="ml-2">{applications.length}</Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="contractors" className="space-y-6">
+          {/* Filters */}
+          <div className="flex flex-wrap gap-4">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input
@@ -526,6 +553,12 @@ export default function Contractors() {
           ))}
         </div>
       )}
+        </TabsContent>
+
+        <TabsContent value="applications">
+          <ContractorApplicationReviewQueue />
+        </TabsContent>
+      </Tabs>
 
       {/* Add/Edit Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
