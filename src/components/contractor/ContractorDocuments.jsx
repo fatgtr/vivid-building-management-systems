@@ -67,8 +67,19 @@ export default function ContractorDocuments({ contractor }) {
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.ContractorDocument.create(data),
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['contractorDocuments', contractor.id] });
+      queryClient.invalidateQueries({ queryKey: ['contractors'] });
+      
+      // Trigger compliance check
+      try {
+        await base44.functions.invoke('checkContractorDocumentCompliance', {
+          contractor_id: contractor.id
+        });
+      } catch (error) {
+        console.error('Compliance check failed:', error);
+      }
+      
       toast.success('Document uploaded successfully');
       setUploadDialogOpen(false);
       setUploadForm({
