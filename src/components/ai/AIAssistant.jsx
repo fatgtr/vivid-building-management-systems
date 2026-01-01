@@ -15,7 +15,8 @@ import {
   BarChart3,
   Lightbulb,
   Copy,
-  Check
+  Check,
+  RotateCcw
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import ReactMarkdown from 'react-markdown';
@@ -144,6 +145,15 @@ export default function AIAssistant({ buildingId, onClose }) {
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
+  const handleClearChat = () => {
+    setMessages([
+      {
+        role: 'assistant',
+        content: "Hi! I'm your Vivid BMS AI Assistant. I can help you with:\n\n• **Building Management** - Best practices, compliance, and operational insights\n• **System Guidance** - Learn how to use Vivid BMS features and workflows\n• **Draft Communications** - Professional responses to resident inquiries\n• **Document Analysis** - Summarize reports and identify key requirements\n• **Feature Recommendations** - Discover tools you might not be using\n\nHow can I assist you today?"
+      }
+    ]);
+  };
+
   return (
     <Card className="fixed bottom-6 right-6 w-[450px] h-[600px] shadow-2xl border-2 border-blue-200 flex flex-col z-50">
       <CardHeader className="border-b bg-gradient-to-r from-blue-600 to-cyan-600 text-white p-4 flex-shrink-0">
@@ -152,14 +162,27 @@ export default function AIAssistant({ buildingId, onClose }) {
             <Sparkles className="h-5 w-5" />
             AI Assistant
           </CardTitle>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={onClose}
-            className="text-white hover:bg-white/20"
-          >
-            <X className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-1">
+            {messages.length > 1 && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleClearChat}
+                className="text-white hover:bg-white/20"
+                title="Clear chat"
+              >
+                <RotateCcw className="h-4 w-4" />
+              </Button>
+            )}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={onClose}
+              className="text-white hover:bg-white/20"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </CardHeader>
 
