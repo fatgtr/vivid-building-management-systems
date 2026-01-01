@@ -47,6 +47,7 @@ import LiftRegistrationExtractor from './LiftRegistrationExtractor';
 import GenericAssetExtractor from './GenericAssetExtractor';
 import BylawsExtractor from './BylawsExtractor';
 import StrataManagementStatementExtractor from './StrataManagementStatementExtractor';
+import AIDocumentUploadCard from './AIDocumentUploadCard';
 import {
   Dialog,
   DialogContent,
@@ -214,12 +215,11 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
     },
   });
 
-  const handleFileSelect = (e, category, label) => {
-    const file = e.target.files?.[0];
+  const handleFileSelect = (file, category, label) => {
     if (!file) return;
 
-    if (file.type !== 'application/pdf') {
-      toast.error('Please select a PDF file');
+    if (file.type !== 'application/pdf' && !file.type.startsWith('image/')) {
+      toast.error('Please select a PDF or image file');
       return;
     }
 
@@ -369,66 +369,35 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
         </TabsList>
 
         <TabsContent value="specialized" className="space-y-6 mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {documentTypes.map((docType) => {
           const Icon = docType.icon;
           const docs = getDocumentsForCategory(docType.category);
           const isUploading = uploadingType === docType.category;
-          const colorClass = colorClasses[docType.color] || colorClasses.slate;
 
           return (
-            <Card key={docType.category} className="border-2 hover:shadow-md transition-shadow">
-              <CardHeader className={`pb-3 ${colorClass} border-b-2`}>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2">
-                    <Icon className="h-5 w-5" />
-                    <CardTitle className="text-base">{docType.label}</CardTitle>
-                  </div>
-                  {docs.length > 0 && (
-                    <Badge variant="secondary" className="text-xs">
-                      {docs.length}
-                    </Badge>
-                  )}
-                </div>
-                <CardDescription className="text-xs mt-1">
-                  {docType.description}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-4 space-y-3">
-                {docs.length === 0 && (
-                  <div className="border-2 border-dashed border-slate-200 rounded-lg p-6 text-center">
-                    <input
-                      type="file"
-                      accept="application/pdf"
-                      onChange={(e) => handleFileSelect(e, docType.category, docType.label)}
-                      className="hidden"
-                      id={`upload-${docType.category}`}
-                      disabled={isUploading}
-                    />
-                    <label htmlFor={`upload-${docType.category}`} className="cursor-pointer">
-                      <div className="flex flex-col items-center gap-3">
-                        <div className={`w-12 h-12 rounded-full ${colorClass} flex items-center justify-center`}>
-                          <Icon className="h-6 w-6" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-slate-700">
-                            {isUploading ? 'Uploading...' : `Click to upload ${docType.label.toLowerCase()}`}
-                          </p>
-                          <p className="text-sm text-slate-500 mt-1">
-                            PDF format only
-                          </p>
-                        </div>
-                      </div>
-                    </label>
-                  </div>
-                )}
-
-                {docType.hasAI && docs.length === 0 && (
-                  <Alert className="border-blue-200 bg-blue-50">
-                    <AlertCircle className="h-4 w-4 text-blue-600" />
-                    <AlertDescription className="text-sm text-slate-700">
-                      The AI will extract:
-                      <ul className="list-disc list-inside mt-2 space-y-1">
+            <AIDocumentUploadCard
+              key={docType.category}
+              title={docType.label}
+              description={docType.description}
+              icon={Icon}
+              color={docType.color}
+              onFileSelect={(file) => handleFileSelect(file, docType.category, docType.label)}
+              uploading={isUploading}
+              acceptedFormats=".pdf,.jpg,.jpeg,.png"
+            />
+          );
+        })}
+          </div>
+          
+          {/* AI Extraction Info */}
+          <Card className="border-blue-200 bg-blue-50">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="space-y-2 text-sm text-slate-700">
+                  <p className="font-semibold">AI will automatically extract:</p>
+                  <ul className="list-disc list-inside space-y-1">
                         {docType.category === 'subdivision_plan' && (
                           <>
                             <li>Building details and strata plan number</li>
@@ -634,110 +603,20 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
                             <li>Create asset register entries</li>
                           </>
                         )}
-                        {docType.category.startsWith('documentation') && (
-                          <>
-                            <li>Asset registers and schedules</li>
-                            <li>Certificates, warranties, and manuals</li>
-                            <li>Compliance records and documentation</li>
-                            <li>Link and categorize documents</li>
-                          </>
-                        )}
-                        </ul>
-                        </AlertDescription>
-                        </Alert>
-                        )}
-
-                {docs.length > 0 && (
-                  <>
-                    <input
-                      type="file"
-                      accept="application/pdf"
-                      onChange={(e) => handleFileSelect(e, docType.category, docType.label)}
-                      className="hidden"
-                      id={`upload-${docType.category}`}
-                      disabled={isUploading}
-                    />
-                    <label htmlFor={`upload-${docType.category}`}>
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        disabled={isUploading}
-                        asChild
-                      >
-                        <div className="cursor-pointer">
-                          {isUploading ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Uploading...
-                            </>
-                          ) : (
-                            <>
-                              <Upload className="h-4 w-4 mr-2" />
-                              Upload Another
-                            </>
-                          )}
-                        </div>
-                      </Button>
-                    </label>
-                  </>
-                )}
-
-                {docs.length > 0 && (
-                  <div className="space-y-2">
-                    {docs.map((doc) => (
-                      <div
-                        key={doc.id}
-                        className="flex items-center justify-between p-2 bg-slate-50 rounded border"
-                      >
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <FileText className="h-4 w-4 text-slate-400 flex-shrink-0" />
-                          <span className="text-xs text-slate-700 truncate">
-                            {doc.title}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          {docType.hasAI && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-blue-600 hover:text-blue-700"
-                              onClick={() => {
-                                setUploadedFileUrl(doc.file_url);
-                                setSelectedDocumentId(doc.id);
-                                setCurrentAIType(docType.category);
-                                setAiDialogOpen(true);
-                              }}
-                              title="Analyze with AI"
-                            >
-                              <Sparkles className="h-3 w-3" />
-                            </Button>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={() => window.open(doc.file_url, '_blank')}
-                          >
-                            <Download className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-red-600 hover:text-red-700"
-                            onClick={() => setDeleteDoc(doc)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
-          </div>
+                    <li>Subdivision plans: Building details, easements, lot-to-unit mapping, common areas</li>
+                    <li>Strata rolls: Unit/lot info, owner contacts, investor details, occupancy</li>
+                    <li>Bylaws: Rules, restrictions, policies, amendments</li>
+                    <li>Strata statements: Management structure, levies, responsibilities</li>
+                    <li>AFSS: Fire equipment, compliance dates, auto-schedules</li>
+                    <li>As-built plans: Asset registers, maintenance schedules</li>
+                    <li>Lift registrations: Asset details, expiry tracking, reminders</li>
+                    <li>All asset categories: Equipment details, service records</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
         </TabsContent>
 
         <TabsContent value="general" className="space-y-6 mt-6">
