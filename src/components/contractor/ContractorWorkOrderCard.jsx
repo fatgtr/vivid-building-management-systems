@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import StatusBadge from '@/components/common/StatusBadge';
 import ContractorWorkOrderDetail from '@/components/contractor/ContractorWorkOrderDetail';
-import { Building2, MapPin, Calendar, DollarSign, ChevronRight } from 'lucide-react';
+import { Building2, MapPin, Calendar, DollarSign, ChevronRight, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 
 const categoryIcons = {
@@ -74,6 +74,20 @@ export default function ContractorWorkOrderCard({ workOrder, onGenerateBid }) {
                   )}
                 </div>
                 <p className="text-slate-600 text-sm line-clamp-2">{workOrder.description}</p>
+                {onGenerateBid && !['completed', 'cancelled'].includes(workOrder.status) && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onGenerateBid(workOrder);
+                    }}
+                    className="mt-3 border-blue-200 text-blue-600 hover:bg-blue-50"
+                  >
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Generate AI Bid Proposal
+                  </Button>
+                )}
               </div>
             </div>
             <Button variant="ghost" size="icon" onClick={() => setShowDetail(true)}>
