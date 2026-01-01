@@ -47,6 +47,7 @@ import LiftRegistrationExtractor from './LiftRegistrationExtractor';
 import GenericAssetExtractor from './GenericAssetExtractor';
 import BylawsExtractor from './BylawsExtractor';
 import StrataManagementStatementExtractor from './StrataManagementStatementExtractor';
+import CleaningScheduleExtractor from './CleaningScheduleExtractor';
 import AIDocumentUploadCard from './AIDocumentUploadCard';
 import {
   Dialog,
@@ -72,7 +73,7 @@ const specificDocumentTypes = [
     category: 'subdivision_plan',
     label: 'Subdivision Plan',
     icon: MapPin,
-    description: 'Extract unit/lot information and property details',
+    description: 'Extract unit/lot information, property details, PT numbers, easements, and common areas',
     color: 'indigo',
     hasAI: true,
   },
@@ -80,7 +81,7 @@ const specificDocumentTypes = [
     category: 'strata_roll',
     label: 'Strata Roll',
     icon: Users,
-    description: 'Populate resident and owner information',
+    description: 'Populate resident and owner information, contact details, investor data, and occupancy status',
     color: 'blue',
     hasAI: true,
   },
@@ -88,7 +89,7 @@ const specificDocumentTypes = [
     category: 'bylaws',
     label: 'Bylaws',
     icon: Scale,
-    description: 'Extract building rules, restrictions, and amendments',
+    description: 'Extract building rules, restrictions, policies, pet/parking guidelines, and amendment history',
     color: 'emerald',
     hasAI: true,
   },
@@ -96,8 +97,16 @@ const specificDocumentTypes = [
     category: 'strata_management_statement',
     label: 'Strata Management Statement',
     icon: FileCheck,
-    description: 'Extract management structure, duties, and levies',
+    description: 'Extract management structure, committee duties, levies, service contracts, and financial reporting',
     color: 'violet',
+    hasAI: true,
+  },
+  {
+    category: 'cleaning_schedule',
+    label: 'Cleaning Schedule',
+    icon: Zap,
+    description: 'Extract cleaning contractor schedules and auto-create recurring maintenance schedules',
+    color: 'cyan',
     hasAI: true,
   },
 ];
@@ -847,11 +856,23 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
             />
           )}
 
+          {/* Cleaning Schedule Extractor */}
+          {currentAIType === 'cleaning_schedule' && uploadedFileUrl && (
+            <CleaningScheduleExtractor
+              buildingId={buildingId}
+              fileUrl={uploadedFileUrl}
+              onComplete={() => {
+                handleCloseAIDialog();
+                queryClient.invalidateQueries({ queryKey: ['maintenanceSchedules'] });
+              }}
+            />
+          )}
+
           {/* Generic Asset Extractor for all other asset categories */}
           {currentAIType && 
            !['subdivision_plan', 'strata_roll', 'bylaws', 'strata_management_statement', 
              'afss_documentation', 'as_built_electrical', 'as_built_mechanical', 
-             'as_built_plumbing', 'lift_plant_registration'].includes(currentAIType) && 
+             'as_built_plumbing', 'lift_plant_registration', 'cleaning_schedule'].includes(currentAIType) && 
            uploadedFileUrl && (
             <GenericAssetExtractor
               buildingId={buildingId}
