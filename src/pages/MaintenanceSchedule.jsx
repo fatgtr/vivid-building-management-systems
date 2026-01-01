@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,13 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
-import ComplianceReportDialog from '@/components/assets/ComplianceReportDialog';
-import { Calendar, Search, Building2, MoreVertical, Pencil, Trash2, Eye, Upload, X, FileText, Image as ImageIcon, Sparkles, Loader2, AlertCircle, FileBarChart } from 'lucide-react';
+import { Calendar, Search, Building2, MoreVertical, Pencil, Trash2, Play, Pause, Repeat, HardHat, CheckCircle, Sparkles, Loader2, AlertCircle, X, FileText, Clock } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,15 +31,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { format } from 'date-fns';
+import { useBuildingContext } from '@/components/BuildingContext';
+import { toast } from 'sonner';
 
 const initialFormState = {
   building_id: '',
@@ -53,29 +46,31 @@ const initialFormState = {
   assigned_contractor_type: '',
   asset_id: '',
   status: 'active',
-  notes: '',
+  notes: ''
 };
 
 export default function MaintenanceSchedule() {
+  const { selectedBuildingId } = useBuildingContext();
   const [showDialog, setShowDialog] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState(null);
   const [formData, setFormData] = useState(initialFormState);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('active');
+  const [filterRecurrence, setFilterRecurrence] = useState('all');
+  const [filterContractorType, setFilterContractorType] = useState('all');
   const [deleteSchedule, setDeleteSchedule] = useState(null);
-  const [viewingSchedule, setViewingSchedule] = useState(null);
   const [uploadingFiles, setUploadingFiles] = useState(false);
   const [selectedDocuments, setSelectedDocuments] = useState([]);
-  const [selectedPhotos, setSelectedPhotos] = useState([]);
   const [generatingSchedules, setGeneratingSchedules] = useState(false);
   const [aiResults, setAiResults] = useState(null);
-  const [complianceReportAsset, setComplianceReportAsset] = useState(null);
 
   const queryClient = useQueryClient();
 
   const { data: schedules = [], isLoading } = useQuery({
-    queryKey: ['maintenanceSchedules'],
-    queryFn: () => base44.entities.MaintenanceSchedule.list('-created_date'),
+    queryKey: ['maintenanceSchedules', selectedBuildingId],
+    queryFn: () => selectedBuildingId 
+      ? base44.entities.MaintenanceSchedule.filter({ building_id: selectedBuildingId })
+      : base44.entities.MaintenanceSchedule.list()
   });
 
   const { data: buildings = [] } = useQuery({
@@ -89,8 +84,8 @@ export default function MaintenanceSchedule() {
   });
 
   const { data: assets = [] } = useQuery({
-    queryKey: ['assets'],
-    queryFn: () => base44.entities.Asset.list(),
+    queryKey: ['assets', selectedBuildingId],
+    queryFn: () => selectedBuildingId ? base44.entities.Asset.filter({ building_id: selectedBuildingId }) : [],
   });
 
   const createMutation = useMutation({
@@ -98,7 +93,11 @@ export default function MaintenanceSchedule() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['maintenanceSchedules'] });
       handleCloseDialog();
+      toast.success('Maintenance schedule created!');
     },
+    onError: (error) => {
+      toast.error('Failed to create: ' + error.message);
+    }
   });
 
   const updateMutation = useMutation({
@@ -106,8 +105,11 @@ export default function MaintenanceSchedule() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['maintenanceSchedules'] });
       handleCloseDialog();
-      setViewingSchedule(null);
+      toast.success('Schedule updated!');
     },
+    onError: (error) => {
+      toast.error('Failed to update: ' + error.message);
+    }
   });
 
   const deleteMutation = useMutation({
@@ -115,6 +117,21 @@ export default function MaintenanceSchedule() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['maintenanceSchedules'] });
       setDeleteSchedule(null);
+      toast.success('Schedule deleted!');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete: ' + error.message);
+    }
+  });
+
+  const toggleStatusMutation = useMutation({
+    mutationFn: ({ id, status }) => {
+      const newStatus = status === 'active' ? 'inactive' : 'active';
+      return base44.entities.MaintenanceSchedule.update(id, { status: newStatus });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['maintenanceSchedules'] });
+      toast.success('Status updated!');
     },
   });
 
@@ -123,7 +140,6 @@ export default function MaintenanceSchedule() {
     setEditingSchedule(null);
     setFormData(initialFormState);
     setSelectedDocuments([]);
-    setSelectedPhotos([]);
   };
 
   const handleEdit = (schedule) => {
@@ -142,7 +158,6 @@ export default function MaintenanceSchedule() {
       notes: schedule.notes || '',
     });
     setSelectedDocuments([]);
-    setSelectedPhotos([]);
     setShowDialog(true);
   };
 
@@ -152,7 +167,6 @@ export default function MaintenanceSchedule() {
 
     try {
       let documentUrls = [];
-      let photoUrls = [];
 
       if (selectedDocuments.length > 0) {
         const docUploads = await Promise.all(
@@ -161,26 +175,19 @@ export default function MaintenanceSchedule() {
         documentUrls = docUploads.map(r => r.file_url);
       }
 
-      if (selectedPhotos.length > 0) {
-        const photoUploads = await Promise.all(
-          selectedPhotos.map(file => base44.integrations.Core.UploadFile({ file }))
-        );
-        photoUrls = photoUploads.map(r => r.file_url);
-      }
-
       const data = {
         ...formData,
         documents: documentUrls.length > 0 ? documentUrls : (editingSchedule?.documents || []),
-        next_due_date: formData.next_due_date || formData.scheduled_date,
+        next_due_date: formData.scheduled_date,
       };
 
       if (editingSchedule) {
-        updateMutation.mutate({ id: editingSchedule.id, data });
+        await updateMutation.mutateAsync({ id: editingSchedule.id, data });
       } else {
-        createMutation.mutate(data);
+        await createMutation.mutateAsync(data);
       }
     } catch (error) {
-      console.error('Upload failed:', error);
+      console.error('Operation failed:', error);
     } finally {
       setUploadingFiles(false);
     }
@@ -191,17 +198,8 @@ export default function MaintenanceSchedule() {
     setSelectedDocuments([...selectedDocuments, ...files]);
   };
 
-  const handlePhotoSelect = (e) => {
-    const files = Array.from(e.target.files || []);
-    setSelectedPhotos([...selectedPhotos, ...files]);
-  };
-
   const removeDocument = (index) => {
     setSelectedDocuments(selectedDocuments.filter((_, i) => i !== index));
-  };
-
-  const removePhoto = (index) => {
-    setSelectedPhotos(selectedPhotos.filter((_, i) => i !== index));
   };
 
   const getBuildingName = (buildingId) => buildings.find(b => b.id === buildingId)?.name || 'Unknown';
@@ -216,20 +214,22 @@ export default function MaintenanceSchedule() {
   };
   const getAssetName = (assetId) => assets.find(a => a.id === assetId)?.name || '';
 
-  const generateAISchedules = async (buildingId = null) => {
+  const generateAISchedules = async () => {
     setGeneratingSchedules(true);
     setAiResults(null);
     
     try {
       const { data } = await base44.functions.invoke('generateAssetMaintenanceSchedules', {
-        building_id: buildingId
+        building_id: selectedBuildingId
       });
       
       setAiResults(data);
       queryClient.invalidateQueries({ queryKey: ['maintenanceSchedules'] });
+      toast.success('AI generation complete!');
     } catch (error) {
       console.error('AI generation error:', error);
       setAiResults({ error: 'Failed to generate schedules', success: false });
+      toast.error('Generation failed');
     } finally {
       setGeneratingSchedules(false);
     }
@@ -237,15 +237,114 @@ export default function MaintenanceSchedule() {
 
   const filteredSchedules = schedules.filter(schedule => {
     const matchesSearch = schedule.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         schedule.description?.toLowerCase().includes(searchQuery.toLowerCase());
+                          schedule.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          getBuildingName(schedule.building_id).toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = filterStatus === 'all' || schedule.status === filterStatus;
-    return matchesSearch && matchesStatus;
+    const matchesRecurrence = filterRecurrence === 'all' || schedule.recurrence === filterRecurrence;
+    const matchesContractorType = filterContractorType === 'all' || schedule.assigned_contractor_type === filterContractorType;
+
+    return matchesSearch && matchesStatus && matchesRecurrence && matchesContractorType;
   });
+
+  const ScheduleCard = ({ schedule }) => (
+    <Card className="group border-0 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden">
+      <div className={`h-1.5 w-full ${
+        schedule.status === 'active' ? 'bg-gradient-to-r from-blue-500 to-blue-600' :
+        schedule.status === 'pending_assignment' ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
+        'bg-gradient-to-r from-green-500 to-green-600'
+      }`} />
+      <CardContent className="p-5">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <StatusBadge status={schedule.status} />
+            {schedule.recurrence !== 'none' && (
+              <Badge variant="outline" className="flex items-center gap-1 bg-purple-50 text-purple-700 border-purple-200">
+                <Repeat className="h-3 w-3" />
+                {schedule.recurrence}
+              </Badge>
+            )}
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 opacity-60 group-hover:opacity-100 transition-opacity">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleEdit(schedule)}>
+                <Pencil className="mr-2 h-4 w-4" /> Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => toggleStatusMutation.mutate({ 
+                id: schedule.id, 
+                status: schedule.status 
+              })}>
+                {schedule.status === 'active' ? (
+                  <><Pause className="h-4 w-4 mr-2" /> Pause</>
+                ) : (
+                  <><Play className="h-4 w-4 mr-2" /> Activate</>
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setDeleteSchedule(schedule)}
+                className="text-red-600"
+              >
+                <Trash2 className="mr-2 h-4 w-4" /> Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        <h3 className="font-bold text-lg text-slate-900 mb-2 line-clamp-2 group-hover:text-blue-700 transition-colors leading-tight">
+          {schedule.subject}
+        </h3>
+        <p className="text-sm text-slate-600 mb-4 line-clamp-2 leading-relaxed">
+          {schedule.description || 'No description'}
+        </p>
+
+        <div className="space-y-2.5 mb-4">
+          <div className="flex items-center gap-2 text-xs bg-slate-50 px-3 py-2 rounded-lg">
+            <Building2 className="h-3.5 w-3.5 text-slate-500 flex-shrink-0" />
+            <span className="text-slate-700 font-medium truncate">
+              {getBuildingName(schedule.building_id)}
+            </span>
+          </div>
+          
+          {schedule.next_due_date && (
+            <div className="flex items-center gap-2 text-xs bg-orange-50 px-3 py-2 rounded-lg">
+              <Calendar className="h-3.5 w-3.5 text-orange-600 flex-shrink-0" />
+              <span className="text-orange-700 font-medium">
+                Next Due {format(new Date(schedule.next_due_date), 'MMM d, yyyy')}
+              </span>
+            </div>
+          )}
+
+          <div className="flex items-center gap-2 text-xs bg-indigo-50 px-3 py-2 rounded-lg">
+            <HardHat className="h-3.5 w-3.5 text-indigo-600 flex-shrink-0" />
+            <span className="text-indigo-700 font-medium truncate">
+              {getContractorName(schedule)}
+            </span>
+          </div>
+        </div>
+
+        <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-xs text-slate-500">
+            <Clock className="h-3 w-3" />
+            <span>{schedule.created_date && format(new Date(schedule.created_date), 'MMM d, yyyy')}</span>
+          </div>
+          {schedule.task_ids?.length > 0 && (
+            <div className="flex items-center gap-1.5 text-xs text-slate-500">
+              <span>{schedule.task_ids.length} task{schedule.task_ids.length !== 1 ? 's' : ''}</span>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   if (isLoading) {
     return (
       <div className="space-y-8">
-        <PageHeader title="Maintenance Schedule" subtitle="Manage recurring maintenance events" />
+        <PageHeader title="Maintenance Schedules" subtitle="Manage recurring maintenance events" />
         <Skeleton className="h-96 rounded-xl" />
       </div>
     );
@@ -254,35 +353,32 @@ export default function MaintenanceSchedule() {
   return (
     <div className="space-y-6">
       <PageHeader 
-        title="Maintenance Schedule" 
-        subtitle={`${schedules.filter(s => s.status === 'active').length} active maintenance events`}
+        title="Maintenance Schedules" 
+        subtitle={`${schedules.filter(s => s.status === 'active').length} active schedules`}
+        action={() => setShowDialog(true)}
+        actionLabel="Create Schedule"
+        actionIcon={Calendar}
       >
-        <div className="flex gap-2">
-          <Button 
-            onClick={() => generateAISchedules()} 
-            variant="outline"
-            disabled={generatingSchedules}
-            className="gap-2"
-          >
-            {generatingSchedules ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Analyzing...
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-4 w-4" />
-                AI Generate
-              </>
-            )}
-          </Button>
-          <Button onClick={() => setShowDialog(true)}>
-            New Event
-          </Button>
-        </div>
+        <Button 
+          onClick={generateAISchedules} 
+          variant="outline"
+          disabled={generatingSchedules}
+          className="gap-2"
+        >
+          {generatingSchedules ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Analyzing...
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-4 w-4" />
+              AI Generate
+            </>
+          )}
+        </Button>
       </PageHeader>
 
-      {/* AI Results */}
       {aiResults && (
         <Card className={`border-2 ${aiResults.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
           <CardContent className="p-4">
@@ -334,87 +430,102 @@ export default function MaintenanceSchedule() {
         </Card>
       )}
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-4">
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input
-            placeholder="Search maintenance events..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <Tabs value={filterStatus} onValueChange={setFilterStatus} className="w-auto">
-          <TabsList>
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="completed">Completed</TabsTrigger>
+      <Tabs value={filterStatus} onValueChange={setFilterStatus} className="space-y-6">
+        <div className="flex flex-wrap gap-4 justify-between items-center">
+          <div className="relative flex-1 min-w-[200px] max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder="Search schedules..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <TabsList className="grid w-full sm:w-auto grid-cols-3">
+            <TabsTrigger value="active">Active ({schedules.filter(s => s.status === 'active').length})</TabsTrigger>
+            <TabsTrigger value="pending_assignment">Pending ({schedules.filter(s => s.status === 'pending_assignment').length})</TabsTrigger>
+            <TabsTrigger value="completed">Completed ({schedules.filter(s => s.status === 'completed').length})</TabsTrigger>
           </TabsList>
-        </Tabs>
-      </div>
+          <div className="flex flex-wrap gap-2">
+            <Select value={filterRecurrence} onValueChange={setFilterRecurrence}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Recurrence" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Recurrence</SelectItem>
+                <SelectItem value="none">One-time</SelectItem>
+                <SelectItem value="weekly">Weekly</SelectItem>
+                <SelectItem value="monthly">Monthly</SelectItem>
+                <SelectItem value="quarterly">Quarterly</SelectItem>
+                <SelectItem value="yearly">Yearly</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filterContractorType} onValueChange={setFilterContractorType}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="plumbing">Plumbing</SelectItem>
+                <SelectItem value="electrical">Electrical</SelectItem>
+                <SelectItem value="hvac">HVAC</SelectItem>
+                <SelectItem value="cleaning">Cleaning</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
-      {filteredSchedules.length === 0 ? (
-        <EmptyState
-          icon={Calendar}
-          title="No maintenance events found"
-          description="Create a maintenance schedule to track recurring maintenance tasks"
-          action={() => setShowDialog(true)}
-          actionLabel="Create Event"
-        />
-      ) : (
-        <Card className="border-0 shadow-sm">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Subject</TableHead>
-                <TableHead>Next Due</TableHead>
-                <TableHead>Recurrence</TableHead>
-                <TableHead>Contractor</TableHead>
-                <TableHead>Asset</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredSchedules.map((schedule) => (
-                <TableRow key={schedule.id}>
-                  <TableCell className="font-medium">{schedule.subject}</TableCell>
-                  <TableCell>
-                    {(schedule.next_due_date || schedule.scheduled_date) && 
-                      format(new Date(schedule.next_due_date || schedule.scheduled_date), 'MMM d, yyyy')}
-                  </TableCell>
-                  <TableCell className="capitalize">{schedule.recurrence?.replace(/_/g, ' ')}</TableCell>
-                  <TableCell>{getContractorName(schedule)}</TableCell>
-                  <TableCell>{getAssetName(schedule.asset_id) || '-'}</TableCell>
-                  <TableCell>
-                    <StatusBadge status={schedule.status} />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(schedule)}>
-                          <Pencil className="mr-2 h-4 w-4" /> Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setDeleteSchedule(schedule)} className="text-red-600">
-                          <Trash2 className="mr-2 h-4 w-4" /> Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
+        <TabsContent value="active" className="space-y-4">
+          {filteredSchedules.filter(s => s.status === 'active').length === 0 ? (
+            <EmptyState
+              icon={Calendar}
+              title="No active schedules"
+              description="Create a new maintenance schedule to get started."
+              action={() => setShowDialog(true)}
+              actionLabel="Create Schedule"
+            />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredSchedules.filter(s => s.status === 'active').map((schedule) => (
+                <ScheduleCard key={schedule.id} schedule={schedule} />
               ))}
-            </TableBody>
-          </Table>
-        </Card>
-      )}
+            </div>
+          )}
+        </TabsContent>
 
-      {/* Add/Edit Dialog */}
+        <TabsContent value="pending_assignment" className="space-y-4">
+          {filteredSchedules.filter(s => s.status === 'pending_assignment').length === 0 ? (
+            <EmptyState
+              icon={HardHat}
+              title="No pending assignments"
+              description="Schedules with pending contractor assignments will appear here."
+            />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredSchedules.filter(s => s.status === 'pending_assignment').map((schedule) => (
+                <ScheduleCard key={schedule.id} schedule={schedule} />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="completed" className="space-y-4">
+          {filteredSchedules.filter(s => s.status === 'completed').length === 0 ? (
+            <EmptyState
+              icon={CheckCircle}
+              title="No completed schedules"
+              description="Completed maintenance schedules will appear here."
+            />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredSchedules.filter(s => s.status === 'completed').map((schedule) => (
+                <ScheduleCard key={schedule.id} schedule={schedule} />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -579,7 +690,6 @@ export default function MaintenanceSchedule() {
                 />
               </div>
 
-              {/* Documents Upload */}
               <div className="md:col-span-2">
                 <Label>Documents (Optional)</Label>
                 <div className="mt-2">
@@ -626,7 +736,6 @@ export default function MaintenanceSchedule() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
       <AlertDialog open={!!deleteSchedule} onOpenChange={() => setDeleteSchedule(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -643,8 +752,6 @@ export default function MaintenanceSchedule() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-
     </div>
   );
 }

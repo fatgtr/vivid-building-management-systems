@@ -6,6 +6,7 @@ import Buildings from './pages/Buildings';
 import CapitalWorksPlanning from './pages/CapitalWorksPlanning';
 import Communications from './pages/Communications';
 import ContractorPortal from './pages/ContractorPortal';
+import ContractorSignup from './pages/ContractorSignup';
 import Contractors from './pages/Contractors';
 import Dashboard from './pages/Dashboard';
 import Documents from './pages/Documents';
@@ -29,11 +30,10 @@ import Settings from './pages/Settings';
 import SmartDevices from './pages/SmartDevices';
 import StrataKnowledgeBase from './pages/StrataKnowledgeBase';
 import TaskManagement from './pages/TaskManagement';
+import VerifyContractor from './pages/VerifyContractor';
 import Visitors from './pages/Visitors';
 import VividStaffManagement from './pages/VividStaffManagement';
 import WorkOrders from './pages/WorkOrders';
-import ContractorSignup from './pages/ContractorSignup';
-import VerifyContractor from './pages/VerifyContractor';
 import __Layout from './Layout.jsx';
 
 
@@ -46,6 +46,7 @@ export const PAGES = {
     "CapitalWorksPlanning": CapitalWorksPlanning,
     "Communications": Communications,
     "ContractorPortal": ContractorPortal,
+    "ContractorSignup": ContractorSignup,
     "Contractors": Contractors,
     "Dashboard": Dashboard,
     "Documents": Documents,
@@ -69,11 +70,10 @@ export const PAGES = {
     "SmartDevices": SmartDevices,
     "StrataKnowledgeBase": StrataKnowledgeBase,
     "TaskManagement": TaskManagement,
+    "VerifyContractor": VerifyContractor,
     "Visitors": Visitors,
     "VividStaffManagement": VividStaffManagement,
     "WorkOrders": WorkOrders,
-    "ContractorSignup": ContractorSignup,
-    "VerifyContractor": VerifyContractor,
 }
 
 export const pagesConfig = {
