@@ -22,7 +22,7 @@ const categoryIcons = {
   other: '📋'
 };
 
-export default function ContractorWorkOrderCard({ workOrder }) {
+export default function ContractorWorkOrderCard({ workOrder, onGenerateBid }) {
   const [showDetail, setShowDetail] = useState(false);
 
   const { data: buildings = [] } = useQuery({

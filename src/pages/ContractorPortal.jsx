@@ -14,6 +14,7 @@ import { Wrench, FileText, Clock, CheckCircle, Shield, ListTodo } from 'lucide-r
 export default function ContractorPortal() {
   const [user, setUser] = useState(null);
   const [contractor, setContractor] = useState(null);
+  const [showBidGenerator, setShowBidGenerator] = useState(null);
 
   useEffect(() => {
     base44.auth.me().then(async (userData) => {
