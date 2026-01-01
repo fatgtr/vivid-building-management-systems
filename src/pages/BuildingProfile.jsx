@@ -12,7 +12,7 @@ import PageHeader from '@/components/common/PageHeader';
 import StatusBadge from '@/components/common/StatusBadge';
 import BuildingDocumentManager from '@/components/buildings/BuildingDocumentManager';
 import ReportGenerator from '@/components/buildings/ReportGenerator';
-import CleaningScheduleUploader from '@/components/buildings/CleaningScheduleUploader';
+
 import { 
   Building2, 
   MapPin, 
@@ -298,9 +298,6 @@ export default function BuildingProfile() {
         </TabsContent>
 
         <TabsContent value="documents" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <CleaningScheduleUploader buildingId={buildingId} />
-          </div>
           <BuildingDocumentManager buildingId={buildingId} buildingName={building.name} />
         </TabsContent>
 
