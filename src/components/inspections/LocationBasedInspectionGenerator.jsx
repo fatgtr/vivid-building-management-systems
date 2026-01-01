@@ -59,48 +59,30 @@ export default function LocationBasedInspectionGenerator({ buildingId, buildingN
 
   const createInspectionMutation = useMutation({
     mutationFn: async (locationData) => {
-      const inspections = [];
+      // Create a single comprehensive inspection for all selected locations
+      const allAssets = selectedLocations.flatMap(loc => assetsByLocation[loc]);
       
-      for (const location of selectedLocations) {
-        const locationAssets = assetsByLocation[location];
-        
-        // Create detailed checklist for this location
-        const checklist = locationAssets.map(asset => {
-          const category = ASSET_CATEGORIES[asset.asset_main_category];
-          return {
-            asset_id: asset.id,
-            asset_name: asset.name,
-            asset_type: asset.asset_type,
-            category: asset.asset_main_category,
-            subcategory: asset.asset_subcategory,
-            location: asset.location,
-            identifier: asset.identifier,
-            last_service: asset.last_service_date,
-          };
-        });
+      const inspection = await base44.entities.Inspection.create({
+        building_id: buildingId,
+        title: `Building Inspection - ${selectedLocations.length} Location${selectedLocations.length > 1 ? 's' : ''}`,
+        inspection_type: 'general',
+        scheduled_date: new Date().toISOString().split('T')[0],
+        status: 'scheduled',
+        findings: `Inspection covers: ${selectedLocations.join(', ')}\n\nTotal assets: ${allAssets.length}`,
+        recommendations: 'Complete visual inspection of all listed locations and assets. Document any defects, maintenance needs, or safety concerns using photos, videos, and voice notes.',
+      });
 
-        const inspection = await base44.entities.Inspection.create({
-          building_id: buildingId,
-          title: `Location Inspection: ${location}`,
-          inspection_type: 'general',
-          scheduled_date: new Date().toISOString().split('T')[0],
-          status: 'scheduled',
-          findings: `Inspection checklist for ${location}\n\nAssets to inspect:\n${checklist.map(item => `- ${item.asset_name} (${item.asset_type})`).join('\n')}`,
-          recommendations: 'Complete visual inspection of all listed assets and document any defects, maintenance needs, or safety concerns.',
-        });
-
-        inspections.push(inspection);
-      }
-
-      return inspections;
+      return inspection;
     },
-    onSuccess: (inspections) => {
+    onSuccess: (inspection) => {
       queryClient.invalidateQueries({ queryKey: ['inspections'] });
-      toast.success(`Created ${inspections.length} location-based inspection${inspections.length > 1 ? 's' : ''}`);
+      toast.success(`Created inspection with ${selectedLocations.length} locations`);
       setSelectedLocations([]);
+      // You can navigate to the inspection conductor here if needed
+      window.location.href = `/inspections?id=${inspection.id}&conduct=true`;
     },
     onError: (error) => {
-      toast.error('Failed to create inspections: ' + error.message);
+      toast.error('Failed to create inspection: ' + error.message);
     }
   });
 
