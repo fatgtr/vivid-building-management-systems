@@ -34,7 +34,6 @@ import VividStaffManagement from './pages/VividStaffManagement';
 import WorkOrders from './pages/WorkOrders';
 import ContractorSignup from './pages/ContractorSignup';
 import VerifyContractor from './pages/VerifyContractor';
-import MaintenanceSchedules from './pages/MaintenanceSchedules';
 import __Layout from './Layout.jsx';
 
 
@@ -75,7 +74,6 @@ export const PAGES = {
     "WorkOrders": WorkOrders,
     "ContractorSignup": ContractorSignup,
     "VerifyContractor": VerifyContractor,
-    "MaintenanceSchedules": MaintenanceSchedules,
 }
 
 export const pagesConfig = {

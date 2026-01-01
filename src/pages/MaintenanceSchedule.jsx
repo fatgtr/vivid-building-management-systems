@@ -46,17 +46,14 @@ const initialFormState = {
   building_id: '',
   subject: '',
   description: '',
-  event_start: '',
-  event_end: '',
-  recurrence: 'one_time',
-  contractor_id: '',
-  contractor_name: '',
-  asset: '',
-  job_area: '',
-  assigned_to: '',
-  auto_send_email: false,
-  never_expire: false,
+  scheduled_date: '',
+  recurrence: 'none',
+  recurrence_end_date: '',
+  assigned_contractor_id: '',
+  assigned_contractor_type: '',
+  asset_id: '',
   status: 'active',
+  notes: '',
 };
 
 export default function MaintenanceSchedule() {
@@ -135,17 +132,14 @@ export default function MaintenanceSchedule() {
       building_id: schedule.building_id || '',
       subject: schedule.subject || '',
       description: schedule.description || '',
-      event_start: schedule.event_start || '',
-      event_end: schedule.event_end || '',
-      recurrence: schedule.recurrence || 'one_time',
-      contractor_id: schedule.contractor_id || '',
-      contractor_name: schedule.contractor_name || '',
-      asset: schedule.asset || '',
-      job_area: schedule.job_area || '',
-      assigned_to: schedule.assigned_to || '',
-      auto_send_email: schedule.auto_send_email || false,
-      never_expire: schedule.never_expire || false,
+      scheduled_date: schedule.scheduled_date || schedule.next_due_date || '',
+      recurrence: schedule.recurrence || 'none',
+      recurrence_end_date: schedule.recurrence_end_date || '',
+      assigned_contractor_id: schedule.assigned_contractor_id || '',
+      assigned_contractor_type: schedule.assigned_contractor_type || '',
+      asset_id: schedule.asset_id || '',
       status: schedule.status || 'active',
+      notes: schedule.notes || '',
     });
     setSelectedDocuments([]);
     setSelectedPhotos([]);
@@ -176,8 +170,8 @@ export default function MaintenanceSchedule() {
 
       const data = {
         ...formData,
-        documents: documentUrls.length > 0 ? documentUrls : undefined,
-        photos: photoUrls.length > 0 ? photoUrls : undefined,
+        documents: documentUrls.length > 0 ? documentUrls : (editingSchedule?.documents || []),
+        next_due_date: formData.next_due_date || formData.scheduled_date,
       };
 
       if (editingSchedule) {
@@ -211,7 +205,16 @@ export default function MaintenanceSchedule() {
   };
 
   const getBuildingName = (buildingId) => buildings.find(b => b.id === buildingId)?.name || 'Unknown';
-  const getContractorName = (contractorId) => contractors.find(c => c.id === contractorId)?.company_name || '';
+  const getContractorName = (schedule) => {
+    if (schedule.assigned_contractor_id) {
+      return contractors.find(c => c.id === schedule.assigned_contractor_id)?.company_name || 'Unknown';
+    }
+    if (schedule.assigned_contractor_type) {
+      return `Any ${schedule.assigned_contractor_type.replace(/_/g, ' ')}`;
+    }
+    return 'Not assigned';
+  };
+  const getAssetName = (assetId) => assets.find(a => a.id === assetId)?.name || '';
 
   const generateAISchedules = async (buildingId = null) => {
     setGeneratingSchedules(true);
@@ -365,12 +368,11 @@ export default function MaintenanceSchedule() {
             <TableHeader>
               <TableRow>
                 <TableHead>Subject</TableHead>
-                <TableHead>Event Start</TableHead>
-                <TableHead>Event End</TableHead>
+                <TableHead>Next Due</TableHead>
                 <TableHead>Recurrence</TableHead>
                 <TableHead>Contractor</TableHead>
                 <TableHead>Asset</TableHead>
-                <TableHead>Auto Email</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -378,13 +380,15 @@ export default function MaintenanceSchedule() {
               {filteredSchedules.map((schedule) => (
                 <TableRow key={schedule.id}>
                   <TableCell className="font-medium">{schedule.subject}</TableCell>
-                  <TableCell>{schedule.event_start && format(new Date(schedule.event_start), 'MMM d, yyyy')}</TableCell>
-                  <TableCell>{schedule.event_end ? format(new Date(schedule.event_end), 'MMM d, yyyy') : 'Never Expires'}</TableCell>
-                  <TableCell className="capitalize">{schedule.recurrence?.replace(/_/g, ' ')}</TableCell>
-                  <TableCell>{schedule.contractor_name || getContractorName(schedule.contractor_id)}</TableCell>
-                  <TableCell>{schedule.asset || '-'}</TableCell>
                   <TableCell>
-                    <StatusBadge status={schedule.auto_send_email ? 'active' : 'inactive'} />
+                    {(schedule.next_due_date || schedule.scheduled_date) && 
+                      format(new Date(schedule.next_due_date || schedule.scheduled_date), 'MMM d, yyyy')}
+                  </TableCell>
+                  <TableCell className="capitalize">{schedule.recurrence?.replace(/_/g, ' ')}</TableCell>
+                  <TableCell>{getContractorName(schedule)}</TableCell>
+                  <TableCell>{getAssetName(schedule.asset_id) || '-'}</TableCell>
+                  <TableCell>
+                    <StatusBadge status={schedule.status} />
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -394,23 +398,9 @@ export default function MaintenanceSchedule() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setViewingSchedule(schedule)}>
-                          <Eye className="mr-2 h-4 w-4" /> View Details
-                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleEdit(schedule)}>
                           <Pencil className="mr-2 h-4 w-4" /> Edit
                         </DropdownMenuItem>
-                        {schedule.asset && (() => {
-                          const asset = assets.find(a => a.name === schedule.asset);
-                          if (asset) {
-                            return (
-                              <DropdownMenuItem onClick={() => setComplianceReportAsset(asset)}>
-                                <FileBarChart className="mr-2 h-4 w-4" /> Compliance Report
-                              </DropdownMenuItem>
-                            );
-                          }
-                          return null;
-                        })()}
                         <DropdownMenuItem onClick={() => setDeleteSchedule(schedule)} className="text-red-600">
                           <Trash2 className="mr-2 h-4 w-4" /> Delete
                         </DropdownMenuItem>
@@ -438,7 +428,7 @@ export default function MaintenanceSchedule() {
                   id="subject"
                   value={formData.subject}
                   onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                  placeholder="AC - System maintenance"
+                  placeholder="e.g., Quarterly HVAC Inspection"
                   required
                 />
               </div>
@@ -458,24 +448,13 @@ export default function MaintenanceSchedule() {
               </div>
 
               <div>
-                <Label htmlFor="event_start">Event Start *</Label>
+                <Label htmlFor="scheduled_date">Scheduled Date *</Label>
                 <Input
-                  id="event_start"
+                  id="scheduled_date"
                   type="date"
-                  value={formData.event_start}
-                  onChange={(e) => setFormData({ ...formData, event_start: e.target.value })}
+                  value={formData.scheduled_date}
+                  onChange={(e) => setFormData({ ...formData, scheduled_date: e.target.value })}
                   required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="event_end">Event End</Label>
-                <Input
-                  id="event_end"
-                  type="date"
-                  value={formData.event_end}
-                  onChange={(e) => setFormData({ ...formData, event_end: e.target.value })}
-                  disabled={formData.never_expire}
                 />
               </div>
 
@@ -486,61 +465,96 @@ export default function MaintenanceSchedule() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="one_time">One Time</SelectItem>
+                    <SelectItem value="none">One-time</SelectItem>
+                    <SelectItem value="daily">Daily</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
                     <SelectItem value="monthly">Monthly</SelectItem>
-                    <SelectItem value="bi_monthly">Bi Monthly</SelectItem>
                     <SelectItem value="quarterly">Quarterly</SelectItem>
-                    <SelectItem value="half_yearly">Half Yearly</SelectItem>
+                    <SelectItem value="half_yearly">Half-Yearly</SelectItem>
                     <SelectItem value="yearly">Yearly</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
+              {formData.recurrence !== 'none' && (
+                <div className="md:col-span-2">
+                  <Label htmlFor="recurrence_end_date">Recurrence End Date (Optional)</Label>
+                  <Input
+                    id="recurrence_end_date"
+                    type="date"
+                    value={formData.recurrence_end_date}
+                    onChange={(e) => setFormData({ ...formData, recurrence_end_date: e.target.value })}
+                  />
+                </div>
+              )}
+
               <div>
-                <Label htmlFor="contractor_id">Contractor</Label>
-                <Select value={formData.contractor_id} onValueChange={(v) => {
-                  const contractor = contractors.find(c => c.id === v);
-                  setFormData({ ...formData, contractor_id: v, contractor_name: contractor?.company_name || '' });
-                }}>
+                <Label htmlFor="asset_id">Asset (Optional)</Label>
+                <Select value={formData.asset_id} onValueChange={(v) => setFormData({ ...formData, asset_id: v })}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select contractor" />
+                    <SelectValue placeholder="Select asset" />
                   </SelectTrigger>
                   <SelectContent>
-                    {contractors.map(c => (
-                      <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>
+                    <SelectItem value={null}>No specific asset</SelectItem>
+                    {assets.map(a => (
+                      <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
-              <div>
-                <Label htmlFor="job_area">Job Area</Label>
-                <Input
-                  id="job_area"
-                  value={formData.job_area}
-                  onChange={(e) => setFormData({ ...formData, job_area: e.target.value })}
-                  placeholder="Common Area"
-                />
-              </div>
+              <div />
 
-              <div>
-                <Label htmlFor="asset">Asset</Label>
-                <Input
-                  id="asset"
-                  value={formData.asset}
-                  onChange={(e) => setFormData({ ...formData, asset: e.target.value })}
-                  placeholder="HVAC System"
-                />
-              </div>
+              <div className="md:col-span-2 space-y-3">
+                <Label>Contractor Assignment</Label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs text-slate-500">Specific Contractor</Label>
+                    <Select
+                      value={formData.assigned_contractor_id}
+                      onValueChange={(v) => setFormData({ ...formData, assigned_contractor_id: v, assigned_contractor_type: '' })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select contractor" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={null}>None</SelectItem>
+                        {contractors.map(c => (
+                          <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              <div>
-                <Label htmlFor="assigned_to">Assigned To</Label>
-                <Input
-                  id="assigned_to"
-                  value={formData.assigned_to}
-                  onChange={(e) => setFormData({ ...formData, assigned_to: e.target.value })}
-                  placeholder="Staff member"
-                />
+                  <div>
+                    <Label className="text-xs text-slate-500">Or Contractor Type</Label>
+                    <Select
+                      value={formData.assigned_contractor_type}
+                      onValueChange={(v) => setFormData({ ...formData, assigned_contractor_type: v, assigned_contractor_id: '' })}
+                      disabled={!!formData.assigned_contractor_id}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={null}>None</SelectItem>
+                        <SelectItem value="plumbing">Plumbing</SelectItem>
+                        <SelectItem value="electrical">Electrical</SelectItem>
+                        <SelectItem value="hvac">HVAC</SelectItem>
+                        <SelectItem value="appliance">Appliance</SelectItem>
+                        <SelectItem value="structural">Structural</SelectItem>
+                        <SelectItem value="pest_control">Pest Control</SelectItem>
+                        <SelectItem value="cleaning">Cleaning</SelectItem>
+                        <SelectItem value="landscaping">Landscaping</SelectItem>
+                        <SelectItem value="security">Security</SelectItem>
+                        <SelectItem value="general">General</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Choose a specific contractor OR a contractor type. System will auto-assign compliant contractors.
+                </p>
               </div>
 
               <div className="md:col-span-2">
@@ -550,29 +564,24 @@ export default function MaintenanceSchedule() {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={3}
-                  placeholder="Detailed description of maintenance task"
+                  placeholder="Detailed description of maintenance work..."
                 />
               </div>
 
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={formData.auto_send_email}
-                  onCheckedChange={(checked) => setFormData({ ...formData, auto_send_email: checked })}
+              <div className="md:col-span-2">
+                <Label htmlFor="notes">Notes</Label>
+                <Textarea
+                  id="notes"
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  rows={2}
+                  placeholder="Additional notes..."
                 />
-                <Label>Auto Send Email</Label>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={formData.never_expire}
-                  onCheckedChange={(checked) => setFormData({ ...formData, never_expire: checked, event_end: checked ? '' : formData.event_end })}
-                />
-                <Label>Never Expire</Label>
               </div>
 
               {/* Documents Upload */}
               <div className="md:col-span-2">
-                <Label>Documents</Label>
+                <Label>Documents (Optional)</Label>
                 <div className="mt-2">
                   <Button type="button" variant="outline" className="w-full" asChild>
                     <label>
@@ -598,46 +607,6 @@ export default function MaintenanceSchedule() {
                             className="text-red-500 hover:text-red-700"
                           >
                             <X className="h-4 w-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Photos Upload */}
-              <div className="md:col-span-2">
-                <Label>Photos</Label>
-                <div className="mt-2">
-                  <Button type="button" variant="outline" className="w-full" asChild>
-                    <label>
-                      <ImageIcon className="h-4 w-4 mr-2" />
-                      Upload Photos ({selectedPhotos.length})
-                      <input
-                        type="file"
-                        multiple
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handlePhotoSelect}
-                      />
-                    </label>
-                  </Button>
-                  {selectedPhotos.length > 0 && (
-                    <div className="grid grid-cols-4 gap-2 mt-2">
-                      {selectedPhotos.map((file, idx) => (
-                        <div key={idx} className="relative group">
-                          <img 
-                            src={URL.createObjectURL(file)} 
-                            alt="" 
-                            className="w-full h-20 object-cover rounded"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removePhoto(idx)}
-                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <X className="h-3 w-3" />
                           </button>
                         </div>
                       ))}
@@ -675,122 +644,7 @@ export default function MaintenanceSchedule() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* View Details Dialog */}
-      {viewingSchedule && (
-        <Dialog open={!!viewingSchedule} onOpenChange={() => setViewingSchedule(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>View Maintenance Event</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-6">
-              {/* Event Information */}
-              <div>
-                <h3 className="font-semibold text-lg mb-3">Event Information</h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-slate-500">Start Date:</span>
-                    <p className="font-medium">{viewingSchedule.event_start && format(new Date(viewingSchedule.event_start), 'MMM d, yyyy')}</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-500">End Date:</span>
-                    <p className="font-medium">{viewingSchedule.event_end ? format(new Date(viewingSchedule.event_end), 'MMM d, yyyy') : 'Never Expires'}</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-500">Frequency:</span>
-                    <p className="font-medium capitalize">{viewingSchedule.recurrence?.replace(/_/g, ' ')}</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-500">Auto Send Email:</span>
-                    <p className="font-medium">{viewingSchedule.auto_send_email ? 'Yes' : 'No'}</p>
-                  </div>
-                </div>
-              </div>
 
-              {/* Asset Information */}
-              <div>
-                <h3 className="font-semibold text-lg mb-3">Asset Information</h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-slate-500">Job Area:</span>
-                    <p className="font-medium">{viewingSchedule.job_area || '-'}</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-500">Asset:</span>
-                    <p className="font-medium">{viewingSchedule.asset || '-'}</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-500">Assigned To:</span>
-                    <p className="font-medium">{viewingSchedule.assigned_to || '-'}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Job Information */}
-              <div>
-                <h3 className="font-semibold text-lg mb-3">Job Information</h3>
-                <div className="space-y-2 text-sm">
-                  <div>
-                    <span className="text-slate-500">Subject:</span>
-                    <p className="font-medium">{viewingSchedule.subject}</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-500">Description:</span>
-                    <p className="font-medium">{viewingSchedule.description || '-'}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Documents */}
-              {viewingSchedule.documents && viewingSchedule.documents.length > 0 && (
-                <div>
-                  <h3 className="font-semibold text-lg mb-3">Documents</h3>
-                  <div className="space-y-2">
-                    {viewingSchedule.documents.map((doc, idx) => (
-                      <a
-                        key={idx}
-                        href={doc}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 p-2 bg-slate-50 rounded hover:bg-slate-100"
-                      >
-                        <FileText className="h-4 w-4 text-blue-600" />
-                        <span className="text-sm">Document {idx + 1}</span>
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Photos */}
-              {viewingSchedule.photos && viewingSchedule.photos.length > 0 && (
-                <div>
-                  <h3 className="font-semibold text-lg mb-3">Photos</h3>
-                  <div className="grid grid-cols-4 gap-2">
-                    {viewingSchedule.photos.map((photo, idx) => (
-                      <img
-                        key={idx}
-                        src={photo}
-                        alt=""
-                        className="w-full h-24 object-cover rounded cursor-pointer hover:opacity-75"
-                        onClick={() => window.open(photo, '_blank')}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {/* Compliance Report Dialog */}
-      {complianceReportAsset && (
-        <ComplianceReportDialog
-          asset={complianceReportAsset}
-          open={!!complianceReportAsset}
-          onOpenChange={(open) => !open && setComplianceReportAsset(null)}
-        />
-      )}
     </div>
   );
 }
