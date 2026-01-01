@@ -110,6 +110,7 @@ const initialFormState = {
   status: 'active',
   notes: '',
   documents: [],
+  building_ids: [],
 };
 
 export default function Contractors() {
@@ -128,6 +129,11 @@ export default function Contractors() {
   const [uploadingContract, setUploadingContract] = useState(false);
 
   const queryClient = useQueryClient();
+
+  const { data: buildings = [] } = useQuery({
+    queryKey: ['buildings'],
+    queryFn: () => base44.entities.Building.list(),
+  });
 
   const { data: contractors = [], isLoading } = useQuery({
     queryKey: ['contractors'],
@@ -240,6 +246,7 @@ export default function Contractors() {
       status: contractor.status || 'active',
       notes: contractor.notes || '',
       documents: contractor.documents || [],
+      building_ids: contractor.building_ids || [],
     });
     setShowDialog(true);
   };
@@ -811,6 +818,32 @@ export default function Contractors() {
                       {spec.label}
                     </Badge>
                   ))}
+                </div>
+              </div>
+              <div className="md:col-span-2">
+                <Label>Associated Buildings</Label>
+                <p className="text-xs text-slate-500 mb-2">Select buildings where this contractor can work</p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {buildings.map(building => (
+                    <Badge
+                      key={building.id}
+                      variant={formData.building_ids?.includes(building.id) ? "default" : "outline"}
+                      className="cursor-pointer"
+                      onClick={() => {
+                        const current = formData.building_ids || [];
+                        if (current.includes(building.id)) {
+                          setFormData({ ...formData, building_ids: current.filter(id => id !== building.id) });
+                        } else {
+                          setFormData({ ...formData, building_ids: [...current, building.id] });
+                        }
+                      }}
+                    >
+                      {building.name}
+                    </Badge>
+                  ))}
+                  {buildings.length === 0 && (
+                    <p className="text-sm text-slate-500">No buildings available</p>
+                  )}
                 </div>
               </div>
               <div className="md:col-span-2">

@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
       // Prepare notification recipients
       const recipients = new Set();
 
-      // Add building managers
+      // Add building managers for associated buildings
       for (const building of contractorBuildings) {
         if (building.manager_email) {
           recipients.add(building.manager_email);
@@ -108,10 +108,18 @@ Deno.serve(async (req) => {
         if (building.building_compliance_email) {
           recipients.add(building.building_compliance_email);
         }
+        if (building.strata_managing_agent_email) {
+          recipients.add(building.strata_managing_agent_email);
+        }
       }
 
-      // Add at least one admin
-      if (admins.length > 0) {
+      // Add all admins
+      for (const admin of admins) {
+        recipients.add(admin.email);
+      }
+
+      // If no building associations, notify all admins
+      if (contractorBuildings.length === 0 && admins.length > 0) {
         recipients.add(admins[0].email);
       }
 
@@ -125,23 +133,29 @@ Deno.serve(async (req) => {
           return `• ${n.doc.title} (${n.doc.category.replace(/_/g, ' ')}): ${daysText}`;
         }).join('\n');
 
+        // Get building names for context
+        const buildingNames = contractorBuildings.length > 0 
+          ? contractorBuildings.map(b => b.name).join(', ')
+          : 'No specific buildings assigned';
+
         try {
           await base44.asServiceRole.integrations.Core.SendEmail({
             to: recipient,
             subject: `⚠️ Contractor Compliance Alert: ${contractor.company_name}`,
             body: `
-<h2>Contractor Compliance Alert</h2>
+        <h2>Contractor Compliance Alert</h2>
 
-<p><strong>Contractor:</strong> ${contractor.company_name}</p>
-<p><strong>Contact:</strong> ${contractor.email || 'N/A'}</p>
-<p><strong>Compliance Score:</strong> ${complianceScore}%</p>
+        <p><strong>Contractor:</strong> ${contractor.company_name}</p>
+        <p><strong>Contact:</strong> ${contractor.email || 'N/A'}</p>
+        <p><strong>Associated Buildings:</strong> ${buildingNames}</p>
+        <p><strong>Compliance Score:</strong> ${complianceScore}%</p>
 
-<h3>Documents Requiring Attention:</h3>
-<pre>${docList}</pre>
+        <h3>Documents Requiring Attention:</h3>
+        <pre>${docList}</pre>
 
-<p>Please review these documents and contact the contractor to ensure compliance.</p>
+        <p>Please review these documents and contact the contractor to ensure compliance.</p>
 
-<p><em>This is an automated notification from the Vivid BMS system.</em></p>
+        <p><em>This is an automated notification from the Vivid BMS system.</em></p>
             `
           });
         } catch (emailError) {
