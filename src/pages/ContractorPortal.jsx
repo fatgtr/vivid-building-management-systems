@@ -9,6 +9,8 @@ import ContractorWorkOrderCard from '@/components/contractor/ContractorWorkOrder
 import ContractorDocuments from '@/components/contractor/ContractorDocuments';
 import ComplianceReminders from '@/components/contractor/ComplianceReminders';
 import ContractorTaskCard from '@/components/contractor/ContractorTaskCard';
+import BidProposalGenerator from '@/components/contractor/BidProposalGenerator';
+import { toast } from 'sonner';
 import { Wrench, FileText, Clock, CheckCircle, Shield, ListTodo } from 'lucide-react';
 
 export default function ContractorPortal() {
@@ -75,8 +77,26 @@ export default function ContractorPortal() {
     );
   }
 
+  const handleBidSubmit = async (proposal) => {
+    try {
+      toast.success('Bid proposal submitted successfully!');
+      setShowBidGenerator(null);
+    } catch (error) {
+      toast.error('Failed to submit proposal');
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <>
+      {showBidGenerator && (
+        <BidProposalGenerator
+          workOrder={showBidGenerator}
+          contractorId={contractor.id}
+          onClose={() => setShowBidGenerator(null)}
+          onSubmit={handleBidSubmit}
+        />
+      )}
+      <div className="space-y-6">
       <PageHeader 
         title={`Welcome, ${contractor.company_name}`}
         subtitle="Manage your assigned work orders and documents"
@@ -160,7 +180,13 @@ export default function ContractorPortal() {
               </CardContent>
             </Card>
           ) : (
-            openOrders.map(wo => <ContractorWorkOrderCard key={wo.id} workOrder={wo} />)
+            openOrders.map(wo => (
+              <ContractorWorkOrderCard 
+                key={wo.id} 
+                workOrder={wo}
+                onGenerateBid={() => setShowBidGenerator(wo)}
+              />
+            ))
           )}
         </TabsContent>
 
@@ -213,6 +239,7 @@ export default function ContractorPortal() {
           <ContractorDocuments contractor={contractor} />
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </>
   );
 }
