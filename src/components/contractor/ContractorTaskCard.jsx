@@ -15,8 +15,12 @@ import {
   Upload,
   ChevronDown,
   ChevronUp,
-  MessageSquare
+  MessageSquare,
+  Star
 } from 'lucide-react';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 export default function ContractorTaskCard({ task }) {
   const queryClient = useQueryClient();
@@ -24,6 +28,9 @@ export default function ContractorTaskCard({ task }) {
   const [noteText, setNoteText] = useState('');
   const [uploading, setUploading] = useState(false);
   const [user, setUser] = useState(null);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedback, setFeedback] = useState(task.completion_feedback || '');
+  const [rating, setRating] = useState(task.rating || 0);
 
   React.useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -41,13 +48,20 @@ export default function ContractorTaskCard({ task }) {
   });
 
   const handleMarkComplete = () => {
+    setShowFeedback(true);
+  };
+
+  const handleSubmitFeedback = () => {
     updateMutation.mutate({
       id: task.id,
       data: {
         status: 'completed',
         completed_date: new Date().toISOString().split('T')[0],
+        completion_feedback: feedback,
+        rating: rating,
       },
     });
+    setShowFeedback(false);
   };
 
   const handleAddNote = () => {
@@ -163,6 +177,29 @@ export default function ContractorTaskCard({ task }) {
           </Button>
         </div>
 
+        {task.status === 'completed' && (task.completion_feedback || task.rating) && (
+          <div className="mt-3 pt-3 border-t">
+            <div className="flex items-center gap-2 mb-2">
+              {task.rating && (
+                <div className="flex">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={cn(
+                        "h-4 w-4",
+                        i < task.rating ? "fill-yellow-400 text-yellow-400" : "text-slate-300"
+                      )}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+            {task.completion_feedback && (
+              <p className="text-sm text-slate-600 italic">{task.completion_feedback}</p>
+            )}
+          </div>
+        )}
+
         {expanded && (
           <div className="mt-4 pt-4 border-t space-y-4">
             {/* Attachments */}
@@ -241,6 +278,52 @@ export default function ContractorTaskCard({ task }) {
           </div>
         )}
       </CardContent>
+
+      <Dialog open={showFeedback} onOpenChange={setShowFeedback}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Complete Task</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Rating (Optional)</Label>
+              <div className="flex gap-2 mt-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setRating(star)}
+                    className="focus:outline-none"
+                  >
+                    <Star
+                      className={cn(
+                        "h-8 w-8 transition-colors",
+                        star <= rating ? "fill-yellow-400 text-yellow-400" : "text-slate-300"
+                      )}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <Label>Completion Feedback (Optional)</Label>
+              <Textarea
+                value={feedback}
+                onChange={(e) => setFeedback(e.target.value)}
+                rows={4}
+                placeholder="Describe what was done, any issues encountered, recommendations..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowFeedback(false)}>Cancel</Button>
+            <Button onClick={handleSubmitFeedback} className="bg-green-600 hover:bg-green-700">
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Submit & Complete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
