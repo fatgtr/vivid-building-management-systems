@@ -6,11 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Sparkles, CheckCircle, Trash2, Edit2, Save, X } from 'lucide-react';
+import { Loader2, Sparkles, CheckCircle, Trash2, Edit2, Save, X, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ASSET_CATEGORIES, formatSubcategoryLabel } from '@/components/categories/assetCategories';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '../../utils';
 
 export default function GenericAssetExtractor({ 
   buildingId, 
@@ -26,6 +29,11 @@ export default function GenericAssetExtractor({
 
   const extractAssetsMutation = useMutation({
     mutationFn: async () => {
+      // Get subcategories for this asset category
+      const categoryInfo = ASSET_CATEGORIES[assetCategory];
+      const subcategories = categoryInfo?.subcategories || [];
+      const subcategoryList = subcategories.map(sub => formatSubcategoryLabel(sub)).join(', ');
+
       const schema = {
         type: "object",
         properties: {
@@ -34,9 +42,13 @@ export default function GenericAssetExtractor({
             items: {
               type: "object",
               properties: {
-                name: { type: "string", description: "Asset name/description" },
-                asset_type: { type: "string", description: "Specific asset type" },
-                asset_subcategory: { type: "string", description: "Subcategory under main category" },
+                name: { type: "string", description: "Asset name/description including the subcategory type" },
+                asset_type: { type: "string", description: "Specific asset type from document" },
+                asset_subcategory: { 
+                  type: "string", 
+                  description: `MUST be one of these exact values: ${subcategories.join(', ')}. Choose the most appropriate subcategory.`,
+                  enum: subcategories
+                },
                 identifier: { type: "string", description: "Serial number, model, or ID" },
                 manufacturer: { type: "string", description: "Manufacturer name" },
                 model: { type: "string", description: "Model number" },
@@ -51,7 +63,7 @@ export default function GenericAssetExtractor({
                 },
                 notes: { type: "string", description: "Additional details" }
               },
-              required: ["name", "asset_type"]
+              required: ["name", "asset_type", "asset_subcategory"]
             }
           }
         }
@@ -63,15 +75,25 @@ export default function GenericAssetExtractor({
 Building: ${buildingName}
 Document Category: ${categoryLabel}
 
+IMPORTANT: For each asset, you MUST assign it to the most appropriate subcategory from this list:
+${subcategoryList}
+
+For example:
+- "Ceiling concealed duct unit" or "FCU" should be categorized as "split_systems" or "air_conditioning_plant"
+- "Chiller" should be "chillers"
+- "Cooling tower" should be "cooling_towers"
+
 Extract comprehensive details for each asset including:
-- Name and type
+- Name (include the equipment type in the name, e.g., "Level 2 Fan Coil Unit")
+- Asset type (the specific equipment description from the document)
+- Subcategory (MUST match one from the list above)
 - Manufacturer and model
 - Location and floor
 - Serial/model numbers
 - Installation dates
 - Service requirements
 
-Return detailed asset information.`,
+Be precise with subcategory assignment - this is critical for proper asset organization.`,
         file_urls: [fileUrl],
         response_json_schema: schema
       });
@@ -119,7 +141,14 @@ Return detailed asset information.`,
       return results;
     },
     onSuccess: (results) => {
-      toast.success(`Successfully created ${results.length} assets in the Asset Register`);
+      toast.success(
+        <div className="flex items-center gap-2">
+          <span>Successfully created {results.length} assets</span>
+          <Link to={createPageUrl('AssetRegister') + `?building_id=${buildingId}`} className="underline">
+            View Assets
+          </Link>
+        </div>
+      );
       onComplete?.();
     }
   });
@@ -186,24 +215,32 @@ Return detailed asset information.`,
         <>
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold">Extracted Assets</h3>
+              <h3 className="text-lg font-semibold">Extracted Assets ({extractedAssets.length})</h3>
               <p className="text-sm text-slate-500">
                 Review and edit before saving to Asset Register
               </p>
             </div>
-            <Button onClick={handleSaveAll} disabled={createAssetsMutation.isPending}>
-              {createAssetsMutation.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Save All to Asset Register
-                </>
-              )}
-            </Button>
+            <div className="flex gap-2">
+              <Link to={createPageUrl('AssetRegister') + `?building_id=${buildingId}`}>
+                <Button variant="outline" size="sm">
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  View Asset Register
+                </Button>
+              </Link>
+              <Button onClick={handleSaveAll} disabled={createAssetsMutation.isPending}>
+                {createAssetsMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Save All to Asset Register
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-3">
@@ -295,10 +332,21 @@ Return detailed asset information.`,
                 </div>
                 <div className="space-y-2">
                   <Label>Subcategory</Label>
-                  <Input
+                  <Select
                     value={editingAsset.asset_subcategory || ''}
-                    onChange={(e) => setEditingAsset({ ...editingAsset, asset_subcategory: e.target.value })}
-                  />
+                    onValueChange={(value) => setEditingAsset({ ...editingAsset, asset_subcategory: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select subcategory" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ASSET_CATEGORIES[assetCategory]?.subcategories?.map((sub) => (
+                        <SelectItem key={sub} value={sub}>
+                          {formatSubcategoryLabel(sub)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>ID/Serial</Label>
