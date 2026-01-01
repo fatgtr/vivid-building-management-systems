@@ -12,6 +12,7 @@ import PageHeader from '@/components/common/PageHeader';
 import StatusBadge from '@/components/common/StatusBadge';
 import BuildingDocumentManager from '@/components/buildings/BuildingDocumentManager';
 import ReportGenerator from '@/components/buildings/ReportGenerator';
+import LocationBasedInspectionGenerator from '@/components/inspections/LocationBasedInspectionGenerator';
 
 import { 
   Building2, 
@@ -191,6 +192,7 @@ export default function BuildingProfile() {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
+          <TabsTrigger value="inspections">Inspections</TabsTrigger>
           <TabsTrigger value="strata">Strata Info</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
           <TabsTrigger value="management">Management</TabsTrigger>
@@ -299,6 +301,10 @@ export default function BuildingProfile() {
 
         <TabsContent value="documents" className="space-y-6">
           <BuildingDocumentManager buildingId={buildingId} buildingName={building.name} />
+        </TabsContent>
+
+        <TabsContent value="inspections" className="space-y-6">
+          <LocationBasedInspectionGenerator buildingId={buildingId} buildingName={building.name} />
         </TabsContent>
 
         <TabsContent value="strata" className="space-y-6">
