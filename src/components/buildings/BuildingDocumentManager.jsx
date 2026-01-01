@@ -111,14 +111,20 @@ const specificDocumentTypes = [
   },
 ];
 
-const assetDocumentTypes = Object.entries(ASSET_CATEGORIES).map(([key, category]) => ({
-  category: key,
-  label: category.label,
-  icon: category.icon,
-  description: `Extract and manage ${category.label.toLowerCase()} assets`,
-  color: key.split('_')[0],
-  hasAI: true,
-}));
+const assetDocumentTypes = Object.entries(ASSET_CATEGORIES).map(([key, category]) => {
+  // Extract color name from the Tailwind classes (e.g., "text-cyan-600 bg-cyan-50" -> "cyan")
+  const colorMatch = category.color.match(/text-(\w+)-/);
+  const colorName = colorMatch ? colorMatch[1] : 'slate';
+  
+  return {
+    category: key,
+    label: category.label,
+    icon: category.icon,
+    description: `Extract and manage ${category.label.toLowerCase()} assets`,
+    color: colorName,
+    hasAI: true,
+  };
+});
 
 const documentTypes = [...specificDocumentTypes, ...assetDocumentTypes];
 
