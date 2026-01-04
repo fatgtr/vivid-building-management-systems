@@ -9,9 +9,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
+import ScheduledInspectionsDashboard from '@/components/inspections/ScheduledInspectionsDashboard';
 import { ClipboardCheck, Search, Building2, MoreVertical, Pencil, Trash2, Calendar, User, CheckCircle, XCircle, AlertTriangle, Wrench, Upload, Image as ImageIcon, FileText, X, Smartphone } from 'lucide-react';
 import {
   DropdownMenu,
@@ -269,54 +271,65 @@ export default function Inspections() {
         </Button>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-4">
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input
-            placeholder="Search inspections..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <Select value={filterBuilding} onValueChange={setFilterBuilding}>
-          <SelectTrigger className="w-[200px]">
-            <Building2 className="h-4 w-4 mr-2 text-slate-400" />
-            <SelectValue placeholder="All Buildings" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Buildings</SelectItem>
-            {buildings.map(b => (
-              <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="All Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="scheduled">Scheduled</SelectItem>
-            <SelectItem value="in_progress">In Progress</SelectItem>
-            <SelectItem value="passed">Passed</SelectItem>
-            <SelectItem value="failed">Failed</SelectItem>
-            <SelectItem value="requires_followup">Requires Follow-up</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <Tabs defaultValue="dashboard" className="w-full">
+        <TabsList>
+          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="all">All Inspections</TabsTrigger>
+        </TabsList>
 
-      {filteredInspections.length === 0 ? (
-        <EmptyState
-          icon={ClipboardCheck}
-          title="No inspections"
-          description="Schedule inspections to maintain compliance and safety"
-          action={() => setShowDialog(true)}
-          actionLabel="Schedule Inspection"
-        />
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <TabsContent value="dashboard" className="mt-6">
+          <ScheduledInspectionsDashboard buildingId={filterBuilding !== 'all' ? filterBuilding : null} />
+        </TabsContent>
+
+        <TabsContent value="all" className="mt-6 space-y-6">
+          {/* Filters */}
+          <div className="flex flex-wrap gap-4">
+            <div className="relative flex-1 min-w-[200px] max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input
+                placeholder="Search inspections..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select value={filterBuilding} onValueChange={setFilterBuilding}>
+              <SelectTrigger className="w-[200px]">
+                <Building2 className="h-4 w-4 mr-2 text-slate-400" />
+                <SelectValue placeholder="All Buildings" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Buildings</SelectItem>
+                {buildings.map(b => (
+                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="scheduled">Scheduled</SelectItem>
+                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="passed">Passed</SelectItem>
+                <SelectItem value="failed">Failed</SelectItem>
+                <SelectItem value="requires_followup">Requires Follow-up</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {filteredInspections.length === 0 ? (
+            <EmptyState
+              icon={ClipboardCheck}
+              title="No inspections"
+              description="Schedule inspections to maintain compliance and safety"
+              action={() => setShowDialog(true)}
+              actionLabel="Schedule Inspection"
+            />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredInspections.map((inspection) => (
             <Card key={inspection.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
               <CardContent className="p-5">
@@ -399,8 +412,10 @@ export default function Inspections() {
               </CardContent>
             </Card>
           ))}
-        </div>
-      )}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
 
       {/* Add/Edit Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
