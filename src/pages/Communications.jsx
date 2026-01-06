@@ -20,12 +20,12 @@ import StatusBadge from '@/components/common/StatusBadge';
 import ChatInterface from '@/components/communications/ChatInterface';
 import ChatList from '@/components/communications/ChatList';
 import BroadcastComposer from '@/components/communications/BroadcastComposer';
-import PollCard from '@/components/communications/PollCard';
+
 
 import { 
   Bell, Search, Building2, MoreVertical, Pencil, Trash2, Send, Calendar, Users, 
   AlertTriangle, Info, Megaphone, Mail, Inbox, CheckCircle2, Clock, User, Tag, 
-  Sparkles, FileText, Edit, Plus, MessageSquare, Radio, BarChart3
+  Sparkles, FileText, Edit, Plus, MessageSquare, Radio
 } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -60,12 +60,7 @@ export default function Communications() {
   const [activeMainTab, setActiveMainTab] = useState('chat');
   const [selectedChat, setSelectedChat] = useState(null);
 
-  // Polls
-  const [newPollOpen, setNewPollOpen] = useState(false);
-  const [pollTitle, setPollTitle] = useState('');
-  const [pollDescription, setPollDescription] = useState('');
-  const [pollType, setPollType] = useState('single_choice');
-  const [pollOptions, setPollOptions] = useState(['', '']);
+
 
   // Management sub-tabs
   const [activeManagementTab, setActiveManagementTab] = useState('announcements');
@@ -105,17 +100,7 @@ export default function Communications() {
     enabled: !!user && !!selectedBuildingId,
   });
 
-  const { data: polls = [] } = useQuery({
-    queryKey: ['polls', selectedBuildingId],
-    queryFn: () => selectedBuildingId ? base44.entities.Poll.filter({ building_id: selectedBuildingId }) : base44.entities.Poll.list(),
-    enabled: !!selectedBuildingId,
-  });
 
-  const { data: myVotes = [] } = useQuery({
-    queryKey: ['pollVotes', user?.email],
-    queryFn: () => base44.entities.PollVote.filter({ voter_email: user?.email }),
-    enabled: !!user?.email,
-  });
 
   const { data: announcements = [] } = useQuery({
     queryKey: ['announcements'],
@@ -223,21 +208,7 @@ export default function Communications() {
   // Handlers
   const userChats = chats.filter(chat => chat.participants.includes(user?.email));
 
-  const handleCreatePoll = async () => {
-    if (!pollTitle.trim() || pollOptions.filter(o => o.trim()).length < 2) {
-      toast.error('Poll needs a title and at least 2 options');
-      return;
-    }
-    const options = pollOptions.filter(o => o.trim()).map((text, idx) => ({ id: `opt_${Date.now()}_${idx}`, text: text.trim(), votes: 0 }));
-    await base44.entities.Poll.create({
-      building_id: selectedBuildingId, created_by_email: user.email, created_by_name: user.full_name,
-      title: pollTitle, description: pollDescription, poll_type: pollType, options, status: 'active', total_votes: 0, voters: []
-    });
-    queryClient.invalidateQueries({ queryKey: ['polls'] });
-    toast.success('Poll created');
-    setNewPollOpen(false);
-    setPollTitle(''); setPollDescription(''); setPollOptions(['', '']);
-  };
+
 
   const handleCloseAnnouncementDialog = () => {
     setShowAnnouncementDialog(false);
@@ -381,10 +352,9 @@ export default function Communications() {
       </div>
 
       <Tabs value={activeMainTab} onValueChange={setActiveMainTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="chat"><MessageSquare className="h-4 w-4 mr-2" />Chat</TabsTrigger>
           <TabsTrigger value="broadcast"><Radio className="h-4 w-4 mr-2" />Broadcast</TabsTrigger>
-          <TabsTrigger value="polls"><BarChart3 className="h-4 w-4 mr-2" />Polls</TabsTrigger>
           <TabsTrigger value="management"><FileText className="h-4 w-4 mr-2" />Management</TabsTrigger>
         </TabsList>
 
@@ -406,70 +376,19 @@ export default function Communications() {
           </div>
         </TabsContent>
 
-        <TabsContent value="polls" className="mt-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold">Community Polls</h3>
-            <Dialog open={newPollOpen} onOpenChange={setNewPollOpen}>
-              <Button onClick={() => setNewPollOpen(true)} className="bg-blue-600">
-                <Plus className="h-4 w-4 mr-2" />Create Poll
-              </Button>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader><DialogTitle>Create New Poll</DialogTitle></DialogHeader>
-                <div className="space-y-4">
-                  <div><Label>Poll Title</Label><Input value={pollTitle} onChange={(e) => setPollTitle(e.target.value)} placeholder="What would you like to ask?" /></div>
-                  <div><Label>Description (optional)</Label><Textarea value={pollDescription} onChange={(e) => setPollDescription(e.target.value)} placeholder="Additional context..." rows={3} /></div>
-                  <div>
-                    <Label>Poll Type</Label>
-                    <Select value={pollType} onValueChange={setPollType}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="single_choice">Single Choice</SelectItem>
-                        <SelectItem value="multiple_choice">Multiple Choice</SelectItem>
-                        <SelectItem value="proposal">Proposal (Yes/No)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Options</Label>
-                    {pollOptions.map((opt, idx) => (
-                      <Input key={idx} value={opt} onChange={(e) => { const newOpts = [...pollOptions]; newOpts[idx] = e.target.value; setPollOptions(newOpts); }} placeholder={`Option ${idx + 1}`} className="mt-2" />
-                    ))}
-                    <Button variant="outline" size="sm" onClick={() => setPollOptions([...pollOptions, ''])} className="mt-2">Add Option</Button>
-                  </div>
-                  <Button onClick={handleCreatePoll} className="w-full">Create Poll</Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {polls.length === 0 ? (
-              <Card className="col-span-2"><CardContent className="p-12 text-center"><BarChart3 className="h-16 w-16 mx-auto mb-4 text-gray-300" /><p className="text-gray-500">No polls yet. Create one to get started!</p></CardContent></Card>
-            ) : polls.map((poll) => <PollCard key={poll.id} poll={poll} userEmail={user.email} hasVoted={myVotes.some(v => v.poll_id === poll.id)} />)}
-          </div>
-        </TabsContent>
+
 
         <TabsContent value="management" className="space-y-6 mt-6">
-          <Tabs value={activeManagementTab} onValueChange={setActiveManagementTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 lg:w-fit">
-              <TabsTrigger value="announcements" className="flex items-center gap-2">
-                <Bell className="h-4 w-4" />Announcements<Badge variant="secondary">{announcements.length}</Badge>
-              </TabsTrigger>
-              <TabsTrigger value="messages" className="flex items-center gap-2">
-                <Mail className="h-4 w-4" />Messages{statsByMessageStatus.unread > 0 && <Badge className="bg-blue-600">{statsByMessageStatus.unread}</Badge>}
-              </TabsTrigger>
-              <TabsTrigger value="templates" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />Templates
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="announcements" className="space-y-6 mt-6">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-slate-600">{announcements.filter(a => a.status === 'published').length} published announcements</p>
-                <Button onClick={() => setShowAnnouncementDialog(true)} className="bg-blue-600 hover:bg-blue-700">
-                  <Plus className="h-4 w-4 mr-2" />New Announcement
-                </Button>
-              </div>
-
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <Card>
+                <CardHeader className="flex-row items-center justify-between pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2"><Megaphone className="h-5 w-5 text-purple-600" /> Announcements</CardTitle>
+                  <Button onClick={() => setShowAnnouncementDialog(true)} size="sm" className="bg-blue-600 hover:bg-blue-700">
+                    <Plus className="h-4 w-4 mr-2" />New
+                  </Button>
+                </CardHeader>
+                <CardContent className="space-y-4 pt-0">
               <div className="flex flex-wrap gap-4">
                 <div className="relative flex-1 min-w-[200px] max-w-sm">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -497,7 +416,7 @@ export default function Communications() {
               {filteredAnnouncements.length === 0 ? (
                 <EmptyState icon={Bell} title="No announcements" description="Create announcements to keep residents informed" action={() => setShowAnnouncementDialog(true)} actionLabel="New Announcement" />
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
                   {filteredAnnouncements.map((announcement) => {
                     const typeConfig = getTypeConfig(announcement.type);
                     const TypeIcon = typeConfig.icon;
@@ -539,8 +458,70 @@ export default function Communications() {
                   })}
                 </div>
               )}
-            </TabsContent>
+                </CardContent>
+              </Card>
+            </div>
 
+            <div className="lg:col-span-1 space-y-6">
+              <Card>
+                <CardHeader className="flex-row items-center justify-between pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2"><Mail className="h-5 w-5 text-orange-600" /> Messages</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4 pt-0">
+              <div className="grid gap-2">
+                <Card className="bg-blue-50"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-blue-600 font-medium">Unread</p><p className="text-xl font-bold text-blue-900">{statsByMessageStatus.unread}</p></div><Inbox className="h-6 w-6 text-blue-600" /></div></CardContent></Card>
+                <Card className="bg-yellow-50"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-yellow-600 font-medium">In Progress</p><p className="text-xl font-bold text-yellow-900">{statsByMessageStatus.in_progress}</p></div><Clock className="h-6 w-6 text-yellow-600" /></div></CardContent></Card>
+                <Card className="bg-green-50"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-green-600 font-medium">Resolved</p><p className="text-xl font-bold text-green-900">{statsByMessageStatus.resolved}</p></div><CheckCircle2 className="h-6 w-6 text-green-600" /></div></CardContent></Card>
+              </div>
+              <Button variant="outline" className="w-full" onClick={() => setActiveManagementTab('messages')}>View All Messages</Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex-row items-center justify-between pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2"><FileText className="h-5 w-5 text-green-600" /> Templates</CardTitle>
+                  <Button onClick={() => setEditingTemplate({ type: 'announcement' })} size="sm" className="bg-blue-600 hover:bg-blue-700">
+                    <Plus className="h-4 w-4 mr-2" />New
+                  </Button>
+                </CardHeader>
+                <CardContent className="space-y-4 pt-0">
+              <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                {communicationTemplates.length === 0 && messageTemplates.length === 0 ? (
+                  <p className="text-sm text-slate-500 text-center py-4">No templates yet</p>
+                ) : (
+                  <>
+                    {communicationTemplates.slice(0, 3).map((template) => (
+                      <Card key={template.id} className="border-l-4 border-blue-500">
+                        <CardContent className="p-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <p className="font-medium text-sm truncate">{template.name}</p>
+                            <Badge variant="secondary" className="text-xs">Announcement</Badge>
+                          </div>
+                          <p className="text-xs text-slate-600 line-clamp-2">{template.title_template || template.content_template}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                    {messageTemplates.slice(0, 3).map((template) => (
+                      <Card key={template.id} className="border-l-4 border-green-500">
+                        <CardContent className="p-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <p className="font-medium text-sm truncate">{template.name}</p>
+                            <Badge variant="secondary" className="text-xs">Response</Badge>
+                          </div>
+                          <p className="text-xs text-slate-600 line-clamp-2">{template.content}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </>
+                )}
+              </div>
+              <Button variant="outline" className="w-full" onClick={() => setActiveManagementTab('templates')}>Manage All Templates</Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          <Tabs value={activeManagementTab} onValueChange={setActiveManagementTab} className="w-full hidden">
             <TabsContent value="messages" className="space-y-6 mt-6">
               <div className="grid gap-4 md:grid-cols-3">
                 <Card><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-slate-500">Unread</p><p className="text-2xl font-bold">{statsByMessageStatus.unread}</p></div><Inbox className="h-8 w-8 text-blue-600" /></div></CardContent></Card>
