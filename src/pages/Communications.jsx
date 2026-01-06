@@ -62,8 +62,7 @@ export default function Communications() {
 
 
 
-  // Management sub-tabs
-  const [activeManagementTab, setActiveManagementTab] = useState('announcements');
+
 
   // Announcements
   const [showAnnouncementDialog, setShowAnnouncementDialog] = useState(false);
@@ -352,10 +351,12 @@ export default function Communications() {
       </div>
 
       <Tabs value={activeMainTab} onValueChange={setActiveMainTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="chat"><MessageSquare className="h-4 w-4 mr-2" />Chat</TabsTrigger>
           <TabsTrigger value="broadcast"><Radio className="h-4 w-4 mr-2" />Broadcast</TabsTrigger>
-          <TabsTrigger value="management"><FileText className="h-4 w-4 mr-2" />Management</TabsTrigger>
+          <TabsTrigger value="management"><Megaphone className="h-4 w-4 mr-2" />Announcements</TabsTrigger>
+          <TabsTrigger value="messages"><Mail className="h-4 w-4 mr-2" />Messages</TabsTrigger>
+          <TabsTrigger value="templates"><FileText className="h-4 w-4 mr-2" />Templates</TabsTrigger>
         </TabsList>
 
         <TabsContent value="chat" className="mt-6">
@@ -473,7 +474,7 @@ export default function Communications() {
                 <Card className="bg-yellow-50"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-yellow-600 font-medium">In Progress</p><p className="text-xl font-bold text-yellow-900">{statsByMessageStatus.in_progress}</p></div><Clock className="h-6 w-6 text-yellow-600" /></div></CardContent></Card>
                 <Card className="bg-green-50"><CardContent className="p-4"><div className="flex items-center justify-between"><div><p className="text-xs text-green-600 font-medium">Resolved</p><p className="text-xl font-bold text-green-900">{statsByMessageStatus.resolved}</p></div><CheckCircle2 className="h-6 w-6 text-green-600" /></div></CardContent></Card>
               </div>
-              <Button variant="outline" className="w-full" onClick={() => setActiveManagementTab('messages')}>View All Messages</Button>
+              <Button variant="outline" className="w-full" onClick={() => setActiveMainTab('messages')}>View All Messages</Button>
                 </CardContent>
               </Card>
 
@@ -515,151 +516,13 @@ export default function Communications() {
                   </>
                 )}
               </div>
-              <Button variant="outline" className="w-full" onClick={() => setActiveManagementTab('templates')}>Manage All Templates</Button>
+              <Button variant="outline" className="w-full" onClick={() => setActiveMainTab('templates')}>Manage All Templates</Button>
                 </CardContent>
               </Card>
             </div>
           </div>
 
-          <Tabs value={activeManagementTab} onValueChange={setActiveManagementTab} className="w-full hidden">
-            <TabsContent value="messages" className="space-y-6 mt-6">
-              <div className="grid gap-4 md:grid-cols-3">
-                <Card><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-slate-500">Unread</p><p className="text-2xl font-bold">{statsByMessageStatus.unread}</p></div><Inbox className="h-8 w-8 text-blue-600" /></div></CardContent></Card>
-                <Card><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-slate-500">In Progress</p><p className="text-2xl font-bold">{statsByMessageStatus.in_progress}</p></div><Clock className="h-8 w-8 text-yellow-600" /></div></CardContent></Card>
-                <Card><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-slate-500">Resolved</p><p className="text-2xl font-bold">{statsByMessageStatus.resolved}</p></div><CheckCircle2 className="h-8 w-8 text-green-600" /></div></CardContent></Card>
-              </div>
 
-              <Card><CardContent className="pt-6"><div className="flex flex-col sm:flex-row gap-4">
-                <Input placeholder="Search messages..." value={messageSearchQuery} onChange={(e) => setMessageSearchQuery(e.target.value)} className="sm:max-w-xs" />
-                <Select value={messageFilterStatus} onValueChange={setMessageFilterStatus}>
-                  <SelectTrigger className="sm:w-40"><SelectValue placeholder="Status" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="unread">Unread</SelectItem>
-                    <SelectItem value="read">Read</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="resolved">Resolved</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={messageFilterCategory} onValueChange={setMessageFilterCategory}>
-                  <SelectTrigger className="sm:w-48"><SelectValue placeholder="Category" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    <SelectItem value="maintenance">Maintenance</SelectItem>
-                    <SelectItem value="noise_complaint">Noise Complaint</SelectItem>
-                    <SelectItem value="parking">Parking</SelectItem>
-                    <SelectItem value="pets">Pets</SelectItem>
-                    <SelectItem value="bylaw_question">Bylaw Question</SelectItem>
-                    <SelectItem value="general_inquiry">General Inquiry</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div></CardContent></Card>
-
-              <div className="grid gap-4">
-                {filteredMessages.map((msg) => (
-                  <Card key={msg.id} className={cn("cursor-pointer hover:shadow-md transition-shadow", msg.status === 'unread' && "border-l-4 border-l-blue-600")} onClick={() => handleMessageClick(msg)}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold truncate">{msg.subject}</h3>
-                            {msg.priority && getPriorityBadge(msg.priority)}
-                            {getStatusBadge(msg.status)}
-                          </div>
-                          <div className="flex items-center gap-3 text-sm text-slate-600 mb-2">
-                            <span className="flex items-center gap-1"><User className="h-3 w-3" />{msg.sender_name}</span>
-                            {msg.sender_unit && <span className="flex items-center gap-1"><Building2 className="h-3 w-3" />Unit {msg.sender_unit}</span>}
-                            <span className="text-xs text-slate-400">{format(new Date(msg.created_date), 'MMM d, h:mm a')}</span>
-                          </div>
-                          {msg.ai_summary && <p className="text-sm text-slate-600 line-clamp-2">{msg.ai_summary}</p>}
-                          {msg.tags && msg.tags.length > 0 && (
-                            <div className="flex items-center gap-1 mt-2 flex-wrap">
-                              {msg.tags.map((tag, idx) => <Badge key={idx} variant="outline" className="text-xs"><Tag className="h-2 w-2 mr-1" />{tag}</Badge>)}
-                            </div>
-                          )}
-                        </div>
-                        {msg.category && <Badge variant="outline" className="capitalize">{msg.category.replace(/_/g, ' ')}</Badge>}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="templates" className="space-y-6 mt-6">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-slate-600">Manage communication and response templates</p>
-                <Button onClick={() => setEditingTemplate({ type: templateType })} className="bg-blue-600 hover:bg-blue-700">
-                  <Plus className="h-4 w-4 mr-2" />Create Template
-                </Button>
-              </div>
-
-              <Tabs value={templateType} onValueChange={setTemplateType} className="w-full">
-                <TabsList>
-                  <TabsTrigger value="announcement">Announcement Templates</TabsTrigger>
-                  <TabsTrigger value="response">Response Templates</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="announcement" className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {communicationTemplates.map((template) => (
-                      <Card key={template.id}>
-                        <CardHeader>
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <CardTitle className="text-base">{template.name}</CardTitle>
-                              <div className="flex items-center gap-2 mt-2">
-                                <Badge variant="outline" className="capitalize">{template.type}</Badge>
-                                <Badge variant="outline" className="capitalize">{template.category}</Badge>
-                                {template.building_id && <Badge>Building Specific</Badge>}
-                              </div>
-                            </div>
-                            <div className="flex gap-1">
-                              <Button variant="ghost" size="icon" onClick={() => setEditingTemplate(template)}><Edit className="h-4 w-4" /></Button>
-                              <Button variant="ghost" size="icon" onClick={() => deleteCommunicationTemplateMutation.mutate(template.id)}><Trash2 className="h-4 w-4" /></Button>
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-sm font-medium mb-1">Title:</p>
-                          <p className="text-sm text-slate-600 mb-3">{template.title_template}</p>
-                          <p className="text-sm font-medium mb-1">Content Preview:</p>
-                          <p className="text-sm text-slate-600 line-clamp-3">{template.content_template}</p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="response" className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {messageTemplates.map((template) => (
-                      <Card key={template.id}>
-                        <CardHeader>
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <CardTitle className="text-base">{template.name}</CardTitle>
-                              <div className="flex items-center gap-2 mt-2">
-                                <Badge variant="outline" className="capitalize">{template.category.replace(/_/g, ' ')}</Badge>
-                                {template.building_id && <Badge>Building Specific</Badge>}
-                              </div>
-                            </div>
-                            <div className="flex gap-1">
-                              <Button variant="ghost" size="icon" onClick={() => setEditingTemplate(template)}><Edit className="h-4 w-4" /></Button>
-                              <Button variant="ghost" size="icon" onClick={() => deleteMessageTemplateMutation.mutate(template.id)}><Trash2 className="h-4 w-4" /></Button>
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-sm text-slate-600 line-clamp-4">{template.content}</p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </TabsContent>
-          </Tabs>
         </TabsContent>
       </Tabs>
 
