@@ -13,6 +13,7 @@ import StatusBadge from '@/components/common/StatusBadge';
 import BuildingDocumentManager from '@/components/buildings/BuildingDocumentManager';
 import ReportGenerator from '@/components/buildings/ReportGenerator';
 import LocationBasedInspectionGenerator from '@/components/inspections/LocationBasedInspectionGenerator';
+import ComplianceTab from '@/components/buildings/ComplianceTab';
 
 import { 
   Building2, 
@@ -191,6 +192,7 @@ export default function BuildingProfile() {
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="compliance">Compliance</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="inspections">Inspections</TabsTrigger>
           <TabsTrigger value="strata">Strata Info</TabsTrigger>
@@ -297,6 +299,10 @@ export default function BuildingProfile() {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        <TabsContent value="compliance" className="space-y-6">
+          <ComplianceTab building={building} />
         </TabsContent>
 
         <TabsContent value="documents" className="space-y-6">
