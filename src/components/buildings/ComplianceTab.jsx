@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import ComplianceDocumentUploader from './ComplianceDocumentUploader';
 import { 
   Shield, 
   AlertCircle, 
@@ -142,6 +143,29 @@ export default function ComplianceTab({ building }) {
     setShowDialog(true);
   };
 
+  const handleDataExtracted = (extractedData) => {
+    // Pre-fill form with AI extracted data
+    setFormData({
+      compliance_type: extractedData.compliance_type || '',
+      inspection_date: extractedData.inspection_date || '',
+      expiry_date: extractedData.expiry_date || '',
+      next_due_date: extractedData.next_due_date || '',
+      status: extractedData.status || 'pending',
+      certificate_number: extractedData.certificate_number || '',
+      certificate_url: extractedData.certificate_url || '',
+      inspector_name: extractedData.inspector_name || '',
+      inspector_company: extractedData.inspector_company || '',
+      findings: extractedData.findings || '',
+      recommendations: extractedData.recommendations || '',
+    });
+    
+    // If asset was linked, we could store it for the form
+    // For now, the building_id is already set in the submit handler
+    
+    setShowDialog(true);
+    toast.success('Form pre-filled with extracted data. Review and save.');
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const submitData = { ...formData, building_id: building.id };
@@ -186,6 +210,12 @@ export default function ComplianceTab({ building }) {
 
   return (
     <div className="space-y-6">
+      {/* AI Document Scanner */}
+      <ComplianceDocumentUploader 
+        buildingId={building.id} 
+        onDataExtracted={handleDataExtracted}
+      />
+
       {/* After-Hours Emergency Section */}
       <Card className="border-orange-200 bg-orange-50/30">
         <CardHeader className="flex-row items-center justify-between">
