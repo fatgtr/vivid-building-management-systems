@@ -92,6 +92,14 @@ export default function ResidentsTab() {
   const isBMC = currentBuilding?.is_bmc;
   const strataPlans = isBMC ? (currentBuilding?.bmc_strata_plans || []) : [];
 
+  // Get units for the selected strata plan
+  const getUnitsForStrataPlan = (strataPlanNumber) => {
+    return units.filter(u => 
+      u.building_id === selectedBuildingId && 
+      u.strata_plan_number === strataPlanNumber
+    );
+  };
+
   const filteredResidents = residents.filter(r => {
     const matchesSearch = 
       r.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -101,6 +109,11 @@ export default function ResidentsTab() {
     const matchesStrataPlan = selectedStrataPlan === 'all' || r.strata_plan_number === selectedStrataPlan;
     return matchesSearch && matchesBuilding && matchesStrataPlan;
   });
+
+  // Get units for selected strata plan
+  const selectedUnits = selectedStrataPlan === 'all' 
+    ? units.filter(u => u.building_id === selectedBuildingId)
+    : getUnitsForStrataPlan(selectedStrataPlan);
 
   if (isLoading) {
     return <Skeleton className="h-96 rounded-xl" />;
