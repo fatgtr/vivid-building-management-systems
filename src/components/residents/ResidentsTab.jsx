@@ -65,6 +65,14 @@ export default function ResidentsTab() {
     queryFn: () => base44.entities.Unit.list(),
   });
 
+  // Debug: log units for selected building
+  React.useEffect(() => {
+    if (selectedBuildingId) {
+      const buildingUnits = units.filter(u => u.building_id === selectedBuildingId);
+      console.log(`Units for building ${selectedBuildingId}:`, buildingUnits);
+    }
+  }, [units, selectedBuildingId]);
+
   const { data: locations = [] } = useQuery({
     queryKey: ['locations'],
     queryFn: () => base44.entities.Location.list(),
