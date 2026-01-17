@@ -227,9 +227,10 @@ export default function SetupCenter() {
   const handleBuildingSubmit = (e) => {
     e.preventDefault();
     
-    // Auto-detect building type for BMC
+    // Auto-detect building type and calculate total lots for BMC
     let finalBuildingData = { ...buildingForm };
     if (buildingForm.is_bmc && buildingForm.bmc_strata_plans?.length > 0) {
+      // Auto-detect building type
       const types = new Set(buildingForm.bmc_strata_plans.map(p => p.type));
       if (types.size > 1 || types.has('mixed_use')) {
         finalBuildingData.building_type = 'mixed_use';
@@ -238,6 +239,22 @@ export default function SetupCenter() {
         if (singleType === 'residential') finalBuildingData.building_type = 'residential';
         else if (singleType === 'commercial') finalBuildingData.building_type = 'commercial';
         else finalBuildingData.building_type = 'mixed_use';
+      }
+      
+      // Auto-calculate total lots from all buildings in all strata plans
+      let totalLots = 0;
+      buildingForm.bmc_strata_plans.forEach(plan => {
+        if (plan.buildings && plan.buildings.length > 0) {
+          plan.buildings.forEach(building => {
+            if (building.total_units) {
+              totalLots += Number(building.total_units);
+            }
+          });
+        }
+      });
+      
+      if (totalLots > 0) {
+        finalBuildingData.strata_lots = totalLots;
       }
     }
     
