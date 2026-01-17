@@ -48,21 +48,19 @@ import {
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { name: 'Home', icon: Home, page: 'Home', adminOnly: false },
   { name: 'Dashboard', icon: LayoutDashboard, page: 'Dashboard', adminOnly: false },
-  { name: 'Platform Dashboard', icon: Sparkles, page: 'PlatformDashboard', adminOnly: true },
   { name: 'Buildings', icon: Building2, page: 'Buildings', requirePermission: { resource: 'buildings', action: 'view' } },
-  { name: 'Residents Center', icon: Users, page: 'ResidentsCenter', requirePermission: { resource: 'residents', action: 'view' } },
-  { name: 'Operations Center', icon: Wrench, page: 'OperationsCenter', requirePermission: { resource: 'work_orders', action: 'view' } },
-  { name: 'Task Management', icon: ClipboardCheck, page: 'TaskManagement', requirePermission: { resource: 'work_orders', action: 'view' } },
-  { name: 'Capital Works', icon: TrendingUp, page: 'CapitalWorksPlanning', requirePermission: { resource: 'buildings', action: 'view' } },
+  { name: 'Residents', icon: Users, page: 'ResidentsCenter', requirePermission: { resource: 'residents', action: 'view' } },
+  { name: 'Operations', icon: Wrench, page: 'OperationsCenter', requirePermission: { resource: 'work_orders', action: 'view' } },
   { name: 'Communications', icon: MessageSquare, page: 'Communications', requirePermission: { resource: 'announcements', action: 'view' } },
-  { name: 'Contractor Portal', icon: HardHat, page: 'ContractorPortal', contractorOnly: true },
+  { name: 'Capital Works', icon: TrendingUp, page: 'CapitalWorksPlanning', requirePermission: { resource: 'buildings', action: 'view' } },
+  { name: 'Knowledge Base', icon: FileText, page: 'StrataKnowledgeBase', requirePermission: { resource: 'documents', action: 'view' } },
   { name: 'Smart Devices', icon: Settings, page: 'SmartDevices', requirePermission: { resource: 'buildings', action: 'view' } },
-  { name: 'Strata Knowledge Base', icon: FileText, page: 'StrataKnowledgeBase', requirePermission: { resource: 'documents', action: 'view' } },
+  { name: 'Contractor Portal', icon: HardHat, page: 'ContractorPortal', contractorOnly: true },
+  { name: 'Platform Admin', icon: Sparkles, page: 'PlatformDashboard', adminOnly: true },
   { name: 'Role Management', icon: Shield, page: 'RoleManagement', adminOnly: true },
   { name: 'Partner Management', icon: Building2, page: 'PartnerManagement', adminOnly: true },
-  { name: 'Vivid Staff', icon: Users, page: 'VividStaffManagement', adminOnly: true },
+  { name: 'Staff Management', icon: UserCircle, page: 'VividStaffManagement', adminOnly: true },
 ];
 
 function LayoutInner({ children, currentPageName }) {
@@ -159,6 +157,20 @@ function LayoutInner({ children, currentPageName }) {
           border-color: rgba(59, 130, 246, 0.4);
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
           transform: translateY(-2px);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f1f5f9;
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #94a3b8;
         }
       `}</style>
 
@@ -259,12 +271,9 @@ function LayoutInner({ children, currentPageName }) {
         )}
 
         {/* Navigation */}
-        <nav className="p-3 space-y-1 overflow-y-auto h-[calc(100vh-8rem)]">
+        <nav className="p-3 space-y-1 overflow-y-auto h-[calc(100vh-16rem)] custom-scrollbar">
           {navItems.map((item) => {
             const isActive = currentPageName === item.page;
-
-            // Hide Home page for logged-in users
-            if (item.page === 'Home' && user) return null;
 
             // Check admin-only pages
             if (item.adminOnly && !isAdmin && !isPermissionAdmin()) return null;
@@ -285,14 +294,14 @@ function LayoutInner({ children, currentPageName }) {
                 to={createPageUrl(item.page)}
                 onClick={() => setSidebarOpen(false)}
                 className={cn(
-                  "sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
+                  "sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all",
                   isActive 
                     ? "text-blue-600 bg-blue-50" 
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                 )}
               >
-                <item.icon className={cn("h-5 w-5 flex-shrink-0", isActive && "text-blue-600")} />
-                {!collapsed && <span>{item.name}</span>}
+                <item.icon className={cn("h-4 w-4 flex-shrink-0", isActive && "text-blue-600")} />
+                {!collapsed && <span className="truncate">{item.name}</span>}
               </Link>
             );
           })}
