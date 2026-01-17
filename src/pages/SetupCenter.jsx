@@ -419,7 +419,7 @@ export default function SetupCenter() {
                           onCheckedChange={(checked) => setBuildingForm({ ...buildingForm, is_bmc: checked })}
                         />
                         <Label htmlFor="is_bmc" className="text-sm font-medium">
-                          This building is part of a Body Corporate Management (BMC) scheme
+                          This building is part of a Building Management Committee (BMC) scheme
                         </Label>
                       </div>
 
