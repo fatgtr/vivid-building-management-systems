@@ -439,6 +439,38 @@ export default function SetupCenter() {
                       )}
 
                       {buildingForm.is_bmc && (
+                        <div className="border border-slate-200 rounded-lg p-4 bg-slate-50 mb-4">
+                          <Label className="text-sm font-semibold text-slate-700 mb-3 block">BMC Strata Manager (Main)</Label>
+                          <p className="text-xs text-slate-500 mb-3">This manager will be the default for all strata plans unless overridden individually</p>
+                          <div className="space-y-3">
+                            <Input
+                              placeholder="Managing Agent Name"
+                              value={buildingForm.strata_managing_agent_name || ''}
+                              onChange={(e) => setBuildingForm({ ...buildingForm, strata_managing_agent_name: e.target.value })}
+                            />
+                            <div className="grid grid-cols-2 gap-2">
+                              <Input
+                                placeholder="Email"
+                                type="email"
+                                value={buildingForm.strata_managing_agent_email || ''}
+                                onChange={(e) => setBuildingForm({ ...buildingForm, strata_managing_agent_email: e.target.value })}
+                              />
+                              <Input
+                                placeholder="Phone"
+                                value={buildingForm.strata_managing_agent_phone || ''}
+                                onChange={(e) => setBuildingForm({ ...buildingForm, strata_managing_agent_phone: e.target.value })}
+                              />
+                            </div>
+                            <Input
+                              placeholder="License Number"
+                              value={buildingForm.strata_managing_agent_license || ''}
+                              onChange={(e) => setBuildingForm({ ...buildingForm, strata_managing_agent_license: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {buildingForm.is_bmc && (
                         <div className="border border-blue-200 rounded-lg p-4 bg-blue-50/50">
                           <div className="flex justify-between items-center mb-3">
                             <Label className="text-sm font-semibold text-blue-900">Strata Plans under BMC</Label>
@@ -450,7 +482,7 @@ export default function SetupCenter() {
                                 const plans = buildingForm.bmc_strata_plans || [];
                                 setBuildingForm({
                                   ...buildingForm,
-                                  bmc_strata_plans: [...plans, { plan_number: '', name: '', type: 'residential', buildings: [] }]
+                                  bmc_strata_plans: [...plans, { plan_number: '', name: '', type: 'residential', buildings: [], use_different_manager: false }]
                                 });
                               }}
                             >
@@ -511,50 +543,69 @@ export default function SetupCenter() {
                                       </SelectContent>
                                     </Select>
 
-                                    {/* Strata Manager for this plan */}
+                                    {/* Strata Manager Toggle for this plan */}
                                     <div className="mt-3 pt-3 border-t border-slate-200">
-                                      <Label className="text-xs font-medium text-slate-600 mb-2 block">Strata Manager for {plan.name || 'this plan'}</Label>
-                                      <div className="space-y-2">
-                                        <Input
-                                          placeholder="Managing Agent Name"
-                                          value={plan.strata_managing_agent_name || ''}
-                                          onChange={(e) => {
-                                            const updated = [...buildingForm.bmc_strata_plans];
-                                            updated[planIndex].strata_managing_agent_name = e.target.value;
-                                            setBuildingForm({ ...buildingForm, bmc_strata_plans: updated });
-                                          }}
-                                        />
-                                        <div className="grid grid-cols-2 gap-2">
-                                          <Input
-                                            placeholder="Email"
-                                            type="email"
-                                            value={plan.strata_managing_agent_email || ''}
-                                            onChange={(e) => {
-                                              const updated = [...buildingForm.bmc_strata_plans];
-                                              updated[planIndex].strata_managing_agent_email = e.target.value;
-                                              setBuildingForm({ ...buildingForm, bmc_strata_plans: updated });
-                                            }}
-                                          />
-                                          <Input
-                                            placeholder="Phone"
-                                            value={plan.strata_managing_agent_phone || ''}
-                                            onChange={(e) => {
-                                              const updated = [...buildingForm.bmc_strata_plans];
-                                              updated[planIndex].strata_managing_agent_phone = e.target.value;
-                                              setBuildingForm({ ...buildingForm, bmc_strata_plans: updated });
-                                            }}
-                                          />
+                                      <div className="flex items-center justify-between mb-3">
+                                        <div className="flex-1">
+                                          <Label className="text-xs font-medium text-slate-600">Different Strata Manager?</Label>
+                                          <p className="text-xs text-slate-400 mt-0.5">
+                                            {plan.use_different_manager ? 'Using a different manager for this plan' : 'Using BMC main strata manager'}
+                                          </p>
                                         </div>
-                                        <Input
-                                          placeholder="License Number"
-                                          value={plan.strata_managing_agent_license || ''}
-                                          onChange={(e) => {
+                                        <Switch
+                                          checked={plan.use_different_manager || false}
+                                          onCheckedChange={(checked) => {
                                             const updated = [...buildingForm.bmc_strata_plans];
-                                            updated[planIndex].strata_managing_agent_license = e.target.value;
+                                            updated[planIndex].use_different_manager = checked;
                                             setBuildingForm({ ...buildingForm, bmc_strata_plans: updated });
                                           }}
                                         />
                                       </div>
+
+                                      {plan.use_different_manager && (
+                                        <div className="space-y-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                                          <Label className="text-xs font-medium text-slate-600">Strata Manager for {plan.name || 'this plan'}</Label>
+                                          <Input
+                                            placeholder="Managing Agent Name"
+                                            value={plan.strata_managing_agent_name || ''}
+                                            onChange={(e) => {
+                                              const updated = [...buildingForm.bmc_strata_plans];
+                                              updated[planIndex].strata_managing_agent_name = e.target.value;
+                                              setBuildingForm({ ...buildingForm, bmc_strata_plans: updated });
+                                            }}
+                                          />
+                                          <div className="grid grid-cols-2 gap-2">
+                                            <Input
+                                              placeholder="Email"
+                                              type="email"
+                                              value={plan.strata_managing_agent_email || ''}
+                                              onChange={(e) => {
+                                                const updated = [...buildingForm.bmc_strata_plans];
+                                                updated[planIndex].strata_managing_agent_email = e.target.value;
+                                                setBuildingForm({ ...buildingForm, bmc_strata_plans: updated });
+                                              }}
+                                            />
+                                            <Input
+                                              placeholder="Phone"
+                                              value={plan.strata_managing_agent_phone || ''}
+                                              onChange={(e) => {
+                                                const updated = [...buildingForm.bmc_strata_plans];
+                                                updated[planIndex].strata_managing_agent_phone = e.target.value;
+                                                setBuildingForm({ ...buildingForm, bmc_strata_plans: updated });
+                                              }}
+                                            />
+                                          </div>
+                                          <Input
+                                            placeholder="License Number"
+                                            value={plan.strata_managing_agent_license || ''}
+                                            onChange={(e) => {
+                                              const updated = [...buildingForm.bmc_strata_plans];
+                                              updated[planIndex].strata_managing_agent_license = e.target.value;
+                                              setBuildingForm({ ...buildingForm, bmc_strata_plans: updated });
+                                            }}
+                                          />
+                                        </div>
+                                      )}
                                     </div>
                                   </div>
                                   <Button
