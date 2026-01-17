@@ -140,96 +140,114 @@ export default function ResidentsTab() {
         </Link>
       </div>
 
-      {/* Residents Grid */}
-      {filteredResidents.length === 0 ? (
+      {/* Lots/Units Grid - Show all lots as cards, with resident info if occupied */}
+      {selectedUnits.length === 0 ? (
         <EmptyState
           icon={Users}
-          title="No residents found"
-          description="Add residents to start managing your building occupants"
+          title="No lots found"
+          description="Lots will appear here once added from the setup"
           action={() => window.location.href = createPageUrl('Residents')}
           actionLabel="Add Resident"
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredResidents.map((resident) => {
-            const locationName = getLocationName(resident.unit_id);
+          {selectedUnits.map((unit) => {
+            // Find resident(s) for this unit
+            const unitResidents = residents.filter(r => r.unit_id === unit.id);
+            const hasResident = unitResidents.length > 0;
+            
             return (
-              <Card key={resident.id} className="p-5 hover:shadow-lg transition-shadow border-2 hover:border-purple-300">
+              <Card key={unit.id} className={`p-5 transition-all border-2 ${hasResident ? 'hover:shadow-lg hover:border-purple-300' : 'bg-slate-50 border-slate-200 hover:border-slate-300'}`}>
                 <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white font-semibold text-lg">
-                      {resident.first_name?.[0]}{resident.last_name?.[0]}
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className={`h-12 w-12 rounded-full flex items-center justify-center text-white font-semibold text-lg ${hasResident ? 'bg-gradient-to-br from-purple-500 to-pink-600' : 'bg-slate-300'}`}>
+                      {hasResident ? (
+                        <>
+                          {unitResidents[0]?.first_name?.[0]}{unitResidents[0]?.last_name?.[0]}
+                        </>
+                      ) : (
+                        <Home className="h-6 w-6" />
+                      )}
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-slate-900">
-                        {resident.first_name} {resident.last_name}
-                      </h3>
-                      <p className="text-xs text-slate-500">
-                        {getBuildingName(resident.building_id)} • Unit {getUnitNumber(resident.unit_id)}
-                      </p>
-                      {resident.strata_plan_number && (
-                        <p className="text-xs text-purple-600 font-medium">
-                          {resident.strata_plan_number}
-                        </p>
+                    <div className="flex-1">
+                      {hasResident ? (
+                        <>
+                          <h3 className="font-semibold text-slate-900">
+                            {unitResidents[0]?.first_name} {unitResidents[0]?.last_name}
+                          </h3>
+                          <p className="text-xs text-slate-500">
+                            Lot {unit.lot_number || unit.unit_number}
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <h3 className="font-semibold text-slate-700">
+                            Lot {unit.lot_number || unit.unit_number}
+                          </h3>
+                          <p className="text-xs text-slate-500">
+                            Vacant
+                          </p>
+                        </>
                       )}
                     </div>
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem asChild>
-                        <Link to={createPageUrl('ResidentProfile') + `?id=${resident.id}`}>
-                          <Eye className="mr-2 h-4 w-4" /> View Profile
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link to={createPageUrl('Residents')}>
-                          <Pencil className="mr-2 h-4 w-4" /> Edit
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setDeleteResident(resident)} className="text-red-600">
-                        <Trash2 className="mr-2 h-4 w-4" /> Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  {hasResident && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                          <Link to={createPageUrl('ResidentProfile') + `?id=${unitResidents[0].id}`}>
+                            <Eye className="mr-2 h-4 w-4" /> View Profile
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setDeleteResident(unitResidents[0])} className="text-red-600">
+                          <Trash2 className="mr-2 h-4 w-4" /> Remove
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
 
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm flex-wrap">
-                    <Badge className="capitalize">{resident.resident_type}</Badge>
-                    <StatusBadge status={resident.status} />
+                {hasResident && (
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center gap-2 text-sm flex-wrap">
+                      <Badge className="capitalize">{unitResidents[0]?.resident_type}</Badge>
+                      <StatusBadge status={unitResidents[0]?.status} />
+                    </div>
+                    
+                    {unitResidents[0]?.email && (
+                      <div className="flex items-center gap-2 text-sm text-slate-600">
+                        <Mail className="h-4 w-4 text-slate-400" />
+                        <span className="truncate">{unitResidents[0]?.email}</span>
+                      </div>
+                    )}
+                    
+                    {unitResidents[0]?.phone && (
+                      <div className="flex items-center gap-2 text-sm text-slate-600">
+                        <Phone className="h-4 w-4 text-slate-400" />
+                        <span>{unitResidents[0]?.phone}</span>
+                      </div>
+                    )}
                   </div>
-                  
-                  {locationName && (
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                      <MapPin className="h-4 w-4 text-slate-400" />
-                      <span className="truncate">{locationName}</span>
-                    </div>
-                  )}
-                  
-                  {resident.email && (
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                      <Mail className="h-4 w-4 text-slate-400" />
-                      <span className="truncate">{resident.email}</span>
-                    </div>
-                  )}
-                  
-                  {resident.phone && (
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                      <Phone className="h-4 w-4 text-slate-400" />
-                      <span>{resident.phone}</span>
-                    </div>
-                  )}
-                </div>
+                )}
 
-                <Link to={createPageUrl('ResidentProfile') + `?id=${resident.id}`}>
-                  <Button variant="outline" className="w-full mt-4" size="sm">
-                    <Eye className="h-4 w-4 mr-2" />
-                    View Profile
+                <Link to={createPageUrl('Residents')}>
+                  <Button variant="outline" className="w-full" size="sm">
+                    {hasResident ? (
+                      <>
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Profile
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Add Resident
+                      </>
+                    )}
                   </Button>
                 </Link>
               </Card>
