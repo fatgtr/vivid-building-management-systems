@@ -29,7 +29,9 @@ import {
   Eye,
   Activity,
   TrendingUp,
-  Clock
+  Clock,
+  Shield,
+  CheckCircle2 as CheckCircle
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -98,6 +100,11 @@ export default function Dashboard() {
     queryFn: () => base44.entities.MaintenanceSchedule.list(),
   });
 
+  const { data: complianceRecords = [] } = useQuery({
+    queryKey: ['complianceRecords'],
+    queryFn: () => base44.entities.ComplianceRecord.list(),
+  });
+
   const isLoading = loadingBuildings || loadingUnits || loadingResidents || loadingWorkOrders;
 
   const activeCases = workOrders.filter(wo => wo.status !== 'completed' && wo.status !== 'cancelled').length;
@@ -147,8 +154,35 @@ export default function Dashboard() {
   const filteredNumbers = selectedBuildingId ? numbers.filter(n => n.building_id === selectedBuildingId) : numbers;
   const filteredDocuments = selectedBuildingId ? documents.filter(d => d.building_id === selectedBuildingId) : documents;
   const filteredMaintenanceSchedules = selectedBuildingId ? maintenanceSchedules.filter(m => m.building_id === selectedBuildingId) : maintenanceSchedules;
+  const filteredComplianceRecords = selectedBuildingId ? complianceRecords.filter(c => c.building_id === selectedBuildingId) : complianceRecords;
 
   const filteredActiveCases = filteredWorkOrders.filter(wo => wo.status !== 'completed' && wo.status !== 'cancelled').length;
+
+  // Compliance metrics
+  const overdueCompliance = filteredComplianceRecords.filter(c => {
+    if (c.expiry_date) {
+      const daysUntilExpiry = differenceInDays(new Date(c.expiry_date), new Date());
+      return daysUntilExpiry < 0;
+    }
+    if (c.next_due_date) {
+      return isPast(new Date(c.next_due_date));
+    }
+    return false;
+  }).length;
+
+  const expiringSoon = filteredComplianceRecords.filter(c => {
+    if (c.expiry_date) {
+      const daysUntilExpiry = differenceInDays(new Date(c.expiry_date), new Date());
+      return daysUntilExpiry >= 0 && daysUntilExpiry <= 30;
+    }
+    if (c.next_due_date) {
+      const daysUntilDue = differenceInDays(new Date(c.next_due_date), new Date());
+      return daysUntilDue >= 0 && daysUntilDue <= 30;
+    }
+    return false;
+  }).length;
+
+  const compliantItems = filteredComplianceRecords.filter(c => c.status === 'compliant' || c.status === 'passed').length;
 
   return (
     <div className="space-y-6">
@@ -164,6 +198,91 @@ export default function Dashboard() {
 
       {/* Abandoned Queries Alert */}
       <QueryNotesWidget buildingId={selectedBuildingId} />
+
+      {/* Compliance Overview - Full Width */}
+      <Card className="overflow-hidden border-2 border-teal-200 shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-teal-400">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-bl-full" />
+        <CardHeader className="pb-4 bg-gradient-to-r from-teal-50 to-cyan-50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-teal-500/30">
+                <Shield className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <CardTitle className="text-xl font-bold text-slate-900">Compliance & Emergency</CardTitle>
+                <p className="text-sm text-slate-600 mt-0.5">Building safety and regulatory compliance</p>
+              </div>
+            </div>
+            <Link to={createPageUrl('BuildingProfile') + `?id=${selectedBuildingId}`}>
+              <Button variant="outline" size="sm" className="border-teal-300 text-teal-700 hover:bg-teal-50">
+                <Eye className="h-4 w-4 mr-2" />
+                View All
+              </Button>
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="p-4 rounded-xl bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-200">
+              <div className="flex items-center justify-between mb-2">
+                <div className="h-10 w-10 rounded-lg bg-red-500 flex items-center justify-center shadow-md">
+                  <AlertCircle className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-3xl font-bold bg-gradient-to-br from-red-600 to-red-700 bg-clip-text text-transparent">{overdueCompliance}</span>
+              </div>
+              <p className="text-sm font-semibold text-red-900">Overdue</p>
+              <p className="text-xs text-red-700 mt-1">Immediate action required</p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-200">
+              <div className="flex items-center justify-between mb-2">
+                <div className="h-10 w-10 rounded-lg bg-amber-500 flex items-center justify-center shadow-md">
+                  <Clock className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-3xl font-bold bg-gradient-to-br from-amber-600 to-amber-700 bg-clip-text text-transparent">{expiringSoon}</span>
+              </div>
+              <p className="text-sm font-semibold text-amber-900">Expiring Soon</p>
+              <p className="text-xs text-amber-700 mt-1">Within 30 days</p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100 border-2 border-emerald-200">
+              <div className="flex items-center justify-between mb-2">
+                <div className="h-10 w-10 rounded-lg bg-emerald-500 flex items-center justify-center shadow-md">
+                  <CheckCircle className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-3xl font-bold bg-gradient-to-br from-emerald-600 to-emerald-700 bg-clip-text text-transparent">{compliantItems}</span>
+              </div>
+              <p className="text-sm font-semibold text-emerald-900">Compliant</p>
+              <p className="text-xs text-emerald-700 mt-1">Up to date</p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-slate-200">
+              <div className="flex items-center justify-between mb-2">
+                <div className="h-10 w-10 rounded-lg bg-slate-500 flex items-center justify-center shadow-md">
+                  <Shield className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-3xl font-bold bg-gradient-to-br from-slate-600 to-slate-700 bg-clip-text text-transparent">{filteredComplianceRecords.length}</span>
+              </div>
+              <p className="text-sm font-semibold text-slate-900">Total Items</p>
+              <p className="text-xs text-slate-700 mt-1">All compliance records</p>
+            </div>
+          </div>
+
+          {overdueCompliance > 0 && (
+            <div className="mt-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-red-900">Action Required</p>
+                  <p className="text-xs text-red-700 mt-1">
+                    You have {overdueCompliance} overdue compliance item{overdueCompliance !== 1 ? 's' : ''} that require immediate attention.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
