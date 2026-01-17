@@ -65,13 +65,32 @@ export default function ResidentsTab() {
     queryFn: () => base44.entities.Unit.list(),
   });
 
-  // Debug: log units for selected building
+  // Auto-backfill units if building has lots but no units yet
   React.useEffect(() => {
-    if (selectedBuildingId) {
+    const backfillUnitsIfNeeded = async () => {
+      if (!selectedBuildingId) return;
+      
       const buildingUnits = units.filter(u => u.building_id === selectedBuildingId);
-      console.log(`Units for building ${selectedBuildingId}:`, buildingUnits);
-    }
-  }, [units, selectedBuildingId]);
+      const currentBuilding = buildings.find(b => b.id === selectedBuildingId);
+      
+      // Check if building has strata lots configured but no units created
+      const hasLotsConfigured = currentBuilding && (
+        (currentBuilding.is_bmc && currentBuilding.bmc_strata_plans?.some(p => p.strata_lots)) ||
+        (!currentBuilding.is_bmc && currentBuilding.strata_lots)
+      );
+      
+      if (hasLotsConfigured && buildingUnits.length === 0) {
+        try {
+          await base44.functions.invoke('backfillUnits', { buildingId: selectedBuildingId });
+          queryClient.invalidateQueries({ queryKey: ['units'] });
+        } catch (error) {
+          console.error('Error backfilling units:', error);
+        }
+      }
+    };
+    
+    backfillUnitsIfNeeded();
+  }, [selectedBuildingId, buildings, units, queryClient]);
 
   const { data: locations = [] } = useQuery({
     queryKey: ['locations'],
