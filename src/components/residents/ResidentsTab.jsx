@@ -230,12 +230,11 @@ export default function ResidentsTab() {
     <div className="space-y-6">
       {isBMC && strataPlans.length > 0 ? (
         <Tabs value={selectedStrataPlan} onValueChange={setSelectedStrataPlan} className="space-y-6">
-          <TabsList className="bg-slate-100">
-            <TabsTrigger value="all">All Residents</TabsTrigger>
+          <TabsList className="bg-slate-100 flex-wrap h-auto">
+            <TabsTrigger value="all">All</TabsTrigger>
             {strataPlans.map((plan) => (
               <TabsTrigger key={plan.plan_number} value={plan.plan_number}>
                 {plan.plan_number}
-                {plan.name && <span className="ml-1 text-xs">({plan.name})</span>}
               </TabsTrigger>
             ))}
           </TabsList>
