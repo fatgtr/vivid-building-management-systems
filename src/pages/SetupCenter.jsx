@@ -449,7 +449,7 @@ export default function SetupCenter() {
                                 const plans = buildingForm.bmc_strata_plans || [];
                                 setBuildingForm({
                                   ...buildingForm,
-                                  bmc_strata_plans: [...plans, { plan_number: '', name: '', type: 'residential' }]
+                                  bmc_strata_plans: [...plans, { plan_number: '', name: '', type: 'residential', buildings: [] }]
                                 });
                               }}
                             >
@@ -465,9 +465,9 @@ export default function SetupCenter() {
                           )}
 
                           <div className="space-y-3">
-                            {buildingForm.bmc_strata_plans?.map((plan, index) => (
-                              <div key={index} className="bg-white border border-slate-200 rounded-lg p-3">
-                                <div className="flex items-start gap-2">
+                            {buildingForm.bmc_strata_plans?.map((plan, planIndex) => (
+                              <div key={planIndex} className="bg-white border border-slate-200 rounded-lg p-3">
+                                <div className="flex items-start gap-2 mb-3">
                                   <div className="flex-1 space-y-2">
                                     <div className="grid grid-cols-2 gap-2">
                                       <Input
@@ -475,16 +475,16 @@ export default function SetupCenter() {
                                         value={plan.plan_number}
                                         onChange={(e) => {
                                           const updated = [...buildingForm.bmc_strata_plans];
-                                          updated[index].plan_number = e.target.value;
+                                          updated[planIndex].plan_number = e.target.value;
                                           setBuildingForm({ ...buildingForm, bmc_strata_plans: updated });
                                         }}
                                       />
                                       <Input
-                                        placeholder="Name (e.g., Residential Tower)"
+                                        placeholder="Name (e.g., Residential Component)"
                                         value={plan.name}
                                         onChange={(e) => {
                                           const updated = [...buildingForm.bmc_strata_plans];
-                                          updated[index].name = e.target.value;
+                                          updated[planIndex].name = e.target.value;
                                           setBuildingForm({ ...buildingForm, bmc_strata_plans: updated });
                                         }}
                                       />
@@ -493,7 +493,7 @@ export default function SetupCenter() {
                                       value={plan.type}
                                       onValueChange={(value) => {
                                         const updated = [...buildingForm.bmc_strata_plans];
-                                        updated[index].type = value;
+                                        updated[planIndex].type = value;
                                         setBuildingForm({ ...buildingForm, bmc_strata_plans: updated });
                                       }}
                                     >
@@ -515,12 +515,102 @@ export default function SetupCenter() {
                                     size="icon"
                                     variant="ghost"
                                     onClick={() => {
-                                      const updated = buildingForm.bmc_strata_plans.filter((_, i) => i !== index);
+                                      const updated = buildingForm.bmc_strata_plans.filter((_, i) => i !== planIndex);
                                       setBuildingForm({ ...buildingForm, bmc_strata_plans: updated });
                                     }}
                                   >
                                     <Trash2 className="h-4 w-4 text-red-500" />
                                   </Button>
+                                </div>
+
+                                {/* Buildings within this strata plan */}
+                                <div className="ml-4 mt-3 border-l-2 border-blue-200 pl-3">
+                                  <div className="flex justify-between items-center mb-2">
+                                    <Label className="text-xs font-medium text-slate-600">Buildings in this Strata Plan</Label>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => {
+                                        const updated = [...buildingForm.bmc_strata_plans];
+                                        if (!updated[planIndex].buildings) updated[planIndex].buildings = [];
+                                        updated[planIndex].buildings.push({ name: '', address: '', floors: '', total_units: '' });
+                                        setBuildingForm({ ...buildingForm, bmc_strata_plans: updated });
+                                      }}
+                                    >
+                                      <Plus className="h-3 w-3 mr-1" />
+                                      Add Building
+                                    </Button>
+                                  </div>
+
+                                  {plan.buildings?.length === 0 && (
+                                    <p className="text-xs text-slate-400 text-center py-2">
+                                      Add buildings (e.g., Firenze, Napoli, Palermo)
+                                    </p>
+                                  )}
+
+                                  <div className="space-y-2">
+                                    {plan.buildings?.map((building, buildingIndex) => (
+                                      <div key={buildingIndex} className="bg-slate-50 border border-slate-200 rounded p-2 space-y-2">
+                                        <div className="flex items-start gap-2">
+                                          <div className="flex-1 space-y-2">
+                                            <Input
+                                              placeholder="Building name (e.g., Firenze)"
+                                              value={building.name}
+                                              onChange={(e) => {
+                                                const updated = [...buildingForm.bmc_strata_plans];
+                                                updated[planIndex].buildings[buildingIndex].name = e.target.value;
+                                                setBuildingForm({ ...buildingForm, bmc_strata_plans: updated });
+                                              }}
+                                            />
+                                            <Input
+                                              placeholder="Address"
+                                              value={building.address}
+                                              onChange={(e) => {
+                                                const updated = [...buildingForm.bmc_strata_plans];
+                                                updated[planIndex].buildings[buildingIndex].address = e.target.value;
+                                                setBuildingForm({ ...buildingForm, bmc_strata_plans: updated });
+                                              }}
+                                            />
+                                            <div className="grid grid-cols-2 gap-2">
+                                              <Input
+                                                type="number"
+                                                placeholder="Floors"
+                                                value={building.floors}
+                                                onChange={(e) => {
+                                                  const updated = [...buildingForm.bmc_strata_plans];
+                                                  updated[planIndex].buildings[buildingIndex].floors = e.target.value;
+                                                  setBuildingForm({ ...buildingForm, bmc_strata_plans: updated });
+                                                }}
+                                              />
+                                              <Input
+                                                type="number"
+                                                placeholder="Units"
+                                                value={building.total_units}
+                                                onChange={(e) => {
+                                                  const updated = [...buildingForm.bmc_strata_plans];
+                                                  updated[planIndex].buildings[buildingIndex].total_units = e.target.value;
+                                                  setBuildingForm({ ...buildingForm, bmc_strata_plans: updated });
+                                                }}
+                                              />
+                                            </div>
+                                          </div>
+                                          <Button
+                                            type="button"
+                                            size="icon"
+                                            variant="ghost"
+                                            onClick={() => {
+                                              const updated = [...buildingForm.bmc_strata_plans];
+                                              updated[planIndex].buildings = updated[planIndex].buildings.filter((_, i) => i !== buildingIndex);
+                                              setBuildingForm({ ...buildingForm, bmc_strata_plans: updated });
+                                            }}
+                                          >
+                                            <Trash2 className="h-3 w-3 text-red-500" />
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
                               </div>
                             ))}
