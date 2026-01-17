@@ -20,7 +20,9 @@ import {
   Wrench,
   HelpCircle,
   QrCode,
-  Mail
+  Mail,
+  Plus,
+  Trash2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -100,6 +102,7 @@ export default function SetupCenter() {
     image_url: '',
     strata_plan_number: '',
     is_bmc: false,
+    bmc_strata_plans: [], // Array of additional strata plans under BMC
   });
 
   const [locationForm, setLocationForm] = useState({
@@ -423,14 +426,107 @@ export default function SetupCenter() {
                         </Label>
                       </div>
 
-                      <div>
-                        <Label>Strata Plan Number</Label>
-                        <Input
-                          value={buildingForm.strata_plan_number}
-                          onChange={(e) => setBuildingForm({ ...buildingForm, strata_plan_number: e.target.value })}
-                          placeholder="e.g., SP60919"
-                        />
-                      </div>
+                      {!buildingForm.is_bmc && (
+                        <div>
+                          <Label>Strata Plan Number</Label>
+                          <Input
+                            value={buildingForm.strata_plan_number}
+                            onChange={(e) => setBuildingForm({ ...buildingForm, strata_plan_number: e.target.value })}
+                            placeholder="e.g., SP60919"
+                          />
+                        </div>
+                      )}
+
+                      {buildingForm.is_bmc && (
+                        <div className="border border-blue-200 rounded-lg p-4 bg-blue-50/50">
+                          <div className="flex justify-between items-center mb-3">
+                            <Label className="text-sm font-semibold text-blue-900">Strata Plans under BMC</Label>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                const plans = buildingForm.bmc_strata_plans || [];
+                                setBuildingForm({
+                                  ...buildingForm,
+                                  bmc_strata_plans: [...plans, { plan_number: '', name: '', type: 'residential' }]
+                                });
+                              }}
+                            >
+                              <Plus className="h-4 w-4 mr-1" />
+                              Add Strata Plan
+                            </Button>
+                          </div>
+                          
+                          {buildingForm.bmc_strata_plans?.length === 0 && (
+                            <p className="text-sm text-slate-500 text-center py-4">
+                              Add strata plans that are part of this BMC (e.g., commercial units, residential towers, parking areas)
+                            </p>
+                          )}
+
+                          <div className="space-y-3">
+                            {buildingForm.bmc_strata_plans?.map((plan, index) => (
+                              <div key={index} className="bg-white border border-slate-200 rounded-lg p-3">
+                                <div className="flex items-start gap-2">
+                                  <div className="flex-1 space-y-2">
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <Input
+                                        placeholder="SP Number (e.g., SP60919)"
+                                        value={plan.plan_number}
+                                        onChange={(e) => {
+                                          const updated = [...buildingForm.bmc_strata_plans];
+                                          updated[index].plan_number = e.target.value;
+                                          setBuildingForm({ ...buildingForm, bmc_strata_plans: updated });
+                                        }}
+                                      />
+                                      <Input
+                                        placeholder="Name (e.g., Residential Tower)"
+                                        value={plan.name}
+                                        onChange={(e) => {
+                                          const updated = [...buildingForm.bmc_strata_plans];
+                                          updated[index].name = e.target.value;
+                                          setBuildingForm({ ...buildingForm, bmc_strata_plans: updated });
+                                        }}
+                                      />
+                                    </div>
+                                    <Select
+                                      value={plan.type}
+                                      onValueChange={(value) => {
+                                        const updated = [...buildingForm.bmc_strata_plans];
+                                        updated[index].type = value;
+                                        setBuildingForm({ ...buildingForm, bmc_strata_plans: updated });
+                                      }}
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Type" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="residential">Residential</SelectItem>
+                                        <SelectItem value="commercial">Commercial</SelectItem>
+                                        <SelectItem value="parking">Parking</SelectItem>
+                                        <SelectItem value="retail">Retail</SelectItem>
+                                        <SelectItem value="mixed_use">Mixed Use</SelectItem>
+                                        <SelectItem value="other">Other</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      const updated = buildingForm.bmc_strata_plans.filter((_, i) => i !== index);
+                                      setBuildingForm({ ...buildingForm, bmc_strata_plans: updated });
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-red-500" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
                       <div>
                         <Label>Building Name *</Label>
