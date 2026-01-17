@@ -46,7 +46,8 @@ import {
   Settings,
   Sparkles,
   Trash2,
-  History
+  History,
+  Upload
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
