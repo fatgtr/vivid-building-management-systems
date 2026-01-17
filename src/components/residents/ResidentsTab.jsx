@@ -21,7 +21,8 @@ import {
   Pencil,
   Trash2,
   UserPlus,
-  MapPin
+  MapPin,
+  Home
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
