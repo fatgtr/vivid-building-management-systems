@@ -155,7 +155,6 @@ export default function SetupCenter() {
         setBuildingForm(targetBuilding);
         setLocationForm({ ...locationForm, building_id: targetBuilding.id });
         setAssetForm({ ...assetForm, building_id: targetBuilding.id });
-        setWorkOrderForm({ ...workOrderForm, building_id: targetBuilding.id });
         
         // Start at location step since building is already created
         if (locations.filter(l => l.building_id === buildingIdFromUrl).length === 0) {
@@ -167,15 +166,8 @@ export default function SetupCenter() {
             building_id: buildingIdFromUrl,
             location_id: locations.find(l => l.building_id === buildingIdFromUrl)?.id 
           });
-        } else if (workOrders.filter(w => w.building_id === buildingIdFromUrl).length === 0) {
-          setCurrentStep(4);
-          setWorkOrderForm({ 
-            ...workOrderForm, 
-            building_id: buildingIdFromUrl,
-            asset_id: assets.find(a => a.building_id === buildingIdFromUrl)?.id 
-          });
         } else {
-          setCurrentStep(7);
+          setCurrentStep(4);
         }
         return;
       }
@@ -195,17 +187,10 @@ export default function SetupCenter() {
         building_id: buildings[0].id,
         location_id: locations[0]?.id 
       });
-    } else if (workOrders.length === 0) {
-      setCurrentStep(4);
-      setWorkOrderForm({ 
-        ...workOrderForm, 
-        building_id: buildings[0].id,
-        asset_id: assets[0]?.id 
-      });
     } else {
-      setCurrentStep(7);
+      setCurrentStep(4);
     }
-  }, [buildings, locations, assets, workOrders, buildingIdFromUrl]);
+  }, [buildings, locations, assets, buildingIdFromUrl]);
 
   // Mutations
   const createBuildingMutation = useMutation({
@@ -232,7 +217,6 @@ export default function SetupCenter() {
     mutationFn: (data) => base44.entities.Asset.create(data),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
-      setWorkOrderForm({ ...workOrderForm, asset_id: data.id, building_id: data.building_id });
       setCurrentStep(4);
       toast.success('Asset added successfully!');
     },
@@ -980,18 +964,18 @@ export default function SetupCenter() {
                       </AlertDescription>
                     </Alert>
                     <div className="flex justify-end gap-3 pt-4">
-                      <Button type="button" variant="outline" onClick={() => setCurrentStep(5)}>
+                      <Button type="button" variant="outline" onClick={() => setCurrentStep(4)}>
                         Back
                       </Button>
-                      <Button onClick={() => setCurrentStep(7)}>
+                      <Button onClick={() => setCurrentStep(6)}>
                         Skip for now
                       </Button>
                     </div>
                   </div>
                 )}
 
-                {/* Step 7: Share Request Portal */}
-                {currentStep === 7 && (
+                {/* Step 6: Share Request Portal */}
+                {currentStep === 6 && (
                   <div>
                     <h2 className="text-2xl font-bold mb-2">Share Request Portal</h2>
                     <p className="text-slate-600 mb-6">
@@ -1003,7 +987,7 @@ export default function SetupCenter() {
                       </AlertDescription>
                     </Alert>
                     <div className="flex justify-end gap-3 pt-4">
-                      <Button type="button" variant="outline" onClick={() => setCurrentStep(6)}>
+                      <Button type="button" variant="outline" onClick={() => setCurrentStep(5)}>
                         Back
                       </Button>
                       <Button onClick={() => navigate(createPageUrl('Dashboard'))}>
