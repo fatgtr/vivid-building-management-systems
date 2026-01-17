@@ -20,7 +20,8 @@ import {
   Key,
   Phone,
   MapPin,
-  AlertTriangle
+  AlertTriangle,
+  Brain
 } from 'lucide-react';
 import { format, isPast, differenceInDays } from 'date-fns';
 import { toast } from 'sonner';
@@ -334,6 +335,7 @@ export default function ComplianceTab({ building }) {
               const record = latestRecordsByType[type.value];
               const isOverdue = record?.next_due_date && isPast(new Date(record.next_due_date));
               const daysUntilDue = record?.next_due_date ? differenceInDays(new Date(record.next_due_date), new Date()) : null;
+              const isAIDetected = record?.findings && record.findings.includes('AI-processed');
 
               return (
                 <div
@@ -344,7 +346,15 @@ export default function ComplianceTab({ building }) {
                   )}
                 >
                   <div className="flex-1">
-                    <p className="font-medium text-slate-900">{type.label}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-slate-900">{type.label}</p>
+                      {isAIDetected && (
+                        <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs">
+                          <Brain className="h-3 w-3 mr-1" />
+                          AI Scanned
+                        </Badge>
+                      )}
+                    </div>
                     {record && (
                       <div className="flex items-center gap-3 mt-1 flex-wrap">
                         {record.inspection_date && (

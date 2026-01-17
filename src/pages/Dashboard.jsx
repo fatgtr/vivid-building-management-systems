@@ -31,9 +31,10 @@ import {
   TrendingUp,
   Clock,
   Shield,
-  CheckCircle2 as CheckCircle
+  CheckCircle2 as CheckCircle,
+  Brain
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, isPast, differenceInDays } from 'date-fns';
 import { toast } from 'sonner';
 
 export default function Dashboard() {
@@ -184,6 +185,10 @@ export default function Dashboard() {
 
   const compliantItems = filteredComplianceRecords.filter(c => c.status === 'compliant' || c.status === 'passed').length;
 
+  const aiDetectedIssues = filteredComplianceRecords.filter(c => 
+    c.findings && c.findings.includes('AI-processed')
+  ).length;
+
   return (
     <div className="space-y-6">
       {/* Top Section - Calendar */}
@@ -222,7 +227,7 @@ export default function Dashboard() {
           </div>
         </CardHeader>
         <CardContent className="pt-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="p-4 rounded-xl bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-200">
               <div className="flex items-center justify-between mb-2">
                 <div className="h-10 w-10 rounded-lg bg-red-500 flex items-center justify-center shadow-md">
@@ -255,6 +260,19 @@ export default function Dashboard() {
               <p className="text-sm font-semibold text-emerald-900">Compliant</p>
               <p className="text-xs text-emerald-700 mt-1">Up to date</p>
             </div>
+
+            {aiDetectedIssues > 0 && (
+              <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="h-10 w-10 rounded-lg bg-blue-500 flex items-center justify-center shadow-md">
+                    <Brain className="h-5 w-5 text-white" />
+                  </div>
+                  <span className="text-3xl font-bold bg-gradient-to-br from-blue-600 to-blue-700 bg-clip-text text-transparent">{aiDetectedIssues}</span>
+                </div>
+                <p className="text-sm font-semibold text-blue-900">AI Detected</p>
+                <p className="text-xs text-blue-700 mt-1">Auto-scanned documents</p>
+              </div>
+            )}
 
             <div className="p-4 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-slate-200">
               <div className="flex items-center justify-between mb-2">
