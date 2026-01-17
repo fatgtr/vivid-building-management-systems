@@ -14,6 +14,11 @@ import BuildingDocumentManager from '@/components/buildings/BuildingDocumentMana
 import ReportGenerator from '@/components/buildings/ReportGenerator';
 import LocationBasedInspectionGenerator from '@/components/inspections/LocationBasedInspectionGenerator';
 import ComplianceTab from '@/components/buildings/ComplianceTab';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from 'sonner';
 
 import { 
   Building2, 
@@ -36,13 +41,16 @@ import {
   Briefcase,
   Shield,
   MapPinned,
-  Factory
+  Factory,
+  Pencil
 } from 'lucide-react';
 
 export default function BuildingProfile() {
   const [searchParams] = useSearchParams();
   const buildingId = searchParams.get('id');
   const queryClient = useQueryClient();
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editFormData, setEditFormData] = useState({});
 
   const { data: building, isLoading: buildingLoading } = useQuery({
     queryKey: ['building', buildingId],
@@ -69,6 +77,48 @@ export default function BuildingProfile() {
     queryFn: () => base44.entities.WorkOrder.filter({ building_id: buildingId }),
     enabled: !!buildingId,
   });
+
+  const updateBuildingMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Building.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['building', buildingId] });
+      setShowEditDialog(false);
+      toast.success('Building updated successfully');
+    },
+  });
+
+  const handleEditClick = () => {
+    setEditFormData({
+      name: building.name || '',
+      address: building.address || '',
+      city: building.city || '',
+      state: building.state || '',
+      postal_code: building.postal_code || '',
+      building_type: building.building_type || 'residential',
+      floors: building.floors || '',
+      year_built: building.year_built || '',
+      strata_lots: building.strata_lots || '',
+      strata_managing_agent_name: building.strata_managing_agent_name || '',
+      strata_managing_agent_email: building.strata_managing_agent_email || '',
+      strata_managing_agent_phone: building.strata_managing_agent_phone || '',
+      strata_managing_agent_license: building.strata_managing_agent_license || '',
+      manager_name: building.manager_name || '',
+      manager_email: building.manager_email || '',
+      manager_phone: building.manager_phone || '',
+    });
+    setShowEditDialog(true);
+  };
+
+  const handleEditSubmit = (e) => {
+    e.preventDefault();
+    const data = {
+      ...editFormData,
+      floors: editFormData.floors ? Number(editFormData.floors) : null,
+      year_built: editFormData.year_built ? Number(editFormData.year_built) : null,
+      strata_lots: editFormData.strata_lots ? Number(editFormData.strata_lots) : null,
+    };
+    updateBuildingMutation.mutate({ id: buildingId, data });
+  };
 
   if (!buildingId) {
     return (
@@ -127,6 +177,10 @@ export default function BuildingProfile() {
             <p className="text-sm text-blue-600 font-medium">Strata Plan: {building.strata_plan_number}</p>
           )}
         </div>
+        <Button variant="outline" onClick={handleEditClick}>
+          <Pencil className="h-4 w-4 mr-2" />
+          Edit Details
+        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -567,6 +621,164 @@ export default function BuildingProfile() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Edit Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Building Details</DialogTitle>
+          </DialogHeader>
+          
+          <form onSubmit={handleEditSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:col-span-2">
+                <Label>Building Name *</Label>
+                <Input
+                  value={editFormData.name}
+                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="md:col-span-2">
+                <Label>Address *</Label>
+                <Input
+                  value={editFormData.address}
+                  onChange={(e) => setEditFormData({ ...editFormData, address: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <Label>City</Label>
+                <Input
+                  value={editFormData.city}
+                  onChange={(e) => setEditFormData({ ...editFormData, city: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>State</Label>
+                <Input
+                  value={editFormData.state}
+                  onChange={(e) => setEditFormData({ ...editFormData, state: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Building Type</Label>
+                <Select value={editFormData.building_type} onValueChange={(v) => setEditFormData({ ...editFormData, building_type: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="residential">Residential</SelectItem>
+                    <SelectItem value="commercial">Commercial</SelectItem>
+                    <SelectItem value="mixed_use">Mixed Use</SelectItem>
+                    <SelectItem value="hoa">HOA</SelectItem>
+                    <SelectItem value="condo">Condo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Floors</Label>
+                <Input
+                  type="number"
+                  value={editFormData.floors}
+                  onChange={(e) => setEditFormData({ ...editFormData, floors: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Year Built</Label>
+                <Input
+                  type="number"
+                  value={editFormData.year_built}
+                  onChange={(e) => setEditFormData({ ...editFormData, year_built: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Strata Lots</Label>
+                <Input
+                  type="number"
+                  value={editFormData.strata_lots}
+                  onChange={(e) => setEditFormData({ ...editFormData, strata_lots: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              <h4 className="font-medium text-slate-900 mb-4">Strata Managing Agent</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <Label>Agent Name</Label>
+                  <Input
+                    value={editFormData.strata_managing_agent_name}
+                    onChange={(e) => setEditFormData({ ...editFormData, strata_managing_agent_name: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    value={editFormData.strata_managing_agent_email}
+                    onChange={(e) => setEditFormData({ ...editFormData, strata_managing_agent_email: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Phone</Label>
+                  <Input
+                    value={editFormData.strata_managing_agent_phone}
+                    onChange={(e) => setEditFormData({ ...editFormData, strata_managing_agent_phone: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>License Number</Label>
+                  <Input
+                    value={editFormData.strata_managing_agent_license}
+                    onChange={(e) => setEditFormData({ ...editFormData, strata_managing_agent_license: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              <h4 className="font-medium text-slate-900 mb-4">Building Manager</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label>Name</Label>
+                  <Input
+                    value={editFormData.manager_name}
+                    onChange={(e) => setEditFormData({ ...editFormData, manager_name: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    value={editFormData.manager_email}
+                    onChange={(e) => setEditFormData({ ...editFormData, manager_email: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Phone</Label>
+                  <Input
+                    value={editFormData.manager_phone}
+                    onChange={(e) => setEditFormData({ ...editFormData, manager_phone: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)}>
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={updateBuildingMutation.isPending}
+              >
+                {updateBuildingMutation.isPending ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
