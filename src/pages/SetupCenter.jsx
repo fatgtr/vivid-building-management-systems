@@ -243,11 +243,15 @@ export default function SetupCenter() {
       
       // Auto-calculate total lots from all buildings in all strata plans
       let totalLots = 0;
+      let totalFloors = 0;
       buildingForm.bmc_strata_plans.forEach(plan => {
         if (plan.buildings && plan.buildings.length > 0) {
           plan.buildings.forEach(building => {
             if (building.total_units) {
-              totalLots += Number(building.total_units);
+              totalLots += Number(building.total_units) || 0;
+            }
+            if (building.floors) {
+              totalFloors = Math.max(totalFloors, Number(building.floors) || 0);
             }
           });
         }
@@ -255,6 +259,21 @@ export default function SetupCenter() {
       
       if (totalLots > 0) {
         finalBuildingData.strata_lots = totalLots;
+        finalBuildingData.total_units = totalLots;
+      }
+      if (totalFloors > 0) {
+        finalBuildingData.floors = totalFloors;
+      }
+    } else if (!buildingForm.is_bmc) {
+      // For non-BMC buildings, convert string to number
+      if (finalBuildingData.strata_lots) {
+        finalBuildingData.strata_lots = Number(finalBuildingData.strata_lots);
+      }
+      if (finalBuildingData.total_units) {
+        finalBuildingData.total_units = Number(finalBuildingData.total_units);
+      }
+      if (finalBuildingData.floors) {
+        finalBuildingData.floors = Number(finalBuildingData.floors);
       }
     }
     
@@ -445,14 +464,25 @@ export default function SetupCenter() {
                       </div>
 
                       {!buildingForm.is_bmc && (
-                        <div>
-                          <Label>Strata Plan Number</Label>
-                          <Input
-                            value={buildingForm.strata_plan_number}
-                            onChange={(e) => setBuildingForm({ ...buildingForm, strata_plan_number: e.target.value })}
-                            placeholder="e.g., SP60919"
-                          />
-                        </div>
+                        <>
+                          <div>
+                            <Label>Strata Plan Number</Label>
+                            <Input
+                              value={buildingForm.strata_plan_number}
+                              onChange={(e) => setBuildingForm({ ...buildingForm, strata_plan_number: e.target.value })}
+                              placeholder="e.g., SP60919"
+                            />
+                          </div>
+                          <div>
+                            <Label>Number of Strata Lots</Label>
+                            <Input
+                              type="number"
+                              value={buildingForm.strata_lots}
+                              onChange={(e) => setBuildingForm({ ...buildingForm, strata_lots: e.target.value })}
+                              placeholder="e.g., 71"
+                            />
+                          </div>
+                        </>
                       )}
 
                       {buildingForm.is_bmc && (
@@ -772,26 +802,28 @@ export default function SetupCenter() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label>Total Floors</Label>
-                          <Input
-                            type="number"
-                            value={buildingForm.floors}
-                            onChange={(e) => setBuildingForm({ ...buildingForm, floors: parseInt(e.target.value) })}
-                            placeholder="10"
-                          />
+                      {!buildingForm.is_bmc && (
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label>Total Floors</Label>
+                            <Input
+                              type="number"
+                              value={buildingForm.floors}
+                              onChange={(e) => setBuildingForm({ ...buildingForm, floors: e.target.value })}
+                              placeholder="10"
+                            />
+                          </div>
+                          <div>
+                            <Label>Total Units</Label>
+                            <Input
+                              type="number"
+                              value={buildingForm.total_units}
+                              onChange={(e) => setBuildingForm({ ...buildingForm, total_units: e.target.value })}
+                              placeholder="50"
+                            />
+                          </div>
                         </div>
-                        <div>
-                          <Label>Total Units</Label>
-                          <Input
-                            type="number"
-                            value={buildingForm.total_units}
-                            onChange={(e) => setBuildingForm({ ...buildingForm, total_units: parseInt(e.target.value) })}
-                            placeholder="50"
-                          />
-                        </div>
-                      </div>
+                      )}
 
                       <div className="flex justify-end gap-3 pt-4">
                         <Button type="submit" disabled={createBuildingMutation.isPending}>
