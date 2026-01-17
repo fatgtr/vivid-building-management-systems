@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import {
   Building2,
   CheckCircle,
@@ -98,6 +99,7 @@ export default function SetupCenter() {
     total_units: '',
     image_url: '',
     strata_plan_number: '',
+    is_bmc: false,
   });
 
   const [locationForm, setLocationForm] = useState({
@@ -410,6 +412,17 @@ export default function SetupCenter() {
                       Your building or property. For example "123 Main Street" or "Building 1, Level 2"
                     </p>
                     <form onSubmit={handleBuildingSubmit} className="space-y-4">
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="is_bmc"
+                          checked={buildingForm.is_bmc}
+                          onCheckedChange={(checked) => setBuildingForm({ ...buildingForm, is_bmc: checked })}
+                        />
+                        <Label htmlFor="is_bmc" className="text-sm font-medium">
+                          This building is part of a Body Corporate Management (BMC) scheme
+                        </Label>
+                      </div>
+
                       <div>
                         <Label>Strata Plan Number</Label>
                         <Input
