@@ -241,15 +241,17 @@ export default function SetupCenter() {
         else finalBuildingData.building_type = 'mixed_use';
       }
       
-      // Auto-calculate total lots from all buildings in all strata plans
+      // Auto-calculate total lots and floors from all strata plans
       let totalLots = 0;
       let totalFloors = 0;
       buildingForm.bmc_strata_plans.forEach(plan => {
+        // Sum lots from each strata plan
+        if (plan.strata_lots) {
+          totalLots += Number(plan.strata_lots) || 0;
+        }
+        // Get max floors from buildings
         if (plan.buildings && plan.buildings.length > 0) {
           plan.buildings.forEach(building => {
-            if (building.total_units) {
-              totalLots += Number(building.total_units) || 0;
-            }
             if (building.floors) {
               totalFloors = Math.max(totalFloors, Number(building.floors) || 0);
             }
@@ -259,7 +261,6 @@ export default function SetupCenter() {
       
       if (totalLots > 0) {
         finalBuildingData.strata_lots = totalLots;
-        finalBuildingData.total_units = totalLots;
       }
       if (totalFloors > 0) {
         finalBuildingData.floors = totalFloors;
@@ -569,26 +570,38 @@ export default function SetupCenter() {
                                         }}
                                       />
                                     </div>
-                                    <Select
-                                      value={plan.type}
-                                      onValueChange={(value) => {
-                                        const updated = [...buildingForm.bmc_strata_plans];
-                                        updated[planIndex].type = value;
-                                        setBuildingForm({ ...buildingForm, bmc_strata_plans: updated });
-                                      }}
-                                    >
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Type" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="residential">Residential</SelectItem>
-                                        <SelectItem value="commercial">Commercial</SelectItem>
-                                        <SelectItem value="parking">Parking</SelectItem>
-                                        <SelectItem value="retail">Retail</SelectItem>
-                                        <SelectItem value="mixed_use">Mixed Use</SelectItem>
-                                        <SelectItem value="other">Other</SelectItem>
-                                      </SelectContent>
-                                    </Select>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <Select
+                                        value={plan.type}
+                                        onValueChange={(value) => {
+                                          const updated = [...buildingForm.bmc_strata_plans];
+                                          updated[planIndex].type = value;
+                                          setBuildingForm({ ...buildingForm, bmc_strata_plans: updated });
+                                        }}
+                                      >
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Type" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="residential">Residential</SelectItem>
+                                          <SelectItem value="commercial">Commercial</SelectItem>
+                                          <SelectItem value="parking">Parking</SelectItem>
+                                          <SelectItem value="retail">Retail</SelectItem>
+                                          <SelectItem value="mixed_use">Mixed Use</SelectItem>
+                                          <SelectItem value="other">Other</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                      <Input
+                                        type="number"
+                                        placeholder="Number of Lots"
+                                        value={plan.strata_lots || ''}
+                                        onChange={(e) => {
+                                          const updated = [...buildingForm.bmc_strata_plans];
+                                          updated[planIndex].strata_lots = e.target.value;
+                                          setBuildingForm({ ...buildingForm, bmc_strata_plans: updated });
+                                        }}
+                                      />
+                                    </div>
 
                                     {/* Strata Manager Toggle for this plan */}
                                     <div className="mt-3 pt-3 border-t border-slate-200">
