@@ -336,7 +336,11 @@ export default function SetupCenter() {
 
     // Handle save and auto-create units
     if (existingBuildingId) {
-      updateBuildingMutation.mutate({ id: existingBuildingId, data: finalBuildingData });
+      updateBuildingMutation.mutate({ 
+        id: existingBuildingId, 
+        data: finalBuildingData,
+        bmcPlans: buildingForm.bmc_strata_plans 
+      });
       buildingToUse = existingBuildingId;
     } else {
       // For new buildings, we need to create first then create units
