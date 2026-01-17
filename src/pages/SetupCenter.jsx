@@ -314,18 +314,22 @@ export default function SetupCenter() {
         buildingToUse = createdBuilding.id;
         setLocationForm({ ...locationForm, building_id: createdBuilding.id });
         
-        // Auto-create units based on strata lots
+        // Auto-create units based on strata lots (only for plans with 50+ lots)
         if (finalBuildingData.is_bmc && buildingForm.bmc_strata_plans?.length > 0) {
           const newUnits = [];
           buildingForm.bmc_strata_plans.forEach(plan => {
             const numLots = Number(plan.strata_lots) || 0;
-            for (let i = 1; i <= numLots; i++) {
-              newUnits.push({
-                building_id: createdBuilding.id,
-                unit_number: `${plan.plan_number}-${i}`,
-                strata_plan_number: plan.plan_number,
-                status: 'vacant'
-              });
+            // Only auto-create units for strata plans with 50+ lots
+            if (numLots >= 50) {
+              for (let i = 1; i <= numLots; i++) {
+                newUnits.push({
+                  building_id: createdBuilding.id,
+                  unit_number: `Lot ${i}`,
+                  lot_number: String(i),
+                  strata_plan_number: plan.plan_number,
+                  status: 'vacant'
+                });
+              }
             }
           });
           if (newUnits.length > 0) {
