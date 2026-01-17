@@ -1,10 +1,9 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, DoorOpen, Calendar, Home } from 'lucide-react';
+import { Users, DoorOpen, Calendar } from 'lucide-react';
 import ResidentsTab from '@/components/residents/ResidentsTab';
 import VisitorsTab from '@/components/residents/VisitorsTab';
 import AmenitiesTab from '@/components/residents/AmenitiesTab';
-import LotsTab from '@/components/residents/LotsTab';
 
 export default function ResidentsCenter() {
   return (
@@ -19,12 +18,8 @@ export default function ResidentsCenter() {
         </div>
       </div>
 
-      <Tabs defaultValue="lots" className="space-y-6">
-        <TabsList className="bg-slate-100 flex-wrap h-auto">
-          <TabsTrigger value="lots" className="gap-2">
-            <Home className="h-4 w-4" />
-            Lots
-          </TabsTrigger>
+      <Tabs defaultValue="residents" className="space-y-6">
+        <TabsList className="bg-slate-100">
           <TabsTrigger value="residents" className="gap-2">
             <Users className="h-4 w-4" />
             Residents
@@ -38,10 +33,6 @@ export default function ResidentsCenter() {
             Amenities
           </TabsTrigger>
         </TabsList>
-
-        <TabsContent value="lots">
-          <LotsTab />
-        </TabsContent>
 
         <TabsContent value="residents">
           <ResidentsTab />
