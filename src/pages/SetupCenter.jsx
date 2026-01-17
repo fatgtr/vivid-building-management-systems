@@ -214,12 +214,13 @@ export default function SetupCenter() {
     mutationFn: async ({ id, data, bmcPlans }) => {
       await base44.entities.Building.update(id, data);
       
-      // Auto-create units for strata plans with 50+ lots
+      // Auto-create units for all strata plans based on lot count
       if (data.is_bmc && bmcPlans?.length > 0) {
         const newUnits = [];
         bmcPlans.forEach(plan => {
           const numLots = Number(plan.strata_lots) || 0;
-          if (numLots >= 50) {
+          // Create units for any strata plan with lots
+          if (numLots > 0) {
             for (let i = 1; i <= numLots; i++) {
               newUnits.push({
                 building_id: id,
