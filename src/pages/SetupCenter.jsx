@@ -97,6 +97,7 @@ export default function SetupCenter() {
     floors: '',
     total_units: '',
     image_url: '',
+    strata_plan_number: '',
   });
 
   const [locationForm, setLocationForm] = useState({
@@ -409,6 +410,15 @@ export default function SetupCenter() {
                       Your building or property. For example "123 Main Street" or "Building 1, Level 2"
                     </p>
                     <form onSubmit={handleBuildingSubmit} className="space-y-4">
+                      <div>
+                        <Label>Strata Plan Number</Label>
+                        <Input
+                          value={buildingForm.strata_plan_number}
+                          onChange={(e) => setBuildingForm({ ...buildingForm, strata_plan_number: e.target.value })}
+                          placeholder="e.g., SP60919"
+                        />
+                      </div>
+
                       <div>
                         <Label>Building Name *</Label>
                         <Input
