@@ -35,6 +35,7 @@ import Visitors from './pages/Visitors';
 import VividStaffManagement from './pages/VividStaffManagement';
 import WorkOrders from './pages/WorkOrders';
 import PartsInventory from './pages/PartsInventory';
+import SetupCenter from './pages/SetupCenter';
 import __Layout from './Layout.jsx';
 
 
@@ -76,6 +77,7 @@ export const PAGES = {
     "VividStaffManagement": VividStaffManagement,
     "WorkOrders": WorkOrders,
     "PartsInventory": PartsInventory,
+    "SetupCenter": SetupCenter,
 }
 
 export const pagesConfig = {

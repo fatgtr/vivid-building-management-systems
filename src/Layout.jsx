@@ -94,6 +94,16 @@ function LayoutInner({ children, currentPageName }) {
       // Redirect contractors to ContractorPortal if they're not already there
       if (isContractor && currentPageName !== 'ContractorPortal' && currentPageName !== 'Settings') {
         window.location.href = createPageUrl('ContractorPortal');
+        return;
+      }
+      
+      // Check if this is a new building manager (has role but no buildings)
+      if (!isContractor && (isAdmin || isPermissionAdmin() || can('buildings', 'create'))) {
+        const buildings = await base44.entities.Building.list();
+        if (buildings.length === 0 && currentPageName !== 'SetupCenter' && currentPageName !== 'Settings') {
+          // First time user - redirect to setup
+          window.location.href = createPageUrl('SetupCenter');
+        }
       }
     }).catch(() => {
       // Don't redirect to login if on Home page (public page)
@@ -101,7 +111,7 @@ function LayoutInner({ children, currentPageName }) {
         base44.auth.redirectToLogin(window.location.pathname + window.location.search);
       }
     });
-  }, [currentPageName, hasRole]);
+  }, [currentPageName, hasRole, can, isAdmin, isPermissionAdmin]);
 
   // Check if user is a contractor
   const isContractor = user?.contractor_id || hasRole('contractor');
