@@ -211,10 +211,42 @@ export default function SetupCenter() {
   });
 
   const updateBuildingMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Building.update(id, data),
-    onSuccess: () => {
+    mutationFn: async ({ id, data, bmcPlans }) => {
+      await base44.entities.Building.update(id, data);
+      
+      // Auto-create units for strata plans with 50+ lots
+      if (data.is_bmc && bmcPlans?.length > 0) {
+        const newUnits = [];
+        bmcPlans.forEach(plan => {
+          const numLots = Number(plan.strata_lots) || 0;
+          if (numLots >= 50) {
+            for (let i = 1; i <= numLots; i++) {
+              newUnits.push({
+                building_id: id,
+                unit_number: `Lot ${i}`,
+                lot_number: String(i),
+                strata_plan_number: plan.plan_number,
+                status: 'vacant'
+              });
+            }
+          }
+        });
+        
+        if (newUnits.length > 0) {
+          await base44.entities.Unit.bulkCreate(newUnits);
+          queryClient.invalidateQueries({ queryKey: ['units'] });
+          return { unitsCreated: newUnits.length };
+        }
+      }
+      return { unitsCreated: 0 };
+    },
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['buildings'] });
-      toast.success('Building updated successfully!');
+      if (result.unitsCreated > 0) {
+        toast.success(`Building updated! Auto-created ${result.unitsCreated} unit records!`);
+      } else {
+        toast.success('Building updated successfully!');
+      }
       setCurrentStep(2);
     },
   });
