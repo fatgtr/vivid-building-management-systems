@@ -125,6 +125,7 @@ export default function SetupCenter() {
 
   const [uploadingRegister, setUploadingRegister] = useState(false);
   const [uploadedRegister, setUploadedRegister] = useState(null);
+  const [uploadingStrataRoll, setUploadingStrataRoll] = useState(false);
 
   // Fetch existing data to determine progress
   const { data: buildings = [] } = useQuery({
@@ -141,6 +142,12 @@ export default function SetupCenter() {
   const { data: assets = [] } = useQuery({
     queryKey: ['assets'],
     queryFn: () => base44.entities.Asset.list(),
+    enabled: buildings.length > 0,
+  });
+
+  const { data: units = [] } = useQuery({
+    queryKey: ['units'],
+    queryFn: () => base44.entities.Unit.list(),
     enabled: buildings.length > 0,
   });
 
@@ -231,13 +238,24 @@ export default function SetupCenter() {
     },
   });
 
+  const bulkCreateUnitsMutation = useMutation({
+    mutationFn: (unitsData) => base44.entities.Unit.bulkCreate(unitsData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['units'] });
+      toast.success('Units created successfully!');
+    },
+  });
 
 
-  const handleBuildingSubmit = (e) => {
+
+  const handleBuildingSubmit = async (e) => {
     e.preventDefault();
     
     // Auto-detect building type and calculate total lots for BMC
     let finalBuildingData = { ...buildingForm };
+    const existingBuildingId = buildingIdFromUrl || (buildings.length > 0 ? buildings[0].id : null);
+    let buildingToUse = null;
+
     if (buildingForm.is_bmc && buildingForm.bmc_strata_plans?.length > 0) {
       // Auto-detect building type
       const types = new Set(buildingForm.bmc_strata_plans.map(p => p.type));
@@ -254,11 +272,9 @@ export default function SetupCenter() {
       let totalLots = 0;
       let totalFloors = 0;
       buildingForm.bmc_strata_plans.forEach(plan => {
-        // Sum lots from each strata plan
         if (plan.strata_lots) {
           totalLots += Number(plan.strata_lots) || 0;
         }
-        // Get max floors from buildings
         if (plan.buildings && plan.buildings.length > 0) {
           plan.buildings.forEach(building => {
             if (building.floors) {
@@ -275,7 +291,6 @@ export default function SetupCenter() {
         finalBuildingData.floors = totalFloors;
       }
     } else if (!buildingForm.is_bmc) {
-      // For non-BMC buildings, convert string to number
       if (finalBuildingData.strata_lots) {
         finalBuildingData.strata_lots = Number(finalBuildingData.strata_lots);
       }
@@ -286,16 +301,45 @@ export default function SetupCenter() {
         finalBuildingData.floors = Number(finalBuildingData.floors);
       }
     }
-    
-    // Check if we're editing an existing building
-    const existingBuildingId = buildingIdFromUrl || (buildings.length > 0 ? buildings[0].id : null);
-    
+
+    // Handle save and auto-create units
     if (existingBuildingId) {
-      // Update existing building
       updateBuildingMutation.mutate({ id: existingBuildingId, data: finalBuildingData });
+      buildingToUse = existingBuildingId;
     } else {
-      // Create new building
-      createBuildingMutation.mutate(finalBuildingData);
+      // For new buildings, we need to create first then create units
+      try {
+        const createdBuilding = await base44.entities.Building.create(finalBuildingData);
+        queryClient.invalidateQueries({ queryKey: ['buildings'] });
+        buildingToUse = createdBuilding.id;
+        setLocationForm({ ...locationForm, building_id: createdBuilding.id });
+        
+        // Auto-create units based on strata lots
+        if (finalBuildingData.is_bmc && buildingForm.bmc_strata_plans?.length > 0) {
+          const newUnits = [];
+          buildingForm.bmc_strata_plans.forEach(plan => {
+            const numLots = Number(plan.strata_lots) || 0;
+            for (let i = 1; i <= numLots; i++) {
+              newUnits.push({
+                building_id: createdBuilding.id,
+                unit_number: `${plan.plan_number}-${i}`,
+                strata_plan_number: plan.plan_number,
+                status: 'vacant'
+              });
+            }
+          });
+          if (newUnits.length > 0) {
+            await base44.entities.Unit.bulkCreate(newUnits);
+            queryClient.invalidateQueries({ queryKey: ['units'] });
+            toast.success(`Auto-created ${newUnits.length} unit records!`);
+          }
+        }
+        
+        setCurrentStep(2);
+        toast.success('Building added successfully!');
+      } catch (error) {
+        toast.error('Failed to create building: ' + error.message);
+      }
     }
   };
 
