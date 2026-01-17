@@ -17,11 +17,8 @@ import {
   Package,
   Users,
   Wrench,
-  FileText,
   HelpCircle,
-  Upload,
   QrCode,
-  Calendar,
   Mail
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -85,6 +82,10 @@ export default function SetupCenter() {
   const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState(1);
   const [showHelp, setShowHelp] = useState(false);
+
+  // Get buildingId from URL params
+  const urlParams = new URLSearchParams(window.location.search);
+  const buildingIdFromUrl = urlParams.get('buildingId');
 
   // Form states
   const [buildingForm, setBuildingForm] = useState({
@@ -160,6 +161,40 @@ export default function SetupCenter() {
 
   // Determine which step to show
   useEffect(() => {
+    // If buildingId is in URL, we're coming from Buildings page after creating
+    if (buildingIdFromUrl && buildings.length > 0) {
+      const targetBuilding = buildings.find(b => b.id === buildingIdFromUrl);
+      if (targetBuilding) {
+        setBuildingForm(targetBuilding);
+        setLocationForm({ ...locationForm, building_id: targetBuilding.id });
+        setAssetForm({ ...assetForm, building_id: targetBuilding.id });
+        setWorkOrderForm({ ...workOrderForm, building_id: targetBuilding.id });
+        
+        // Start at location step since building is already created
+        if (locations.filter(l => l.building_id === buildingIdFromUrl).length === 0) {
+          setCurrentStep(2);
+        } else if (assets.filter(a => a.building_id === buildingIdFromUrl).length === 0) {
+          setCurrentStep(3);
+          setAssetForm({ 
+            ...assetForm, 
+            building_id: buildingIdFromUrl,
+            location_id: locations.find(l => l.building_id === buildingIdFromUrl)?.id 
+          });
+        } else if (workOrders.filter(w => w.building_id === buildingIdFromUrl).length === 0) {
+          setCurrentStep(4);
+          setWorkOrderForm({ 
+            ...workOrderForm, 
+            building_id: buildingIdFromUrl,
+            asset_id: assets.find(a => a.building_id === buildingIdFromUrl)?.id 
+          });
+        } else {
+          setCurrentStep(7);
+        }
+        return;
+      }
+    }
+
+    // Normal flow for first-time users
     if (buildings.length === 0) {
       setCurrentStep(1);
     } else if (locations.length === 0) {
@@ -183,7 +218,7 @@ export default function SetupCenter() {
     } else {
       setCurrentStep(7);
     }
-  }, [buildings, locations, assets, workOrders]);
+  }, [buildings, locations, assets, workOrders, buildingIdFromUrl]);
 
   // Mutations
   const createBuildingMutation = useMutation({
@@ -270,10 +305,10 @@ export default function SetupCenter() {
 
   const completedSteps = [
     true, // Registration always completed
-    buildings.length > 0,
-    locations.length > 0,
-    assets.length > 0,
-    workOrders.length > 0,
+    buildings.length > 0 || buildingIdFromUrl,
+    locations.length > 0 || (buildingIdFromUrl && locations.filter(l => l.building_id === buildingIdFromUrl).length > 0),
+    assets.length > 0 || (buildingIdFromUrl && assets.filter(a => a.building_id === buildingIdFromUrl).length > 0),
+    workOrders.length > 0 || (buildingIdFromUrl && workOrders.filter(w => w.building_id === buildingIdFromUrl).length > 0),
     false, // Assign Work Order
     false, // Invite Team
     false, // Share Request Portal
@@ -366,8 +401,8 @@ export default function SetupCenter() {
           <div className="lg:col-span-2">
             <Card>
               <CardContent className="pt-6">
-                {/* Step 1: Building */}
-                {currentStep === 1 && (
+                {/* Step 1: Building (only if no buildingId from URL) */}
+                {currentStep === 1 && !buildingIdFromUrl && (
                   <div>
                     <h2 className="text-2xl font-bold mb-2">Add Your Building</h2>
                     <p className="text-slate-600 mb-6">
@@ -496,7 +531,7 @@ export default function SetupCenter() {
                       </div>
 
                       <div className="flex justify-end gap-3 pt-4">
-                        <Button type="button" variant="outline" onClick={() => setCurrentStep(1)}>
+                        <Button type="button" variant="outline" onClick={() => buildingIdFromUrl ? navigate(createPageUrl('Buildings')) : setCurrentStep(1)}>
                           Back
                         </Button>
                         <Button type="submit" disabled={createLocationMutation.isPending}>
@@ -701,6 +736,7 @@ export default function SetupCenter() {
                         <div className="flex gap-2 mt-2">
                           <Button
                             type="button"
+                            size="sm"
                             variant={workOrderForm.priority === 'low' ? 'default' : 'outline'}
                             onClick={() => setWorkOrderForm({ ...workOrderForm, priority: 'low' })}
                           >
@@ -708,6 +744,7 @@ export default function SetupCenter() {
                           </Button>
                           <Button
                             type="button"
+                            size="sm"
                             variant={workOrderForm.priority === 'medium' ? 'default' : 'outline'}
                             onClick={() => setWorkOrderForm({ ...workOrderForm, priority: 'medium' })}
                           >
@@ -715,6 +752,7 @@ export default function SetupCenter() {
                           </Button>
                           <Button
                             type="button"
+                            size="sm"
                             variant={workOrderForm.priority === 'high' ? 'default' : 'outline'}
                             onClick={() => setWorkOrderForm({ ...workOrderForm, priority: 'high' })}
                           >
@@ -722,6 +760,7 @@ export default function SetupCenter() {
                           </Button>
                           <Button
                             type="button"
+                            size="sm"
                             variant={workOrderForm.priority === 'urgent' ? 'destructive' : 'outline'}
                             onClick={() => setWorkOrderForm({ ...workOrderForm, priority: 'urgent' })}
                           >

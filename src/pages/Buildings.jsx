@@ -5,18 +5,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
-import { Building2, MapPin, Home, Users, Pencil, Trash2, Search, MoreVertical, Sparkles, Upload, Eye } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Building2, MapPin, Home, Users, Pencil, Trash2, Search, MoreVertical, Sparkles, Eye } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
-import StrataRollUploader from '@/components/buildings/StrataRollUploader';
-import SubdivisionPlanExtractor from '@/components/buildings/SubdivisionPlanExtractor';
 import { toast } from 'sonner';
 import {
   DropdownMenu,
@@ -72,11 +69,8 @@ export default function Buildings() {
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteBuilding, setDeleteBuilding] = useState(null);
   const [autoPopulating, setAutoPopulating] = useState(false);
-  const [dialogStep, setDialogStep] = useState('form');
-  const [newlyCreatedBuilding, setNewlyCreatedBuilding] = useState(null);
-  const [subdivisionPlanFileUrl, setSubdivisionPlanFileUrl] = useState(null);
-  const [subdivisionPlanFileName, setSubdivisionPlanFileName] = useState(null);
 
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const { data: buildings = [], isLoading } = useQuery({
@@ -111,9 +105,9 @@ export default function Buildings() {
     },
     onSuccess: (building) => {
       queryClient.invalidateQueries({ queryKey: ['buildings'] });
-      setNewlyCreatedBuilding(building);
-      setDialogStep('uploadSubdivisionPlan');
-      toast.success('Building created. Now upload Subdivision Plan to extract units.');
+      handleCloseDialog();
+      navigate(createPageUrl('SetupCenter') + '?buildingId=' + building.id);
+      toast.success('Building created! Let\'s set it up.');
     },
   });
 
@@ -122,6 +116,7 @@ export default function Buildings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['buildings'] });
       handleCloseDialog();
+      toast.success('Building updated successfully');
     },
   });
 
@@ -150,14 +145,6 @@ export default function Buildings() {
     setShowDialog(false);
     setEditingBuilding(null);
     setFormData(initialFormState);
-    setDialogStep('form');
-    setNewlyCreatedBuilding(null);
-    setSubdivisionPlanFileUrl(null);
-    setSubdivisionPlanFileName(null);
-  };
-
-  const handleSkip = () => {
-    handleCloseDialog();
   };
 
   const handleEdit = (building) => {
@@ -233,12 +220,10 @@ export default function Buildings() {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Auto-populate partner branding fields if a partner is selected
     let finalFormData = { ...formData };
     if (formData.partner_id) {
       const partnerBranding = brandings.find(b => b.partner_id === formData.partner_id);
       if (partnerBranding && !editingBuilding) {
-        // Only auto-populate for new buildings, not edits
         finalFormData = {
           ...finalFormData,
           strata_managing_agent_name: partnerBranding.company_name || finalFormData.strata_managing_agent_name,
@@ -368,26 +353,18 @@ export default function Buildings() {
                   <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
                   <span className="truncate">{building.address}{building.city && `, ${building.city}`}</span>
                 </div>
-                <div className="space-y-3">
-                 <div className="flex items-center gap-4 text-sm">
-                   <div className="flex items-center gap-1.5">
-                     <Home className="h-4 w-4 text-blue-500" />
-                     <span className="font-medium text-slate-700">{getUnitCount(building.id)}</span>
-                     <span className="text-slate-500">units</span>
-                   </div>
-                   <div className="flex items-center gap-1.5">
-                     <Users className="h-4 w-4 text-emerald-500" />
-                     <span className="font-medium text-slate-700">{getResidentCount(building.id)}</span>
-                     <span className="text-slate-500">residents</span>
-                   </div>
-                   </div>
-                    <div className="space-y-2">
-                     <StrataRollUploader 
-                       buildingId={building.id}
-                       onUnitsCreated={() => queryClient.invalidateQueries({ queryKey: ['units'] })}
-                     />
-                    </div>
-                   </div>
+                <div className="flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-1.5">
+                    <Home className="h-4 w-4 text-blue-500" />
+                    <span className="font-medium text-slate-700">{getUnitCount(building.id)}</span>
+                    <span className="text-slate-500">units</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Users className="h-4 w-4 text-emerald-500" />
+                    <span className="font-medium text-slate-700">{getResidentCount(building.id)}</span>
+                    <span className="text-slate-500">residents</span>
+                  </div>
+                </div>
                 {building.building_type && (
                   <div className="mt-3 pt-3 border-t border-slate-100">
                     <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
@@ -406,16 +383,11 @@ export default function Buildings() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingBuilding ? 'Edit Building' : (
-                dialogStep === 'form' ? 'Add New Building - Step 1: Building Details' :
-                dialogStep === 'uploadSubdivisionPlan' ? 'Add New Building - Step 2: Upload Subdivision Plan' :
-                'Add New Building - Step 3: Upload Strata Roll'
-              )}
+              {editingBuilding ? 'Edit Building' : 'Add New Building'}
             </DialogTitle>
           </DialogHeader>
           
-          {dialogStep === 'form' && (
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
                 <Label htmlFor="partner_id">Managing Partner (Optional)</Label>
@@ -760,97 +732,10 @@ export default function Buildings() {
                 className="bg-blue-600 hover:bg-blue-700"
                 disabled={createMutation.isPending || updateMutation.isPending}
               >
-                {createMutation.isPending || updateMutation.isPending ? 'Saving...' : (editingBuilding ? 'Update' : 'Next')}
+                {createMutation.isPending || updateMutation.isPending ? 'Saving...' : (editingBuilding ? 'Update' : 'Create & Continue Setup')}
               </Button>
             </DialogFooter>
           </form>
-          )}
-
-          {dialogStep === 'uploadSubdivisionPlan' && newlyCreatedBuilding && (
-            <div className="space-y-4">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-900">
-                  <strong>{newlyCreatedBuilding.name}</strong> has been created successfully.
-                </p>
-                <p className="text-sm text-blue-700 mt-1">
-                  Upload the subdivision plan PDF to automatically extract units, lot numbers, and property details.
-                </p>
-              </div>
-
-              <div className="border-2 border-dashed border-slate-200 rounded-lg p-8 text-center">
-                <input
-                  type="file"
-                  accept="application/pdf"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    setSubdivisionPlanFileName(file.name);
-                    toast.info('Uploading subdivision plan...');
-                    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-                    setSubdivisionPlanFileUrl(file_url);
-                    toast.success('File uploaded successfully!');
-                  }}
-                  className="hidden"
-                  id="subdivision-plan-upload"
-                />
-                <label htmlFor="subdivision-plan-upload" className="cursor-pointer">
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center">
-                      <Upload className="h-8 w-8 text-indigo-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-slate-700">
-                        {subdivisionPlanFileName || 'Click to upload subdivision plan'}
-                      </p>
-                      <p className="text-sm text-slate-500 mt-1">
-                        PDF format only
-                      </p>
-                    </div>
-                  </div>
-                </label>
-              </div>
-
-              {subdivisionPlanFileUrl && (
-                <SubdivisionPlanExtractor
-                  buildingId={newlyCreatedBuilding.id}
-                  buildingName={newlyCreatedBuilding.name}
-                  fileUrl={subdivisionPlanFileUrl}
-                  onComplete={() => {
-                    queryClient.invalidateQueries({ queryKey: ['units'] });
-                    setDialogStep('uploadStrataRoll');
-                  }}
-                />
-              )}
-              
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={handleSkip}>Skip & Finish</Button>
-              </div>
-            </div>
-          )}
-
-          {dialogStep === 'uploadStrataRoll' && newlyCreatedBuilding && (
-            <div className="space-y-4">
-              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-                <p className="text-sm text-emerald-900">
-                  ✓ Subdivision plan processed successfully!
-                </p>
-                <p className="text-sm text-emerald-700 mt-1">
-                  Now upload the Strata Roll PDF to populate resident and owner information.
-                </p>
-              </div>
-              
-              <StrataRollUploader
-                buildingId={newlyCreatedBuilding.id}
-                onUnitsCreated={() => {
-                  queryClient.invalidateQueries({ queryKey: ['units'] });
-                  queryClient.invalidateQueries({ queryKey: ['residents'] });
-                  queryClient.invalidateQueries({ queryKey: ['buildings'] });
-                  handleCloseDialog();
-                }}
-                onSkip={handleSkip}
-              />
-            </div>
-          )}
         </DialogContent>
       </Dialog>
 
