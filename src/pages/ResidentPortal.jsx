@@ -90,6 +90,13 @@ export default function ResidentPortal() {
   });
   const [selectedPhotos, setSelectedPhotos] = useState([]);
   const [uploadingFiles, setUploadingFiles] = useState(false);
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [uploadForm, setUploadForm] = useState({
+    title: '',
+    description: '',
+    category: 'other',
+    file: null,
+  });
 
   const queryClient = useQueryClient();
 
@@ -231,6 +238,33 @@ export default function ResidentPortal() {
     },
     onError: (error) => {
       toast.error('Failed to delete document: ' + error.message);
+    },
+  });
+
+  const uploadDocumentMutation = useMutation({
+    mutationFn: async (formData) => {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: formData.file });
+      
+      return base44.entities.Document.create({
+        building_id: resident.building_id,
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        file_url: file_url,
+        file_type: formData.file.type,
+        file_size: formData.file.size,
+        visibility: 'staff_only',
+        status: 'active',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      toast.success('Document uploaded successfully');
+      setShowUploadDialog(false);
+      setUploadForm({ title: '', description: '', category: 'other', file: null });
+    },
+    onError: (error) => {
+      toast.error('Failed to upload document: ' + error.message);
     },
   });
 
@@ -612,7 +646,13 @@ export default function ResidentPortal() {
 
         {/* Documents Tab */}
         <TabsContent value="documents" className="space-y-4">
-          <h2 className="text-xl font-semibold">Building Documents</h2>
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold">Building Documents</h2>
+            <Button onClick={() => setShowUploadDialog(true)} className="bg-blue-600 hover:bg-blue-700">
+              <Upload className="h-4 w-4 mr-2" />
+              Upload Document
+            </Button>
+          </div>
 
           {visibleDocuments.length === 0 ? (
             <Card className="border-0 shadow-sm">
@@ -1006,6 +1046,93 @@ export default function ResidentPortal() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Upload Document Dialog */}
+      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Upload Document</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            if (!uploadForm.file) {
+              toast.error('Please select a file');
+              return;
+            }
+            uploadDocumentMutation.mutate(uploadForm);
+          }} className="space-y-4">
+            <div>
+              <Label htmlFor="upload-title">Document Title *</Label>
+              <Input
+                id="upload-title"
+                value={uploadForm.title}
+                onChange={(e) => setUploadForm({ ...uploadForm, title: e.target.value })}
+                placeholder="e.g., Parking Permit, Pet Registration"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="upload-category">Category *</Label>
+              <Select value={uploadForm.category} onValueChange={(v) => setUploadForm({ ...uploadForm, category: v })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="certificate">Certificate</SelectItem>
+                  <SelectItem value="form">Form</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="upload-description">Description (Optional)</Label>
+              <Textarea
+                id="upload-description"
+                value={uploadForm.description}
+                onChange={(e) => setUploadForm({ ...uploadForm, description: e.target.value })}
+                placeholder="Additional details about this document"
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="upload-file">File *</Label>
+              <Input
+                id="upload-file"
+                type="file"
+                onChange={(e) => setUploadForm({ ...uploadForm, file: e.target.files[0] })}
+                required
+              />
+              {uploadForm.file && (
+                <p className="text-xs text-slate-500 mt-1">
+                  {uploadForm.file.name} ({(uploadForm.file.size / 1024).toFixed(0)}KB)
+                </p>
+              )}
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-xs text-blue-800">
+                <strong>Note:</strong> Uploaded documents will be visible to building management staff for processing.
+              </p>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowUploadDialog(false)}>
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                className="bg-blue-600 hover:bg-blue-700"
+                disabled={uploadDocumentMutation.isPending}
+              >
+                {uploadDocumentMutation.isPending ? 'Uploading...' : 'Upload'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Document Confirmation */}
       <AlertDialog open={!!deleteDocumentId} onOpenChange={() => setDeleteDocumentId(null)}>
