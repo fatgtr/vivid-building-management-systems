@@ -22,7 +22,10 @@ import {
   QrCode,
   Mail,
   Plus,
-  Trash2
+  Trash2,
+  Upload,
+  FileText,
+  ExternalLink
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -55,16 +58,10 @@ const SETUP_STEPS = [
     icon: Package,
   },
   {
-    id: 'create_work_order',
-    title: 'Create a Work Order for the Asset',
-    description: 'Track maintenance work for your assets',
-    icon: Wrench,
-  },
-  {
-    id: 'assign_work_order',
-    title: 'Assign the Work Order',
-    description: 'Choose a user or team to do the work',
-    icon: Users,
+    id: 'upload_asset_register',
+    title: 'Upload Asset Register',
+    description: 'Upload existing asset register (PDF or Excel)',
+    icon: Package,
   },
   {
     id: 'invite_team',
@@ -126,20 +123,8 @@ export default function SetupCenter() {
     description: '',
   });
 
-  const [workOrderForm, setWorkOrderForm] = useState({
-    title: '',
-    description: '',
-    building_id: '',
-    asset_id: '',
-    priority: 'medium',
-    procedure: '',
-    recurrence_pattern: 'none',
-    recurrence_days: [],
-    start_date: '',
-    due_date: '',
-    estimated_hours: '',
-    estimated_cost: '',
-  });
+  const [uploadingRegister, setUploadingRegister] = useState(false);
+  const [uploadedRegister, setUploadedRegister] = useState(null);
 
   // Fetch existing data to determine progress
   const { data: buildings = [] } = useQuery({
@@ -159,11 +144,7 @@ export default function SetupCenter() {
     enabled: buildings.length > 0,
   });
 
-  const { data: workOrders = [] } = useQuery({
-    queryKey: ['workOrders'],
-    queryFn: () => base44.entities.WorkOrder.list(),
-    enabled: buildings.length > 0,
-  });
+
 
   // Determine which step to show
   useEffect(() => {
@@ -257,14 +238,7 @@ export default function SetupCenter() {
     },
   });
 
-  const createWorkOrderMutation = useMutation({
-    mutationFn: (data) => base44.entities.WorkOrder.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workOrders'] });
-      setCurrentStep(5);
-      toast.success('Work Order created successfully!');
-    },
-  });
+
 
   const handleBuildingSubmit = (e) => {
     e.preventDefault();
@@ -281,21 +255,50 @@ export default function SetupCenter() {
     createAssetMutation.mutate(assetForm);
   };
 
-  const handleWorkOrderSubmit = (e) => {
-    e.preventDefault();
-    const submitData = {
-      ...workOrderForm,
-      main_category: assetForm.asset_main_category,
-    };
-    createWorkOrderMutation.mutate(submitData);
-  };
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const toggleRecurrenceDay = (day) => {
-    const days = workOrderForm.recurrence_days || [];
-    if (days.includes(day)) {
-      setWorkOrderForm({ ...workOrderForm, recurrence_days: days.filter(d => d !== day) });
-    } else {
-      setWorkOrderForm({ ...workOrderForm, recurrence_days: [...days, day] });
+    setUploadingRegister(true);
+    try {
+      // Upload file
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      toast.success('File uploaded! Processing with AI...');
+      
+      // Process with AI to extract assets
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Extract all assets from this asset register document. For each asset, provide: name, category, type, location, manufacturer, model, serial number, installation date, and any compliance/service information. Return as a structured JSON array.`,
+        file_urls: [file_url],
+        response_json_schema: {
+          type: "object",
+          properties: {
+            assets: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  asset_main_category: { type: "string" },
+                  asset_type: { type: "string" },
+                  location: { type: "string" },
+                  manufacturer: { type: "string" },
+                  model: { type: "string" },
+                  serial_number: { type: "string" },
+                  installation_date: { type: "string" }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      setUploadedRegister({ file_url, extracted_data: result });
+      toast.success(`Successfully extracted ${result.assets?.length || 0} assets!`);
+    } catch (error) {
+      toast.error('Failed to process document: ' + error.message);
+    } finally {
+      setUploadingRegister(false);
     }
   };
 
@@ -314,8 +317,7 @@ export default function SetupCenter() {
     buildings.length > 0 || buildingIdFromUrl,
     locations.length > 0 || (buildingIdFromUrl && locations.filter(l => l.building_id === buildingIdFromUrl).length > 0),
     assets.length > 0 || (buildingIdFromUrl && assets.filter(a => a.building_id === buildingIdFromUrl).length > 0),
-    workOrders.length > 0 || (buildingIdFromUrl && workOrders.filter(w => w.building_id === buildingIdFromUrl).length > 0),
-    false, // Assign Work Order
+    uploadedRegister !== null, // Asset register uploaded
     false, // Invite Team
     false, // Share Request Portal
   ];
@@ -854,211 +856,119 @@ export default function SetupCenter() {
                   </div>
                 )}
 
-                {/* Step 4: Create Work Order */}
+                {/* Step 4: Upload Asset Register */}
                 {currentStep === 4 && (
                   <div>
-                    <h2 className="text-2xl font-bold mb-2">Create a Work Order for the Asset</h2>
+                    <h2 className="text-2xl font-bold mb-2">Upload Asset Register</h2>
                     <p className="text-slate-600 mb-6">
-                      Track maintenance work for your asset. This can be one-time or recurring.
+                      Upload your existing asset register (PDF or Excel) and let AI extract the assets automatically.
                     </p>
-                    <form onSubmit={handleWorkOrderSubmit} className="space-y-4">
-                      <div>
-                        <Label>Title *</Label>
-                        <Input
-                          value={workOrderForm.title}
-                          onChange={(e) => setWorkOrderForm({ ...workOrderForm, title: e.target.value })}
-                          placeholder="e.g., Weekly HVAC Filter Replacement"
-                          required
-                        />
-                      </div>
 
-                      <div>
-                        <Label>Procedure</Label>
-                        <Textarea
-                          value={workOrderForm.procedure}
-                          onChange={(e) => setWorkOrderForm({ ...workOrderForm, procedure: e.target.value })}
-                          placeholder="Step-by-step instructions for this work order..."
-                          rows={3}
-                        />
-                      </div>
-
-                      <div>
-                        <Label>Asset</Label>
-                        <Select
-                          value={workOrderForm.asset_id}
-                          onValueChange={(v) => setWorkOrderForm({ ...workOrderForm, asset_id: v })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select an asset" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {assets.map(asset => (
-                              <SelectItem key={asset.id} value={asset.id}>{asset.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div>
-                        <Label>Recurrence</Label>
-                        <Select
-                          value={workOrderForm.recurrence_pattern}
-                          onValueChange={(v) => setWorkOrderForm({ ...workOrderForm, recurrence_pattern: v })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">Does not repeat</SelectItem>
-                            <SelectItem value="daily">Daily</SelectItem>
-                            <SelectItem value="weekly">Weekly</SelectItem>
-                            <SelectItem value="monthly">Monthly</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {workOrderForm.recurrence_pattern === 'weekly' && (
-                        <div>
-                          <Label>Repeat on</Label>
-                          <div className="flex gap-2 mt-2">
-                            {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, idx) => (
-                              <button
-                                key={idx}
-                                type="button"
-                                onClick={() => toggleRecurrenceDay(idx)}
-                                className={cn(
-                                  "w-10 h-10 rounded-full border-2 font-medium transition-colors",
-                                  workOrderForm.recurrence_days?.includes(idx)
-                                    ? "bg-blue-500 text-white border-blue-500"
-                                    : "border-slate-300 text-slate-600 hover:border-blue-300"
-                                )}
-                              >
-                                {day}
-                              </button>
-                            ))}
+                    {!uploadedRegister ? (
+                      <div className="space-y-6">
+                        <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+                          <div className="flex flex-col items-center gap-4">
+                            <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center">
+                              <Upload className="h-8 w-8 text-blue-600" />
+                            </div>
+                            <div>
+                              <h3 className="text-lg font-semibold mb-1">Upload Asset Register</h3>
+                              <p className="text-sm text-slate-500 mb-4">
+                                PDF or Excel files accepted. AI will automatically extract all assets.
+                              </p>
+                              <label htmlFor="asset-register-upload">
+                                <Button type="button" disabled={uploadingRegister} asChild>
+                                  <span>
+                                    <FileText className="h-4 w-4 mr-2" />
+                                    {uploadingRegister ? 'Processing...' : 'Choose File'}
+                                  </span>
+                                </Button>
+                                <input
+                                  id="asset-register-upload"
+                                  type="file"
+                                  accept=".pdf,.xlsx,.xls"
+                                  onChange={handleFileUpload}
+                                  className="hidden"
+                                  disabled={uploadingRegister}
+                                />
+                              </label>
+                            </div>
                           </div>
                         </div>
-                      )}
 
-                      <div>
-                        <Label>Priority</Label>
-                        <div className="flex gap-2 mt-2">
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant={workOrderForm.priority === 'low' ? 'default' : 'outline'}
-                            onClick={() => setWorkOrderForm({ ...workOrderForm, priority: 'low' })}
-                          >
-                            Low
+                        <Alert>
+                          <AlertDescription>
+                            You can also manage assets manually in the Asset Register page after setup.
+                          </AlertDescription>
+                        </Alert>
+
+                        <div className="flex justify-end gap-3 pt-4">
+                          <Button type="button" variant="outline" onClick={() => setCurrentStep(3)}>
+                            Back
                           </Button>
-                          <Button
+                          <Button 
                             type="button"
-                            size="sm"
-                            variant={workOrderForm.priority === 'medium' ? 'default' : 'outline'}
-                            onClick={() => setWorkOrderForm({ ...workOrderForm, priority: 'medium' })}
+                            variant="outline"
+                            onClick={() => navigate(createPageUrl('AssetRegister'))}
                           >
-                            Medium
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            Go to Asset Register
                           </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant={workOrderForm.priority === 'high' ? 'default' : 'outline'}
-                            onClick={() => setWorkOrderForm({ ...workOrderForm, priority: 'high' })}
-                          >
-                            High
-                          </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant={workOrderForm.priority === 'urgent' ? 'destructive' : 'outline'}
-                            onClick={() => setWorkOrderForm({ ...workOrderForm, priority: 'urgent' })}
-                          >
-                            Urgent
+                          <Button onClick={() => setCurrentStep(5)}>
+                            Skip for now
                           </Button>
                         </div>
                       </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <Alert className="bg-green-50 border-green-200">
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                          <AlertDescription className="text-green-800">
+                            Asset register uploaded successfully! Extracted {uploadedRegister.extracted_data?.assets?.length || 0} assets.
+                          </AlertDescription>
+                        </Alert>
 
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label>Start Date</Label>
-                          <Input
-                            type="date"
-                            value={workOrderForm.start_date}
-                            onChange={(e) => setWorkOrderForm({ ...workOrderForm, start_date: e.target.value })}
-                          />
+                        <div className="bg-slate-50 rounded-lg p-4">
+                          <h4 className="font-semibold mb-2">Preview of extracted assets:</h4>
+                          <div className="space-y-2 max-h-60 overflow-y-auto">
+                            {uploadedRegister.extracted_data?.assets?.slice(0, 5).map((asset, idx) => (
+                              <div key={idx} className="bg-white p-3 rounded border border-slate-200">
+                                <p className="font-medium">{asset.name}</p>
+                                <p className="text-xs text-slate-500">
+                                  {asset.asset_main_category} • {asset.location}
+                                </p>
+                              </div>
+                            ))}
+                            {uploadedRegister.extracted_data?.assets?.length > 5 && (
+                              <p className="text-sm text-slate-500 text-center py-2">
+                                ... and {uploadedRegister.extracted_data.assets.length - 5} more assets
+                              </p>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <Label>Due Date</Label>
-                          <Input
-                            type="date"
-                            value={workOrderForm.due_date}
-                            onChange={(e) => setWorkOrderForm({ ...workOrderForm, due_date: e.target.value })}
-                          />
+
+                        <div className="flex justify-end gap-3 pt-4">
+                          <Button type="button" variant="outline" onClick={() => setCurrentStep(3)}>
+                            Back
+                          </Button>
+                          <Button 
+                            type="button"
+                            onClick={() => navigate(createPageUrl('AssetRegister'))}
+                          >
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            View in Asset Register
+                          </Button>
+                          <Button onClick={() => setCurrentStep(5)}>
+                            Continue
+                          </Button>
                         </div>
                       </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label>Estimated Hours</Label>
-                          <Input
-                            type="number"
-                            value={workOrderForm.estimated_hours}
-                            onChange={(e) => setWorkOrderForm({ ...workOrderForm, estimated_hours: e.target.value })}
-                            placeholder="0"
-                            min="0"
-                            step="0.5"
-                          />
-                        </div>
-                        <div>
-                          <Label>Estimated Cost</Label>
-                          <Input
-                            type="number"
-                            value={workOrderForm.estimated_cost}
-                            onChange={(e) => setWorkOrderForm({ ...workOrderForm, estimated_cost: e.target.value })}
-                            placeholder="0.00"
-                            min="0"
-                            step="0.01"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex justify-end gap-3 pt-4">
-                        <Button type="button" variant="outline" onClick={() => setCurrentStep(3)}>
-                          Back
-                        </Button>
-                        <Button type="submit" disabled={createWorkOrderMutation.isPending}>
-                          Create Work Order
-                        </Button>
-                      </div>
-                    </form>
+                    )}
                   </div>
                 )}
 
-                {/* Step 5: Assign Work Order */}
+                {/* Step 5: Invite Team */}
                 {currentStep === 5 && (
-                  <div>
-                    <h2 className="text-2xl font-bold mb-2">Assign the Work Order</h2>
-                    <p className="text-slate-600 mb-6">
-                      Choose who will complete this work order. You can assign it to a team member or contractor.
-                    </p>
-                    <Alert className="mb-6">
-                      <AlertDescription>
-                        You can skip this step and assign work orders later from the Work Orders page.
-                      </AlertDescription>
-                    </Alert>
-                    <div className="flex justify-end gap-3 pt-4">
-                      <Button type="button" variant="outline" onClick={() => setCurrentStep(4)}>
-                        Back
-                      </Button>
-                      <Button onClick={() => setCurrentStep(6)}>
-                        Skip for now
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 6: Invite Team */}
-                {currentStep === 6 && (
                   <div>
                     <h2 className="text-2xl font-bold mb-2">Invite the whole team</h2>
                     <p className="text-slate-600 mb-6">
