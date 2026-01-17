@@ -147,6 +147,13 @@ export default function ResidentsTab() {
   const selectedUnits = selectedStrataPlan === 'all' 
     ? units.filter(u => u.building_id === selectedBuildingId)
     : getUnitsForStrataPlan(selectedStrataPlan);
+  
+  console.log('Selected strata plan:', selectedStrataPlan);
+  console.log('Selected units:', selectedUnits.length);
+  if (selectedStrataPlan !== 'all') {
+    const allBuildingUnits = units.filter(u => u.building_id === selectedBuildingId);
+    console.log('Units strata_plan_number values:', allBuildingUnits.map(u => u.strata_plan_number));
+  }
 
   if (isLoading) {
     return <Skeleton className="h-96 rounded-xl" />;
