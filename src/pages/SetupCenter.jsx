@@ -203,6 +203,15 @@ export default function SetupCenter() {
     },
   });
 
+  const updateBuildingMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Building.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['buildings'] });
+      toast.success('Building updated successfully!');
+      setCurrentStep(2);
+    },
+  });
+
   const createLocationMutation = useMutation({
     mutationFn: (data) => base44.entities.Location.create(data),
     onSuccess: (data) => {
@@ -278,7 +287,16 @@ export default function SetupCenter() {
       }
     }
     
-    createBuildingMutation.mutate(finalBuildingData);
+    // Check if we're editing an existing building
+    const existingBuildingId = buildingIdFromUrl || (buildings.length > 0 ? buildings[0].id : null);
+    
+    if (existingBuildingId) {
+      // Update existing building
+      updateBuildingMutation.mutate({ id: existingBuildingId, data: finalBuildingData });
+    } else {
+      // Create new building
+      createBuildingMutation.mutate(finalBuildingData);
+    }
   };
 
   const handleLocationSubmit = (e) => {
@@ -839,8 +857,8 @@ export default function SetupCenter() {
                       )}
 
                       <div className="flex justify-end gap-3 pt-4">
-                        <Button type="submit" disabled={createBuildingMutation.isPending}>
-                          Create Building
+                        <Button type="submit" disabled={createBuildingMutation.isPending || updateBuildingMutation.isPending}>
+                          {(buildingIdFromUrl || buildings.length > 0) ? 'Update Building' : 'Create Building'}
                         </Button>
                       </div>
                     </form>
