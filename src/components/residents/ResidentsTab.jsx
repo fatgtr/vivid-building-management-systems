@@ -87,16 +87,6 @@ export default function ResidentsTab() {
           console.error('Error backfilling units:', error);
         }
       }
-      
-      // Also check if units exist but are missing strata_plan_number
-      if (buildingUnits.length > 0 && buildingUnits.some(u => !u.strata_plan_number)) {
-        try {
-          await base44.functions.invoke('backfillUnitsWithStrataPlan', { buildingId: selectedBuildingId });
-          queryClient.invalidateQueries({ queryKey: ['units'] });
-        } catch (error) {
-          console.error('Error updating units with strata plan:', error);
-        }
-      }
     };
     
     backfillUnitsIfNeeded();
