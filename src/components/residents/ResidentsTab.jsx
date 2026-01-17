@@ -73,24 +73,28 @@ export default function ResidentsTab() {
       const buildingUnits = units.filter(u => u.building_id === selectedBuildingId);
       const currentBuilding = buildings.find(b => b.id === selectedBuildingId);
       
-      console.log('Building check:', { selectedBuildingId, currentBuilding, buildingUnits: buildingUnits.length });
-      
       // Check if building has strata lots configured but no units created
       const hasLotsConfigured = currentBuilding && (
         (currentBuilding.is_bmc && currentBuilding.bmc_strata_plans?.some(p => p.strata_lots)) ||
         (!currentBuilding.is_bmc && currentBuilding.strata_lots)
       );
       
-      console.log('Has lots configured:', hasLotsConfigured, { is_bmc: currentBuilding?.is_bmc, strata_lots: currentBuilding?.strata_lots, bmc_strata_plans: currentBuilding?.bmc_strata_plans });
-      
       if (hasLotsConfigured && buildingUnits.length === 0) {
-        console.log('Triggering backfill for building:', selectedBuildingId);
         try {
-          const result = await base44.functions.invoke('backfillUnits', { buildingId: selectedBuildingId });
-          console.log('Backfill result:', result);
+          await base44.functions.invoke('backfillUnits', { buildingId: selectedBuildingId });
           queryClient.invalidateQueries({ queryKey: ['units'] });
         } catch (error) {
           console.error('Error backfilling units:', error);
+        }
+      }
+      
+      // Also check if units exist but are missing strata_plan_number
+      if (buildingUnits.length > 0 && buildingUnits.some(u => !u.strata_plan_number)) {
+        try {
+          await base44.functions.invoke('backfillUnitsWithStrataPlan', { buildingId: selectedBuildingId });
+          queryClient.invalidateQueries({ queryKey: ['units'] });
+        } catch (error) {
+          console.error('Error updating units with strata plan:', error);
         }
       }
     };
