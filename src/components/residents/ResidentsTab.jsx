@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import StatusBadge from '@/components/common/StatusBadge';
 import EmptyState from '@/components/common/EmptyState';
 import { 
@@ -19,7 +20,8 @@ import {
   MoreVertical,
   Pencil,
   Trash2,
-  UserPlus
+  UserPlus,
+  MapPin
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -44,6 +46,7 @@ export default function ResidentsTab() {
   const { selectedBuildingId } = useBuildingContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteResident, setDeleteResident] = useState(null);
+  const [selectedStrataPlan, setSelectedStrataPlan] = useState('all');
   const queryClient = useQueryClient();
 
   const { data: residents = [], isLoading } = useQuery({
@@ -61,6 +64,11 @@ export default function ResidentsTab() {
     queryFn: () => base44.entities.Unit.list(),
   });
 
+  const { data: locations = [] } = useQuery({
+    queryKey: ['locations'],
+    queryFn: () => base44.entities.Location.list(),
+  });
+
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Resident.delete(id),
     onSuccess: () => {
@@ -71,6 +79,17 @@ export default function ResidentsTab() {
 
   const getBuildingName = (buildingId) => buildings.find(b => b.id === buildingId)?.name || 'Unknown';
   const getUnitNumber = (unitId) => units.find(u => u.id === unitId)?.unit_number || 'N/A';
+  const getLocationName = (unitId) => {
+    const unit = units.find(u => u.id === unitId);
+    if (!unit) return null;
+    const location = locations.find(l => l.id === unit.location_id);
+    return location?.name;
+  };
+
+  // Get current building
+  const currentBuilding = buildings.find(b => b.id === selectedBuildingId);
+  const isBMC = currentBuilding?.is_bmc;
+  const strataPlans = isBMC ? (currentBuilding?.bmc_strata_plans || []) : [];
 
   const filteredResidents = residents.filter(r => {
     const matchesSearch = 
@@ -78,15 +97,16 @@ export default function ResidentsTab() {
       r.last_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.email?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesBuilding = !selectedBuildingId || r.building_id === selectedBuildingId;
-    return matchesSearch && matchesBuilding;
+    const matchesStrataPlan = selectedStrataPlan === 'all' || r.strata_plan_number === selectedStrataPlan;
+    return matchesSearch && matchesBuilding && matchesStrataPlan;
   });
 
   if (isLoading) {
     return <Skeleton className="h-96 rounded-xl" />;
   }
 
-  return (
-    <div className="space-y-6">
+  const renderResidentsGrid = () => (
+    <>
       {/* Header Actions */}
       <div className="flex flex-wrap gap-4 items-center justify-between">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
@@ -117,76 +137,121 @@ export default function ResidentsTab() {
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredResidents.map((resident) => (
-            <Card key={resident.id} className="p-5 hover:shadow-lg transition-shadow border-2 hover:border-purple-300">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white font-semibold text-lg">
-                    {resident.first_name?.[0]}{resident.last_name?.[0]}
+          {filteredResidents.map((resident) => {
+            const locationName = getLocationName(resident.unit_id);
+            return (
+              <Card key={resident.id} className="p-5 hover:shadow-lg transition-shadow border-2 hover:border-purple-300">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center text-white font-semibold text-lg">
+                      {resident.first_name?.[0]}{resident.last_name?.[0]}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-slate-900">
+                        {resident.first_name} {resident.last_name}
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        {getBuildingName(resident.building_id)} • Unit {getUnitNumber(resident.unit_id)}
+                      </p>
+                      {resident.strata_plan_number && (
+                        <p className="text-xs text-purple-600 font-medium">
+                          {resident.strata_plan_number}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-900">
-                      {resident.first_name} {resident.last_name}
-                    </h3>
-                    <p className="text-xs text-slate-500">
-                      {getBuildingName(resident.building_id)} • Unit {getUnitNumber(resident.unit_id)}
-                    </p>
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem asChild>
+                        <Link to={createPageUrl('ResidentProfile') + `?id=${resident.id}`}>
+                          <Eye className="mr-2 h-4 w-4" /> View Profile
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to={createPageUrl('Residents')}>
+                          <Pencil className="mr-2 h-4 w-4" /> Edit
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setDeleteResident(resident)} className="text-red-600">
+                        <Trash2 className="mr-2 h-4 w-4" /> Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
-                      <Link to={createPageUrl('ResidentProfile') + `?id=${resident.id}`}>
-                        <Eye className="mr-2 h-4 w-4" /> View Profile
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to={createPageUrl('Residents')}>
-                        <Pencil className="mr-2 h-4 w-4" /> Edit
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setDeleteResident(resident)} className="text-red-600">
-                      <Trash2 className="mr-2 h-4 w-4" /> Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <Badge className="capitalize">{resident.resident_type}</Badge>
-                  <StatusBadge status={resident.status} />
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm flex-wrap">
+                    <Badge className="capitalize">{resident.resident_type}</Badge>
+                    <StatusBadge status={resident.status} />
+                  </div>
+                  
+                  {locationName && (
+                    <div className="flex items-center gap-2 text-sm text-slate-600">
+                      <MapPin className="h-4 w-4 text-slate-400" />
+                      <span className="truncate">{locationName}</span>
+                    </div>
+                  )}
+                  
+                  {resident.email && (
+                    <div className="flex items-center gap-2 text-sm text-slate-600">
+                      <Mail className="h-4 w-4 text-slate-400" />
+                      <span className="truncate">{resident.email}</span>
+                    </div>
+                  )}
+                  
+                  {resident.phone && (
+                    <div className="flex items-center gap-2 text-sm text-slate-600">
+                      <Phone className="h-4 w-4 text-slate-400" />
+                      <span>{resident.phone}</span>
+                    </div>
+                  )}
                 </div>
-                
-                {resident.email && (
-                  <div className="flex items-center gap-2 text-sm text-slate-600">
-                    <Mail className="h-4 w-4 text-slate-400" />
-                    <span className="truncate">{resident.email}</span>
-                  </div>
-                )}
-                
-                {resident.phone && (
-                  <div className="flex items-center gap-2 text-sm text-slate-600">
-                    <Phone className="h-4 w-4 text-slate-400" />
-                    <span>{resident.phone}</span>
-                  </div>
-                )}
-              </div>
 
-              <Link to={createPageUrl('ResidentProfile') + `?id=${resident.id}`}>
-                <Button variant="outline" className="w-full mt-4" size="sm">
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Profile
-                </Button>
-              </Link>
-            </Card>
-          ))}
+                <Link to={createPageUrl('ResidentProfile') + `?id=${resident.id}`}>
+                  <Button variant="outline" className="w-full mt-4" size="sm">
+                    <Eye className="h-4 w-4 mr-2" />
+                    View Profile
+                  </Button>
+                </Link>
+              </Card>
+            );
+          })}
         </div>
+      )}
+    </>
+  );
+
+  return (
+    <div className="space-y-6">
+      {isBMC && strataPlans.length > 0 ? (
+        <Tabs value={selectedStrataPlan} onValueChange={setSelectedStrataPlan} className="space-y-6">
+          <TabsList className="bg-slate-100">
+            <TabsTrigger value="all">All Residents</TabsTrigger>
+            {strataPlans.map((plan) => (
+              <TabsTrigger key={plan.plan_number} value={plan.plan_number}>
+                {plan.plan_number}
+                {plan.name && <span className="ml-1 text-xs">({plan.name})</span>}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          
+          <TabsContent value="all" className="space-y-6">
+            {renderResidentsGrid()}
+          </TabsContent>
+          
+          {strataPlans.map((plan) => (
+            <TabsContent key={plan.plan_number} value={plan.plan_number} className="space-y-6">
+              {renderResidentsGrid()}
+            </TabsContent>
+          ))}
+        </Tabs>
+      ) : (
+        renderResidentsGrid()
       )}
 
       {/* Delete Confirmation */}
