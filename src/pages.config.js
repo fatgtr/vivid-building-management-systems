@@ -19,6 +19,7 @@ import Notifications from './pages/Notifications';
 import OperationsCenter from './pages/OperationsCenter';
 import PartnerDashboard from './pages/PartnerDashboard';
 import PartnerManagement from './pages/PartnerManagement';
+import PartsInventory from './pages/PartsInventory';
 import PlatformDashboard from './pages/PlatformDashboard';
 import Reports from './pages/Reports';
 import ResidentPortal from './pages/ResidentPortal';
@@ -27,6 +28,7 @@ import Residents from './pages/Residents';
 import ResidentsCenter from './pages/ResidentsCenter';
 import RoleManagement from './pages/RoleManagement';
 import Settings from './pages/Settings';
+import SetupCenter from './pages/SetupCenter';
 import SmartDevices from './pages/SmartDevices';
 import StrataKnowledgeBase from './pages/StrataKnowledgeBase';
 import TaskManagement from './pages/TaskManagement';
@@ -34,8 +36,6 @@ import VerifyContractor from './pages/VerifyContractor';
 import Visitors from './pages/Visitors';
 import VividStaffManagement from './pages/VividStaffManagement';
 import WorkOrders from './pages/WorkOrders';
-import PartsInventory from './pages/PartsInventory';
-import SetupCenter from './pages/SetupCenter';
 import __Layout from './Layout.jsx';
 
 
@@ -61,6 +61,7 @@ export const PAGES = {
     "OperationsCenter": OperationsCenter,
     "PartnerDashboard": PartnerDashboard,
     "PartnerManagement": PartnerManagement,
+    "PartsInventory": PartsInventory,
     "PlatformDashboard": PlatformDashboard,
     "Reports": Reports,
     "ResidentPortal": ResidentPortal,
@@ -69,6 +70,7 @@ export const PAGES = {
     "ResidentsCenter": ResidentsCenter,
     "RoleManagement": RoleManagement,
     "Settings": Settings,
+    "SetupCenter": SetupCenter,
     "SmartDevices": SmartDevices,
     "StrataKnowledgeBase": StrataKnowledgeBase,
     "TaskManagement": TaskManagement,
@@ -76,8 +78,6 @@ export const PAGES = {
     "Visitors": Visitors,
     "VividStaffManagement": VividStaffManagement,
     "WorkOrders": WorkOrders,
-    "PartsInventory": PartsInventory,
-    "SetupCenter": SetupCenter,
 }
 
 export const pagesConfig = {

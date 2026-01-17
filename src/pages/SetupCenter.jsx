@@ -21,7 +21,8 @@ import {
   HelpCircle,
   Upload,
   QrCode,
-  Calendar
+  Calendar,
+  Mail
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -43,7 +44,7 @@ const SETUP_STEPS = [
   },
   {
     id: 'location',
-    title: 'Add Locations',
+    title: 'Add a Location',
     description: 'Define areas within your building (e.g., "Level 2", "Basement")',
     icon: Building2,
   },
@@ -54,22 +55,28 @@ const SETUP_STEPS = [
     icon: Package,
   },
   {
-    id: 'work_order',
-    title: 'Create a Work Order',
+    id: 'create_work_order',
+    title: 'Create a Work Order for the Asset',
     description: 'Track maintenance work for your assets',
     icon: Wrench,
   },
   {
-    id: 'team',
-    title: 'Invite Your Team',
+    id: 'assign_work_order',
+    title: 'Assign the Work Order',
+    description: 'Choose a user or team to do the work',
+    icon: Users,
+  },
+  {
+    id: 'invite_team',
+    title: 'Invite the whole team',
     description: 'Add staff members and contractors',
     icon: Users,
   },
   {
-    id: 'documents',
-    title: 'Upload Documents',
-    description: 'Add important building documents',
-    icon: FileText,
+    id: 'share_portal',
+    title: 'Share Request Portal',
+    description: 'Enable residents to submit requests',
+    icon: Mail,
   },
 ];
 
@@ -110,6 +117,21 @@ export default function SetupCenter() {
     serial_number: '',
     criticality: 'medium',
     description: '',
+  });
+
+  const [workOrderForm, setWorkOrderForm] = useState({
+    title: '',
+    description: '',
+    building_id: '',
+    asset_id: '',
+    priority: 'medium',
+    procedure: '',
+    recurrence_pattern: 'none',
+    recurrence_days: [],
+    start_date: '',
+    due_date: '',
+    estimated_hours: '',
+    estimated_cost: '',
   });
 
   // Fetch existing data to determine progress
@@ -153,8 +175,13 @@ export default function SetupCenter() {
       });
     } else if (workOrders.length === 0) {
       setCurrentStep(4);
+      setWorkOrderForm({ 
+        ...workOrderForm, 
+        building_id: buildings[0].id,
+        asset_id: assets[0]?.id 
+      });
     } else {
-      setCurrentStep(5);
+      setCurrentStep(7);
     }
   }, [buildings, locations, assets, workOrders]);
 
@@ -181,10 +208,20 @@ export default function SetupCenter() {
 
   const createAssetMutation = useMutation({
     mutationFn: (data) => base44.entities.Asset.create(data),
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
+      setWorkOrderForm({ ...workOrderForm, asset_id: data.id, building_id: data.building_id });
       setCurrentStep(4);
       toast.success('Asset added successfully!');
+    },
+  });
+
+  const createWorkOrderMutation = useMutation({
+    mutationFn: (data) => base44.entities.WorkOrder.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workOrders'] });
+      setCurrentStep(5);
+      toast.success('Work Order created successfully!');
     },
   });
 
@@ -203,6 +240,24 @@ export default function SetupCenter() {
     createAssetMutation.mutate(assetForm);
   };
 
+  const handleWorkOrderSubmit = (e) => {
+    e.preventDefault();
+    const submitData = {
+      ...workOrderForm,
+      main_category: assetForm.asset_main_category,
+    };
+    createWorkOrderMutation.mutate(submitData);
+  };
+
+  const toggleRecurrenceDay = (day) => {
+    const days = workOrderForm.recurrence_days || [];
+    if (days.includes(day)) {
+      setWorkOrderForm({ ...workOrderForm, recurrence_days: days.filter(d => d !== day) });
+    } else {
+      setWorkOrderForm({ ...workOrderForm, recurrence_days: [...days, day] });
+    }
+  };
+
   const generateQRCode = (type) => {
     const code = `VBM-${type.toUpperCase()}-${Date.now().toString(36).toUpperCase()}`;
     if (type === 'location') {
@@ -219,8 +274,9 @@ export default function SetupCenter() {
     locations.length > 0,
     assets.length > 0,
     workOrders.length > 0,
-    false, // Team invite
-    false, // Documents
+    false, // Assign Work Order
+    false, // Invite Team
+    false, // Share Request Portal
   ];
 
   const progressPercentage = (completedSteps.filter(Boolean).length / SETUP_STEPS.length) * 100;
@@ -554,92 +610,248 @@ export default function SetupCenter() {
                   </div>
                 )}
 
-                {/* Step 4: Work Order Templates */}
+                {/* Step 4: Create Work Order */}
                 {currentStep === 4 && (
                   <div>
-                    <h2 className="text-2xl font-bold mb-2">Create a Work Order</h2>
-                    <p className="text-slate-600 mb-6">Get started with pre-built templates or create from scratch</p>
-
-                    <Alert className="mb-6">
-                      <AlertDescription>
-                        Create a work order first, then you can add an Asset to it
-                      </AlertDescription>
-                    </Alert>
-
-                    <div className="space-y-3">
-                      <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(createPageUrl('WorkOrders'))}>
-                        <CardContent className="pt-6">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <Calendar className="h-8 w-8 text-blue-600" />
-                              <div>
-                                <h3 className="font-semibold">Daily Inspection</h3>
-                                <Badge variant="outline" className="mt-1">Daily</Badge>
-                              </div>
-                            </div>
-                            <Button>Start here</Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(createPageUrl('WorkOrders'))}>
-                        <CardContent className="pt-6">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <Wrench className="h-8 w-8 text-green-600" />
-                              <div>
-                                <h3 className="font-semibold">Weekly Preventive Maintenance</h3>
-                                <Badge variant="outline" className="mt-1">Weekly on Mondays</Badge>
-                              </div>
-                            </div>
-                            <Button>Start here</Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(createPageUrl('WorkOrders'))}>
-                        <CardContent className="pt-6">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <Package className="h-8 w-8 text-orange-600" />
-                              <div>
-                                <h3 className="font-semibold">Repair Asset</h3>
-                                <Badge variant="outline" className="mt-1">Just once</Badge>
-                              </div>
-                            </div>
-                            <Button>Start here</Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <div className="text-center py-4">
-                        <span className="text-slate-500">or</span>
+                    <h2 className="text-2xl font-bold mb-2">Create a Work Order for the Asset</h2>
+                    <p className="text-slate-600 mb-6">
+                      Track maintenance work for your asset. This can be one-time or recurring.
+                    </p>
+                    <form onSubmit={handleWorkOrderSubmit} className="space-y-4">
+                      <div>
+                        <Label>Title *</Label>
+                        <Input
+                          value={workOrderForm.title}
+                          onChange={(e) => setWorkOrderForm({ ...workOrderForm, title: e.target.value })}
+                          placeholder="e.g., Weekly HVAC Filter Replacement"
+                          required
+                        />
                       </div>
 
-                      <Button 
-                        variant="outline" 
-                        className="w-full" 
-                        onClick={() => navigate(createPageUrl('WorkOrders'))}
-                      >
-                        + Start with a blank Work Order
+                      <div>
+                        <Label>Procedure</Label>
+                        <Textarea
+                          value={workOrderForm.procedure}
+                          onChange={(e) => setWorkOrderForm({ ...workOrderForm, procedure: e.target.value })}
+                          placeholder="Step-by-step instructions for this work order..."
+                          rows={3}
+                        />
+                      </div>
+
+                      <div>
+                        <Label>Asset</Label>
+                        <Select
+                          value={workOrderForm.asset_id}
+                          onValueChange={(v) => setWorkOrderForm({ ...workOrderForm, asset_id: v })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select an asset" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {assets.map(asset => (
+                              <SelectItem key={asset.id} value={asset.id}>{asset.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label>Recurrence</Label>
+                        <Select
+                          value={workOrderForm.recurrence_pattern}
+                          onValueChange={(v) => setWorkOrderForm({ ...workOrderForm, recurrence_pattern: v })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Does not repeat</SelectItem>
+                            <SelectItem value="daily">Daily</SelectItem>
+                            <SelectItem value="weekly">Weekly</SelectItem>
+                            <SelectItem value="monthly">Monthly</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {workOrderForm.recurrence_pattern === 'weekly' && (
+                        <div>
+                          <Label>Repeat on</Label>
+                          <div className="flex gap-2 mt-2">
+                            {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, idx) => (
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={() => toggleRecurrenceDay(idx)}
+                                className={cn(
+                                  "w-10 h-10 rounded-full border-2 font-medium transition-colors",
+                                  workOrderForm.recurrence_days?.includes(idx)
+                                    ? "bg-blue-500 text-white border-blue-500"
+                                    : "border-slate-300 text-slate-600 hover:border-blue-300"
+                                )}
+                              >
+                                {day}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div>
+                        <Label>Priority</Label>
+                        <div className="flex gap-2 mt-2">
+                          <Button
+                            type="button"
+                            variant={workOrderForm.priority === 'low' ? 'default' : 'outline'}
+                            onClick={() => setWorkOrderForm({ ...workOrderForm, priority: 'low' })}
+                          >
+                            Low
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={workOrderForm.priority === 'medium' ? 'default' : 'outline'}
+                            onClick={() => setWorkOrderForm({ ...workOrderForm, priority: 'medium' })}
+                          >
+                            Medium
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={workOrderForm.priority === 'high' ? 'default' : 'outline'}
+                            onClick={() => setWorkOrderForm({ ...workOrderForm, priority: 'high' })}
+                          >
+                            High
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={workOrderForm.priority === 'urgent' ? 'destructive' : 'outline'}
+                            onClick={() => setWorkOrderForm({ ...workOrderForm, priority: 'urgent' })}
+                          >
+                            Urgent
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label>Start Date</Label>
+                          <Input
+                            type="date"
+                            value={workOrderForm.start_date}
+                            onChange={(e) => setWorkOrderForm({ ...workOrderForm, start_date: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <Label>Due Date</Label>
+                          <Input
+                            type="date"
+                            value={workOrderForm.due_date}
+                            onChange={(e) => setWorkOrderForm({ ...workOrderForm, due_date: e.target.value })}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label>Estimated Hours</Label>
+                          <Input
+                            type="number"
+                            value={workOrderForm.estimated_hours}
+                            onChange={(e) => setWorkOrderForm({ ...workOrderForm, estimated_hours: e.target.value })}
+                            placeholder="0"
+                            min="0"
+                            step="0.5"
+                          />
+                        </div>
+                        <div>
+                          <Label>Estimated Cost</Label>
+                          <Input
+                            type="number"
+                            value={workOrderForm.estimated_cost}
+                            onChange={(e) => setWorkOrderForm({ ...workOrderForm, estimated_cost: e.target.value })}
+                            placeholder="0.00"
+                            min="0"
+                            step="0.01"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end gap-3 pt-4">
+                        <Button type="button" variant="outline" onClick={() => setCurrentStep(3)}>
+                          Back
+                        </Button>
+                        <Button type="submit" disabled={createWorkOrderMutation.isPending}>
+                          Create Work Order
+                        </Button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
+                {/* Step 5: Assign Work Order */}
+                {currentStep === 5 && (
+                  <div>
+                    <h2 className="text-2xl font-bold mb-2">Assign the Work Order</h2>
+                    <p className="text-slate-600 mb-6">
+                      Choose who will complete this work order. You can assign it to a team member or contractor.
+                    </p>
+                    <Alert className="mb-6">
+                      <AlertDescription>
+                        You can skip this step and assign work orders later from the Work Orders page.
+                      </AlertDescription>
+                    </Alert>
+                    <div className="flex justify-end gap-3 pt-4">
+                      <Button type="button" variant="outline" onClick={() => setCurrentStep(4)}>
+                        Back
+                      </Button>
+                      <Button onClick={() => setCurrentStep(6)}>
+                        Skip for now
                       </Button>
                     </div>
                   </div>
                 )}
 
-                {/* Step 5: Complete */}
-                {currentStep >= 5 && (
-                  <div className="text-center py-12">
-                    <div className="h-20 w-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-                      <CheckCircle className="h-10 w-10 text-green-600" />
-                    </div>
-                    <h2 className="text-2xl font-bold mb-2">Setup Complete!</h2>
+                {/* Step 6: Invite Team */}
+                {currentStep === 6 && (
+                  <div>
+                    <h2 className="text-2xl font-bold mb-2">Invite the whole team</h2>
                     <p className="text-slate-600 mb-6">
-                      You're all set. Explore your dashboard to manage your buildings.
+                      Add team members, contractors, and other users who need access to the system.
                     </p>
-                    <Button onClick={() => navigate(createPageUrl('Dashboard'))}>
-                      Go to Dashboard
-                    </Button>
+                    <Alert className="mb-6">
+                      <AlertDescription>
+                        You can invite team members later from the Staff Management section.
+                      </AlertDescription>
+                    </Alert>
+                    <div className="flex justify-end gap-3 pt-4">
+                      <Button type="button" variant="outline" onClick={() => setCurrentStep(5)}>
+                        Back
+                      </Button>
+                      <Button onClick={() => setCurrentStep(7)}>
+                        Skip for now
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 7: Share Request Portal */}
+                {currentStep === 7 && (
+                  <div>
+                    <h2 className="text-2xl font-bold mb-2">Share Request Portal</h2>
+                    <p className="text-slate-600 mb-6">
+                      Enable residents or tenants to submit maintenance requests directly through a portal.
+                    </p>
+                    <Alert className="mb-6">
+                      <AlertDescription>
+                        This can be configured later in the Communications settings.
+                      </AlertDescription>
+                    </Alert>
+                    <div className="flex justify-end gap-3 pt-4">
+                      <Button type="button" variant="outline" onClick={() => setCurrentStep(6)}>
+                        Back
+                      </Button>
+                      <Button onClick={() => navigate(createPageUrl('Dashboard'))}>
+                        Complete Setup
+                      </Button>
+                    </div>
                   </div>
                 )}
               </CardContent>
