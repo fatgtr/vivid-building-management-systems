@@ -287,7 +287,6 @@ export default function SetupCenter() {
     // Auto-detect building type and calculate total lots for BMC
     let finalBuildingData = { ...buildingForm };
     const existingBuildingId = buildingIdFromUrl || (buildings.length > 0 ? buildings[0].id : null);
-    let buildingToUse = null;
 
     if (buildingForm.is_bmc && buildingForm.bmc_strata_plans?.length > 0) {
       // Auto-detect building type
@@ -342,21 +341,20 @@ export default function SetupCenter() {
         data: finalBuildingData,
         bmcPlans: buildingForm.bmc_strata_plans 
       });
-      buildingToUse = existingBuildingId;
     } else {
       // For new buildings, we need to create first then create units
       try {
         const createdBuilding = await base44.entities.Building.create(finalBuildingData);
         queryClient.invalidateQueries({ queryKey: ['buildings'] });
-        buildingToUse = createdBuilding.id;
         setLocationForm({ ...locationForm, building_id: createdBuilding.id });
         
-        // Auto-create units based on strata lots
+        // Auto-create units for BOTH BMC and non-BMC buildings
+        const newUnits = [];
+        
         if (finalBuildingData.is_bmc && buildingForm.bmc_strata_plans?.length > 0) {
-          const newUnits = [];
+          // BMC: create units for each strata plan
           buildingForm.bmc_strata_plans.forEach(plan => {
             const numLots = Number(plan.strata_lots) || 0;
-            // Create units for any strata plan with lots
             if (numLots > 0) {
               for (let i = 1; i <= numLots; i++) {
                 newUnits.push({
@@ -369,11 +367,26 @@ export default function SetupCenter() {
               }
             }
           });
-          if (newUnits.length > 0) {
-            await base44.entities.Unit.bulkCreate(newUnits);
-            queryClient.invalidateQueries({ queryKey: ['units'] });
-            toast.success(`Auto-created ${newUnits.length} unit records!`);
+        } else if (!buildingForm.is_bmc && finalBuildingData.strata_lots) {
+          // Non-BMC: create units based on strata_lots field
+          const numLots = Number(finalBuildingData.strata_lots) || 0;
+          if (numLots > 0) {
+            for (let i = 1; i <= numLots; i++) {
+              newUnits.push({
+                building_id: createdBuilding.id,
+                unit_number: `Lot ${i}`,
+                lot_number: String(i),
+                strata_plan_number: finalBuildingData.strata_plan_number,
+                status: 'vacant'
+              });
+            }
           }
+        }
+        
+        if (newUnits.length > 0) {
+          await base44.entities.Unit.bulkCreate(newUnits);
+          queryClient.invalidateQueries({ queryKey: ['units'] });
+          toast.success(`Auto-created ${newUnits.length} unit records!`);
         }
         
         setCurrentStep(2);
