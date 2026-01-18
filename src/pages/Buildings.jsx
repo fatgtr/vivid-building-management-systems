@@ -109,6 +109,10 @@ export default function Buildings() {
       navigate(createPageUrl('SetupCenter') + '?buildingId=' + building.id);
       toast.success('Building created! Let\'s set it up.');
     },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to create building');
+      console.error('Create building error:', error);
+    },
   });
 
   const updateMutation = useMutation({
@@ -219,6 +223,11 @@ export default function Buildings() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    if (!formData.name || !formData.address) {
+      toast.error('Please fill in the required fields');
+      return;
+    }
     
     let finalFormData = { ...formData };
     if (formData.partner_id) {
