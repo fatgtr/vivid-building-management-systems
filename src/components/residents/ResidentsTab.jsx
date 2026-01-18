@@ -128,10 +128,14 @@ export default function ResidentsTab() {
   };
 
   const filteredResidents = residents.filter(r => {
+    const unit = units.find(u => u.id === r.unit_id);
     const matchesSearch = 
       r.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.last_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.email?.toLowerCase().includes(searchQuery.toLowerCase());
+      r.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      unit?.lot_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      unit?.unit_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.strata_plan_number?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesBuilding = !selectedBuildingId || r.building_id === selectedBuildingId;
     const matchesStrataPlan = selectedStrataPlan === 'all' || r.strata_plan_number === selectedStrataPlan;
     return matchesSearch && matchesBuilding && matchesStrataPlan;
