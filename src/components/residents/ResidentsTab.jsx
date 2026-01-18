@@ -142,9 +142,23 @@ export default function ResidentsTab() {
   });
 
   // Get units for selected strata plan
-  const selectedUnits = selectedStrataPlan === 'all' 
+  let selectedUnits = selectedStrataPlan === 'all' 
     ? units.filter(u => u.building_id === selectedBuildingId)
     : getUnitsForStrataPlan(selectedStrataPlan);
+
+  // Filter units based on search query
+  if (searchQuery) {
+    selectedUnits = selectedUnits.filter(unit => {
+      const unitResidents = residents.filter(r => r.unit_id === unit.id);
+      const unitResident = unitResidents[0];
+
+      return unit.lot_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        unit.unit_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        unitResident?.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        unitResident?.last_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        unitResident?.email?.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+  }
 
   if (isLoading) {
     return <Skeleton className="h-96 rounded-xl" />;
