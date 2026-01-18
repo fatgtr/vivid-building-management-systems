@@ -266,7 +266,9 @@ export default function Buildings() {
   const filteredBuildings = buildings.filter(b => 
     b.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     b.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    b.city?.toLowerCase().includes(searchQuery.toLowerCase())
+    b.city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    b.strata_plan_number?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    b.strata_lots?.toString().includes(searchQuery)
   );
 
   const getUnitCount = (buildingId) => units.filter(u => u.building_id === buildingId).length;
