@@ -42,6 +42,11 @@ import BulletinBoard from './pages/BulletinBoard';
 import FinancialManagement from './pages/FinancialManagement';
 import AnalyticsDashboard from './pages/AnalyticsDashboard';
 import VotingCenter from './pages/VotingCenter';
+import StaffScheduling from './pages/StaffScheduling';
+import KeyManagement from './pages/KeyManagement';
+import PetRegistry from './pages/PetRegistry';
+import ServiceDirectory from './pages/ServiceDirectory';
+import MoveCoordinator from './pages/MoveCoordinator';
 import __Layout from './Layout.jsx';
 
 
@@ -90,6 +95,11 @@ export const PAGES = {
     "FinancialManagement": FinancialManagement,
     "AnalyticsDashboard": AnalyticsDashboard,
     "VotingCenter": VotingCenter,
+    "StaffScheduling": StaffScheduling,
+    "KeyManagement": KeyManagement,
+    "PetRegistry": PetRegistry,
+    "ServiceDirectory": ServiceDirectory,
+    "MoveCoordinator": MoveCoordinator,
 }
 
 export const pagesConfig = {
