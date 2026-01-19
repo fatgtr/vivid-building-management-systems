@@ -30,7 +30,13 @@ import {
   MessageSquare,
   TrendingUp,
   Package,
-  ShoppingBag
+  ShoppingBag,
+  Vote,
+  DollarSign,
+  Key,
+  Heart,
+  Briefcase,
+  Truck
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
@@ -54,7 +60,16 @@ const navItems = [
   { name: 'Buildings', icon: Building2, page: 'Buildings', requirePermission: { resource: 'buildings', action: 'view' } },
   { name: 'Residents', icon: Users, page: 'ResidentsCenter', requirePermission: { resource: 'residents', action: 'view' } },
   { name: 'Operations', icon: Wrench, page: 'OperationsCenter', requirePermission: { resource: 'work_orders', action: 'view' } },
+  { name: 'Bulletin Board', icon: Bell, page: 'BulletinBoard', requirePermission: { resource: 'announcements', action: 'view' } },
+  { name: 'Voting', icon: Vote, page: 'VotingCenter', requirePermission: { resource: 'residents', action: 'view' } },
   { name: 'Marketplace', icon: ShoppingBag, page: 'Marketplace', requirePermission: { resource: 'residents', action: 'view' } },
+  { name: 'Financial', icon: DollarSign, page: 'FinancialManagement', requirePermission: { resource: 'buildings', action: 'view' } },
+  { name: 'Analytics', icon: TrendingUp, page: 'AnalyticsDashboard', requirePermission: { resource: 'buildings', action: 'view' } },
+  { name: 'Staff Roster', icon: Calendar, page: 'StaffScheduling', requirePermission: { resource: 'buildings', action: 'view' } },
+  { name: 'Keys & Access', icon: Key, page: 'KeyManagement', requirePermission: { resource: 'buildings', action: 'view' } },
+  { name: 'Pets', icon: Heart, page: 'PetRegistry', requirePermission: { resource: 'residents', action: 'view' } },
+  { name: 'Services', icon: Briefcase, page: 'ServiceDirectory', requirePermission: { resource: 'residents', action: 'view' } },
+  { name: 'Move Coordinator', icon: Truck, page: 'MoveCoordinator', requirePermission: { resource: 'residents', action: 'view' } },
   { name: 'Parts Inventory', icon: Package, page: 'PartsInventory', requirePermission: { resource: 'buildings', action: 'view' } },
   { name: 'Communications', icon: MessageSquare, page: 'Communications', requirePermission: { resource: 'announcements', action: 'view' } },
   { name: 'Capital Works', icon: TrendingUp, page: 'CapitalWorksPlanning', requirePermission: { resource: 'buildings', action: 'view' } },
