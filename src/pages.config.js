@@ -48,6 +48,7 @@ import PetRegistry from './pages/PetRegistry';
 import ServiceDirectory from './pages/ServiceDirectory';
 import MoveCoordinator from './pages/MoveCoordinator';
 import EmergencyContacts from './pages/EmergencyContacts';
+import ResidentSelfService from './pages/ResidentSelfService';
 import __Layout from './Layout.jsx';
 
 
@@ -102,6 +103,7 @@ export const PAGES = {
     "ServiceDirectory": ServiceDirectory,
     "MoveCoordinator": MoveCoordinator,
     "EmergencyContacts": EmergencyContacts,
+    "ResidentSelfService": ResidentSelfService,
 }
 
 export const pagesConfig = {
