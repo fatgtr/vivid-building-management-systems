@@ -36,6 +36,7 @@ import VerifyContractor from './pages/VerifyContractor';
 import Visitors from './pages/Visitors';
 import VividStaffManagement from './pages/VividStaffManagement';
 import WorkOrders from './pages/WorkOrders';
+import DocumentTemplates from './pages/DocumentTemplates';
 import __Layout from './Layout.jsx';
 
 
@@ -78,6 +79,7 @@ export const PAGES = {
     "Visitors": Visitors,
     "VividStaffManagement": VividStaffManagement,
     "WorkOrders": WorkOrders,
+    "DocumentTemplates": DocumentTemplates,
 }
 
 export const pagesConfig = {
