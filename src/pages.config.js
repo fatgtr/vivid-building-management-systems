@@ -47,6 +47,7 @@ import KeyManagement from './pages/KeyManagement';
 import PetRegistry from './pages/PetRegistry';
 import ServiceDirectory from './pages/ServiceDirectory';
 import MoveCoordinator from './pages/MoveCoordinator';
+import EmergencyContacts from './pages/EmergencyContacts';
 import __Layout from './Layout.jsx';
 
 
@@ -100,6 +101,7 @@ export const PAGES = {
     "PetRegistry": PetRegistry,
     "ServiceDirectory": ServiceDirectory,
     "MoveCoordinator": MoveCoordinator,
+    "EmergencyContacts": EmergencyContacts,
 }
 
 export const pagesConfig = {

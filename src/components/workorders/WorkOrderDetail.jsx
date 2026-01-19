@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import StatusBadge from '@/components/common/StatusBadge';
 import WorkOrderHistoryAnalysis from './WorkOrderHistoryAnalysis';
+import TimeTracker from './TimeTracker';
 import { 
   X, Upload, File, Image as ImageIcon, Video, FileText, 
   Package, MessageSquare, Trash2, Calendar, Building2, User, BarChart3 
@@ -144,6 +145,11 @@ export default function WorkOrderDetail({ order, onClose, buildings, units, cont
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column - Main Info */}
                 <div className="lg:col-span-2 space-y-6">
+                  {/* Time Tracker */}
+                  <TimeTracker
+                    workOrder={order}
+                    onSave={(data) => updateMutation.mutate({ id: order.id, data: { ...order, ...data } })}
+                  />
                   {/* Case Information */}
                   <Card className="border shadow-sm">
                     <CardHeader>
