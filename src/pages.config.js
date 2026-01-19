@@ -37,6 +37,7 @@ import Visitors from './pages/Visitors';
 import VividStaffManagement from './pages/VividStaffManagement';
 import WorkOrders from './pages/WorkOrders';
 import DocumentTemplates from './pages/DocumentTemplates';
+import Marketplace from './pages/Marketplace';
 import __Layout from './Layout.jsx';
 
 
@@ -80,6 +81,7 @@ export const PAGES = {
     "VividStaffManagement": VividStaffManagement,
     "WorkOrders": WorkOrders,
     "DocumentTemplates": DocumentTemplates,
+    "Marketplace": Marketplace,
 }
 
 export const pagesConfig = {
