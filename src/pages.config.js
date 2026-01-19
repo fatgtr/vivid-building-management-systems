@@ -40,6 +40,8 @@ import VividStaffManagement from './pages/VividStaffManagement';
 import WorkOrders from './pages/WorkOrders';
 import BulletinBoard from './pages/BulletinBoard';
 import FinancialManagement from './pages/FinancialManagement';
+import AnalyticsDashboard from './pages/AnalyticsDashboard';
+import VotingCenter from './pages/VotingCenter';
 import __Layout from './Layout.jsx';
 
 
@@ -86,6 +88,8 @@ export const PAGES = {
     "WorkOrders": WorkOrders,
     "BulletinBoard": BulletinBoard,
     "FinancialManagement": FinancialManagement,
+    "AnalyticsDashboard": AnalyticsDashboard,
+    "VotingCenter": VotingCenter,
 }
 
 export const pagesConfig = {
