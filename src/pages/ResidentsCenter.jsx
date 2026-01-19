@@ -1,9 +1,10 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, DoorOpen, Calendar } from 'lucide-react';
+import { Users, DoorOpen, Calendar, Package } from 'lucide-react';
 import ResidentsTab from '@/components/residents/ResidentsTab';
 import VisitorsTab from '@/components/residents/VisitorsTab';
 import AmenitiesTab from '@/components/residents/AmenitiesTab';
+import ParcelManagement from '@/components/residents/ParcelManagement';
 
 export default function ResidentsCenter() {
   return (
@@ -14,7 +15,7 @@ export default function ResidentsCenter() {
         </div>
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">Residents Center</h1>
-          <p className="text-slate-500">Manage residents, visitors, and amenities</p>
+          <p className="text-slate-500">Manage residents, visitors, amenities & parcels</p>
         </div>
       </div>
 
@@ -32,6 +33,10 @@ export default function ResidentsCenter() {
             <Calendar className="h-4 w-4" />
             Amenities
           </TabsTrigger>
+          <TabsTrigger value="parcels" className="gap-2">
+            <Package className="h-4 w-4" />
+            Parcels
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="residents">
@@ -44,6 +49,10 @@ export default function ResidentsCenter() {
 
         <TabsContent value="amenities">
           <AmenitiesTab />
+        </TabsContent>
+
+        <TabsContent value="parcels">
+          <ParcelManagement />
         </TabsContent>
       </Tabs>
     </div>

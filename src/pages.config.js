@@ -9,12 +9,14 @@ import ContractorPortal from './pages/ContractorPortal';
 import ContractorSignup from './pages/ContractorSignup';
 import Contractors from './pages/Contractors';
 import Dashboard from './pages/Dashboard';
+import DocumentTemplates from './pages/DocumentTemplates';
 import Documents from './pages/Documents';
 import Home from './pages/Home';
 import Inspections from './pages/Inspections';
 import Locations from './pages/Locations';
 import MaintenanceSchedule from './pages/MaintenanceSchedule';
 import ManagingAgentPortal from './pages/ManagingAgentPortal';
+import Marketplace from './pages/Marketplace';
 import Notifications from './pages/Notifications';
 import OperationsCenter from './pages/OperationsCenter';
 import PartnerDashboard from './pages/PartnerDashboard';
@@ -36,8 +38,6 @@ import VerifyContractor from './pages/VerifyContractor';
 import Visitors from './pages/Visitors';
 import VividStaffManagement from './pages/VividStaffManagement';
 import WorkOrders from './pages/WorkOrders';
-import DocumentTemplates from './pages/DocumentTemplates';
-import Marketplace from './pages/Marketplace';
 import __Layout from './Layout.jsx';
 
 
@@ -53,12 +53,14 @@ export const PAGES = {
     "ContractorSignup": ContractorSignup,
     "Contractors": Contractors,
     "Dashboard": Dashboard,
+    "DocumentTemplates": DocumentTemplates,
     "Documents": Documents,
     "Home": Home,
     "Inspections": Inspections,
     "Locations": Locations,
     "MaintenanceSchedule": MaintenanceSchedule,
     "ManagingAgentPortal": ManagingAgentPortal,
+    "Marketplace": Marketplace,
     "Notifications": Notifications,
     "OperationsCenter": OperationsCenter,
     "PartnerDashboard": PartnerDashboard,
@@ -80,8 +82,6 @@ export const PAGES = {
     "Visitors": Visitors,
     "VividStaffManagement": VividStaffManagement,
     "WorkOrders": WorkOrders,
-    "DocumentTemplates": DocumentTemplates,
-    "Marketplace": Marketplace,
 }
 
 export const pagesConfig = {
