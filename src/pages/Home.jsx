@@ -326,7 +326,7 @@ export default function Home() {
           <div className="text-center max-w-5xl mx-auto">
             <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-full mb-8 border border-blue-200/50 shadow-lg shadow-blue-100/50">
               <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
-              <span className="text-blue-700 font-semibold text-sm tracking-wide">Building Management Software for Strata & BMC Professionals</span>
+              <span className="text-blue-700 font-semibold text-sm tracking-wide">For Building Managers Managing Strata Buildings | Assisting Strata Managers</span>
             </div>
             
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-8 leading-tight tracking-tight">
@@ -334,7 +334,7 @@ export default function Home() {
             </h1>
             
             <p className="text-xl text-gray-600 mb-10 leading-relaxed max-w-3xl mx-auto">
-              Comprehensive platform for Australian strata and BMC professionals. AI-powered document intelligence, automated compliance tracking, and intelligent maintenance workflows that save 90% of administrative time.
+              Powerful platform for Building Managers managing strata buildings that assists Strata Managers. From simple strata plans to complex BMC structures - AI-powered document intelligence, automated compliance tracking, and intelligent maintenance workflows that save 90% of administrative time.
             </p>
 
             <div className="flex flex-wrap gap-4 justify-center mb-12">
