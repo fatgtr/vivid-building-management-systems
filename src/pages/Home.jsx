@@ -213,10 +213,39 @@ export default function Home() {
       <style>{`
         html { scroll-behavior: smooth; }
         .gradient-text {
-          background: linear-gradient(to right, #3b82f6, #06b6d4);
+          background: linear-gradient(135deg, #3b82f6, #06b6d4, #8b5cf6);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
+          background-size: 200% 200%;
+          animation: gradient-shift 8s ease infinite;
+        }
+        @keyframes gradient-shift {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+        }
+        .float-animation {
+          animation: float 6s ease-in-out infinite;
+        }
+        .hover-lift {
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .hover-lift:hover {
+          transform: translateY(-8px);
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        .glass-effect {
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        @keyframes pulse-glow {
+          0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+          50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.6); }
         }
       `}</style>
 
@@ -285,16 +314,23 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-b from-blue-50 via-white to-white overflow-hidden py-20 lg:py-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative bg-gradient-to-br from-blue-50 via-indigo-50/30 to-white overflow-hidden py-20 lg:py-32">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl float-animation"></div>
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-200/20 rounded-full blur-3xl float-animation" style={{ animationDelay: '-3s' }}></div>
+          <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-purple-200/10 rounded-full blur-3xl float-animation" style={{ animationDelay: '-6s' }}></div>
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-5xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 rounded-full mb-8">
-              <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-              <span className="text-blue-600 font-medium text-sm">Building Management Software for Strata & BMC Professionals</span>
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-full mb-8 border border-blue-200/50 shadow-lg shadow-blue-100/50">
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+              <span className="text-blue-700 font-semibold text-sm tracking-wide">Building Management Software for Strata & BMC Professionals</span>
             </div>
             
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-              AI-powered building management <span className="gradient-text">for the modern era</span>
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-8 leading-tight tracking-tight">
+              AI-powered building management <span className="gradient-text block mt-2">for the modern era</span>
             </h1>
             
             <p className="text-xl text-gray-600 mb-10 leading-relaxed max-w-3xl mx-auto">
@@ -305,7 +341,7 @@ export default function Home() {
               <Button 
                 size="lg" 
                 onClick={() => setShowDemoModal(true)}
-                className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 text-lg px-10 py-6"
+                className="bg-gradient-to-r from-blue-600 via-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 text-lg px-12 py-7 shadow-2xl shadow-blue-600/30 hover:shadow-blue-600/50 transition-all hover:scale-105"
               >
                 Book a Demo <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
@@ -313,7 +349,7 @@ export default function Home() {
                 size="lg" 
                 variant="outline"
                 onClick={() => scrollToSection('features')}
-                className="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 text-lg px-10 py-6"
+                className="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 text-lg px-12 py-7 hover:scale-105 transition-all"
               >
                 Explore Platform
               </Button>
@@ -342,11 +378,13 @@ export default function Home() {
       </section>
 
       {/* AI Platform Badge */}
-      <section className="bg-slate-900 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800 rounded-full mb-6">
-            <Sparkles className="h-4 w-4 text-cyan-400" />
-            <span className="text-cyan-400 font-medium text-sm">AI-Powered Platform</span>
+      <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white py-16 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djItaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTItMnYyaDJ2LTJoLTJ6bTItMnYyaDJ2LTJoLTJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-50"></div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-400/30 rounded-full mb-6 shadow-lg shadow-cyan-500/20">
+            <Sparkles className="h-4 w-4 text-cyan-400 animate-pulse" />
+            <span className="text-cyan-300 font-semibold text-sm tracking-wide">AI-Powered Platform</span>
           </div>
           
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">
@@ -381,39 +419,39 @@ export default function Home() {
 
           <div className="max-w-5xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="bg-slate-800 border-slate-700">
+              <Card className="bg-slate-800/90 backdrop-blur-sm border-2 border-slate-700/50 hover:border-blue-500/50 transition-all hover-lift group">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center">
-                      <Brain className="h-5 w-5 text-white" />
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:shadow-blue-500/50 transition-all">
+                      <Brain className="h-6 w-6 text-white" />
                     </div>
-                    <h4 className="font-bold text-white">Advanced AI Models</h4>
+                    <h4 className="font-bold text-white text-lg">Advanced AI Models</h4>
                   </div>
-                  <p className="text-sm text-gray-400">Powered by OpenAI GPT-4 and Claude for intelligent document processing, bylaw analysis, and automated workflows</p>
+                  <p className="text-sm text-gray-300 leading-relaxed">Powered by OpenAI GPT-4 and Claude for intelligent document processing, bylaw analysis, and automated workflows</p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-slate-800 border-slate-700">
+              <Card className="bg-slate-800/90 backdrop-blur-sm border-2 border-slate-700/50 hover:border-teal-500/50 transition-all hover-lift group">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-lg flex items-center justify-center">
-                      <Shield className="h-5 w-5 text-white" />
+                    <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-teal-500/30 group-hover:shadow-teal-500/50 transition-all">
+                      <Shield className="h-6 w-6 text-white" />
                     </div>
-                    <h4 className="font-bold text-white">Enterprise Security</h4>
+                    <h4 className="font-bold text-white text-lg">Enterprise Security</h4>
                   </div>
-                  <p className="text-sm text-gray-400">Built on Base44 platform with React, TypeScript, and Tailwind CSS. Bank-level encryption and Australian data residency</p>
+                  <p className="text-sm text-gray-300 leading-relaxed">Built on Base44 platform with React, TypeScript, and Tailwind CSS. Bank-level encryption and Australian data residency</p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-slate-800 border-slate-700">
+              <Card className="bg-slate-800/90 backdrop-blur-sm border-2 border-slate-700/50 hover:border-purple-500/50 transition-all hover-lift group">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
-                      <Zap className="h-5 w-5 text-white" />
+                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/30 group-hover:shadow-purple-500/50 transition-all">
+                      <Zap className="h-6 w-6 text-white" />
                     </div>
-                    <h4 className="font-bold text-white">Cloud Infrastructure</h4>
+                    <h4 className="font-bold text-white text-lg">Cloud Infrastructure</h4>
                   </div>
-                  <p className="text-sm text-gray-400">Serverless architecture with Deno Deploy for backend functions. 99.9% uptime SLA with auto-scaling capabilities</p>
+                  <p className="text-sm text-gray-300 leading-relaxed">Serverless architecture with Deno Deploy for backend functions. 99.9% uptime SLA with auto-scaling capabilities</p>
                 </CardContent>
               </Card>
             </div>
@@ -448,22 +486,22 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {coreModules.map((module, idx) => (
-              <Card key={idx} className="border-2 border-gray-200 hover:border-blue-300 hover:shadow-xl transition-all">
+              <Card key={idx} className="border-2 border-gray-200/50 hover:border-blue-400 hover:shadow-2xl transition-all group hover-lift bg-white/80 backdrop-blur-sm">
                 <CardContent className="p-8">
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center flex-shrink-0">
-                      <module.icon className="h-7 w-7 text-white" />
+                  <div className="flex items-start gap-4 mb-6">
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/30 group-hover:shadow-blue-500/50 transition-all">
+                      <module.icon className="h-8 w-8 text-white" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-xl font-bold mb-2">{module.title}</h3>
-                      <p className="text-gray-600 mb-4">{module.description}</p>
+                      <h3 className="text-xl font-bold mb-2 text-gray-900 group-hover:text-blue-600 transition-colors">{module.title}</h3>
+                      <p className="text-gray-600 leading-relaxed">{module.description}</p>
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-3 pt-4 border-t border-gray-100">
                     {module.features.map((feature, fidx) => (
-                      <div key={fidx} className="flex items-center gap-2 text-sm text-blue-600">
-                        <div className="w-1.5 h-1.5 bg-blue-600 rounded-full"></div>
+                      <div key={fidx} className="flex items-center gap-2 text-sm text-blue-600 font-medium">
+                        <div className="w-2 h-2 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-full"></div>
                         <span>{feature}</span>
                       </div>
                     ))}
@@ -490,10 +528,10 @@ export default function Home() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {userPersonas.map((persona, idx) => (
-              <Card key={idx} className={`border-2 ${persona.color} transition-all hover:shadow-xl`}>
+              <Card key={idx} className={`border-2 ${persona.color} transition-all hover-lift group bg-white/60 backdrop-blur-sm`}>
                 <CardContent className="p-8">
                   <div className="flex items-start gap-4 mb-6">
-                    <div className={`w-16 h-16 bg-gradient-to-br ${idx === 0 ? 'from-blue-500 to-indigo-600' : idx === 1 ? 'from-teal-500 to-emerald-600' : idx === 2 ? 'from-slate-600 to-slate-700' : 'from-purple-500 to-pink-600'} rounded-2xl flex items-center justify-center flex-shrink-0`}>
+                    <div className={`w-16 h-16 bg-gradient-to-br ${idx === 0 ? 'from-blue-500 to-indigo-600 shadow-blue-500/30' : idx === 1 ? 'from-teal-500 to-emerald-600 shadow-teal-500/30' : idx === 2 ? 'from-slate-600 to-slate-700 shadow-slate-500/30' : 'from-purple-500 to-pink-600 shadow-purple-500/30'} rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-xl transition-all`}>
                       <persona.icon className="h-8 w-8 text-white" />
                     </div>
                     <div>
@@ -520,8 +558,10 @@ export default function Home() {
       </section>
 
       {/* AI Capabilities */}
-      <section id="ai-capabilities" className="py-20 bg-slate-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="ai-capabilities" className="py-20 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djItaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTItMnYyaDJ2LTJoLTJ6bTItMnYyaDJ2LTJoLTJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30"></div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800 rounded-full mb-6">
               <Sparkles className="h-4 w-4 text-cyan-400" />
@@ -539,11 +579,11 @@ export default function Home() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {aiFeatures.map((feature, idx) => (
-              <Card key={idx} className="bg-slate-800 border-slate-700 hover:border-cyan-500 transition-all">
+              <Card key={idx} className="bg-slate-800/90 backdrop-blur-sm border-2 border-slate-700/50 hover:border-cyan-500 transition-all hover-lift group">
                 <CardContent className="p-8">
                   <div className="flex items-start gap-4 mb-4">
-                    <div className={`w-14 h-14 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center flex-shrink-0`}>
-                      <feature.icon className="h-7 w-7 text-white" />
+                    <div className={`w-16 h-16 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-xl transition-all`}>
+                      <feature.icon className="h-8 w-8 text-white" />
                     </div>
                     <div>
                       <h3 className="text-xl font-bold mb-1 text-white">{feature.title}</h3>
@@ -611,8 +651,12 @@ export default function Home() {
       </section>
 
       {/* CTA Section - Get Started */}
-      <section className="py-20 bg-gradient-to-br from-blue-50 to-cyan-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="py-20 bg-gradient-to-br from-blue-50 via-indigo-50/30 to-cyan-50 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-blue-300/30 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-300/30 rounded-full blur-3xl"></div>
+        </div>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <h2 className="text-3xl sm:text-4xl font-bold mb-6">
             Ready to <span className="gradient-text">get started?</span>
           </h2>
@@ -622,27 +666,27 @@ export default function Home() {
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            <div className="flex items-start gap-3 bg-white p-6 rounded-xl">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Calendar className="h-5 w-5 text-blue-600" />
+            <div className="flex items-start gap-3 bg-white/90 backdrop-blur-sm p-6 rounded-xl border border-blue-100 hover-lift shadow-lg">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
+                <Calendar className="h-6 w-6 text-white" />
               </div>
               <div className="text-left">
                 <p className="font-semibold text-gray-900">Personalized demo tailored to your needs</p>
               </div>
             </div>
             
-            <div className="flex items-start gap-3 bg-white p-6 rounded-xl">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Clock className="h-5 w-5 text-blue-600" />
+            <div className="flex items-start gap-3 bg-white/90 backdrop-blur-sm p-6 rounded-xl border border-blue-100 hover-lift shadow-lg">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
+                <Clock className="h-6 w-6 text-white" />
               </div>
               <div className="text-left">
                 <p className="font-semibold text-gray-900">30-minute session with a product specialist</p>
               </div>
             </div>
             
-            <div className="flex items-start gap-3 bg-white p-6 rounded-xl">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Shield className="h-5 w-5 text-blue-600" />
+            <div className="flex items-start gap-3 bg-white/90 backdrop-blur-sm p-6 rounded-xl border border-blue-100 hover-lift shadow-lg">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
+                <Shield className="h-6 w-6 text-white" />
               </div>
               <div className="text-left">
                 <p className="font-semibold text-gray-900">No commitment required</p>
