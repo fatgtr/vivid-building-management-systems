@@ -12,6 +12,7 @@ import { createPageUrl } from '@/utils';
 
 export default function ResidentSelfService() {
   const [user, setUser] = useState(null);
+  const [activeTab, setActiveTab] = useState('overview');
 
   React.useEffect(() => {
     base44.auth.me().then(setUser);
@@ -48,9 +49,10 @@ export default function ResidentSelfService() {
         <p className="text-slate-600">Access your account, payments, and services</p>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="report-issue">Report Issue</TabsTrigger>
           <TabsTrigger value="payments">Payments</TabsTrigger>
           <TabsTrigger value="parcels">Parcels</TabsTrigger>
           <TabsTrigger value="requests">My Requests</TabsTrigger>
