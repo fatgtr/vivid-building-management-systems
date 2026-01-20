@@ -204,8 +204,8 @@ export default function Home() {
   const stats = [
     { icon: Building2, value: "16", label: "Core Modules" },
     { icon: Clock, value: "90%", label: "Time Saved on Admin" },
-    { icon: FileText, value: "15+", label: "Document Categories" },
-    { icon: ThumbsUp, value: "24/7", label: "Support Available" }
+    { icon: FileText, value: "AI", label: "Powered Platform" },
+    { icon: Sparkles, value: "24/7", label: "Cloud-Based Access" }
   ];
 
   return (
@@ -298,7 +298,7 @@ export default function Home() {
             </h1>
             
             <p className="text-xl text-gray-600 mb-10 leading-relaxed max-w-3xl mx-auto">
-              Vivid BMS streamlines maintenance operations, compliance tracking, document management, and resident communications. Designed for strata managers, building managers, owners corporations, residents, and contractors.
+              Comprehensive platform for Australian strata and BMC professionals. AI-powered document intelligence, automated compliance tracking, and intelligent maintenance workflows that save 90% of administrative time.
             </p>
 
             <div className="flex flex-wrap gap-4 justify-center mb-12">
@@ -319,14 +319,22 @@ export default function Home() {
               </Button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <CheckCircle2 className="h-5 w-5 text-blue-600" />
-                <span>Multi-property management</span>
+                <span>React + TypeScript</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <CheckCircle2 className="h-5 w-5 text-blue-600" />
-                <span>Resident engagement</span>
+                <span>AI-Powered OCR</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <CheckCircle2 className="h-5 w-5 text-blue-600" />
+                <span>Cloud Infrastructure</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <CheckCircle2 className="h-5 w-5 text-blue-600" />
+                <span>Australian Hosted</span>
               </div>
             </div>
           </div>
@@ -346,7 +354,7 @@ export default function Home() {
           </h2>
           
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Vivid BMS harnesses the power of AI to automate complex tasks, extract insights from documents, and help you make smarter decisions faster.
+            Leveraging OpenAI GPT-4 and Claude AI models, our platform transforms complex building management tasks into automated workflows. Advanced OCR, natural language processing, and machine learning capabilities built into every feature.
           </p>
         </div>
       </section>
@@ -354,7 +362,12 @@ export default function Home() {
       {/* Stats Section */}
       <section className="bg-gradient-to-b from-slate-900 to-slate-800 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="mb-12 text-center">
+            <h3 className="text-2xl font-bold mb-2">Built on Modern Technology</h3>
+            <p className="text-gray-400">Enterprise-grade platform powered by cutting-edge AI and cloud infrastructure</p>
+          </div>
+          
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
             {stats.map((stat, idx) => (
               <div key={idx} className="text-center">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-700 rounded-2xl mb-4">
@@ -364,6 +377,46 @@ export default function Home() {
                 <div className="text-gray-300">{stat.label}</div>
               </div>
             ))}
+          </div>
+
+          <div className="max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="bg-slate-800 border-slate-700">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center">
+                      <Brain className="h-5 w-5 text-white" />
+                    </div>
+                    <h4 className="font-bold text-white">Advanced AI Models</h4>
+                  </div>
+                  <p className="text-sm text-gray-400">Powered by OpenAI GPT-4 and Claude for intelligent document processing, bylaw analysis, and automated workflows</p>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-slate-800 border-slate-700">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                      <Shield className="h-5 w-5 text-white" />
+                    </div>
+                    <h4 className="font-bold text-white">Enterprise Security</h4>
+                  </div>
+                  <p className="text-sm text-gray-400">Built on Base44 platform with React, TypeScript, and Tailwind CSS. Bank-level encryption and Australian data residency</p>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-slate-800 border-slate-700">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
+                      <Zap className="h-5 w-5 text-white" />
+                    </div>
+                    <h4 className="font-bold text-white">Cloud Infrastructure</h4>
+                  </div>
+                  <p className="text-sm text-gray-400">Serverless architecture with Deno Deploy for backend functions. 99.9% uptime SLA with auto-scaling capabilities</p>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </section>
