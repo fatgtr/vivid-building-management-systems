@@ -392,7 +392,7 @@ export default function Home() {
           </h2>
           
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Leveraging OpenAI GPT-4 and Claude AI models, our platform transforms complex building management tasks into automated workflows. Advanced OCR, natural language processing, and machine learning capabilities built into every feature.
+            Leveraging cutting-edge AI models, our platform transforms complex building management tasks into automated workflows. Advanced OCR, natural language processing, and machine learning capabilities built into every feature.
           </p>
         </div>
       </section>
@@ -427,7 +427,7 @@ export default function Home() {
                     </div>
                     <h4 className="font-bold text-white text-lg">Advanced AI Models</h4>
                   </div>
-                  <p className="text-sm text-gray-300 leading-relaxed">Powered by OpenAI GPT-4 and Claude for intelligent document processing, bylaw analysis, and automated workflows</p>
+                  <p className="text-sm text-gray-300 leading-relaxed">Powered by advanced AI models for intelligent document processing, bylaw analysis, and automated workflows</p>
                 </CardContent>
               </Card>
 
