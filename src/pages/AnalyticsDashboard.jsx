@@ -5,9 +5,10 @@ import { useBuildingContext } from '@/components/BuildingContext';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { TrendingUp, DollarSign, Wrench, AlertTriangle, Calendar, Activity } from 'lucide-react';
+import { TrendingUp, DollarSign, Wrench, AlertTriangle, Calendar, Activity, Zap } from 'lucide-react';
 import PageHeader from '@/components/common/PageHeader';
-import { differenceInDays, format, startOfMonth, endOfMonth, eachMonthOfInterval, subMonths } from 'date-fns';
+import { differenceInDays, format, startOfMonth, endOfMonth, eachMonthOfInterval, subMonths, isPast } from 'date-fns';
+import EnergyAnalyticsDashboard from '@/components/energy/EnergyAnalyticsDashboard';
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
 
@@ -158,6 +159,7 @@ export default function AnalyticsDashboard() {
           <TabsTrigger value="workorders">Work Orders</TabsTrigger>
           <TabsTrigger value="assets">Assets</TabsTrigger>
           <TabsTrigger value="compliance">Compliance</TabsTrigger>
+          <TabsTrigger value="energy">Energy Analytics</TabsTrigger>
         </TabsList>
 
         <TabsContent value="workorders" className="space-y-6">
@@ -246,6 +248,20 @@ export default function AnalyticsDashboard() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="energy">
+          {selectedBuildingId ? (
+            <EnergyAnalyticsDashboard buildingId={selectedBuildingId} />
+          ) : (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <Zap className="h-16 w-16 text-slate-300 mx-auto mb-4" />
+                <p className="text-slate-600 font-medium mb-2">Select a Building</p>
+                <p className="text-sm text-slate-500">Please select a building to view energy analytics</p>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>
