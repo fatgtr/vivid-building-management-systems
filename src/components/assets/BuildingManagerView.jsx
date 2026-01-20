@@ -8,6 +8,9 @@ import { ASSET_CATEGORIES } from '@/components/categories/assetCategories';
 import AssetPhotos from './AssetPhotos';
 import ServiceHistoryLog from './ServiceHistoryLog';
 import ComplianceReportDialog from './ComplianceReportDialog';
+import AssetWarrantyTracker from './AssetWarrantyTracker';
+import AssetDocumentManager from './AssetDocumentManager';
+import AssetRelationships from './AssetRelationships';
 import { 
   Package, 
   MapPin, 
@@ -109,17 +112,17 @@ export default function BuildingManagerView({ assets, getBuildingName, getLocati
                   </div>
                 )}
 
-                {/* Risk Rating */}
-                {asset.risk_rating && (
+                {/* Criticality Score */}
+                {asset.criticality && (
                   <div className="flex items-center gap-2">
                     <Shield className="h-4 w-4 text-slate-400" />
                     <Badge className={
-                      asset.risk_rating === 'critical' ? 'bg-red-100 text-red-800' :
-                      asset.risk_rating === 'high' ? 'bg-orange-100 text-orange-800' :
-                      asset.risk_rating === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                      asset.criticality === 'critical' ? 'bg-red-100 text-red-800' :
+                      asset.criticality === 'high' ? 'bg-orange-100 text-orange-800' :
+                      asset.criticality === 'medium' ? 'bg-yellow-100 text-yellow-800' :
                       'bg-green-100 text-green-800'
                     }>
-                      {asset.risk_rating} risk
+                      {asset.criticality} priority
                     </Badge>
                   </div>
                 )}
@@ -197,10 +200,13 @@ export default function BuildingManagerView({ assets, getBuildingName, getLocati
 
         {selectedAsset && (
           <Tabs defaultValue="details" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="details">Details</TabsTrigger>
+              <TabsTrigger value="warranty">Warranty</TabsTrigger>
+              <TabsTrigger value="documents">Documents</TabsTrigger>
+              <TabsTrigger value="relationships">Links</TabsTrigger>
               <TabsTrigger value="photos">Photos</TabsTrigger>
-              <TabsTrigger value="history">Service History</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
             </TabsList>
 
             <TabsContent value="details" className="space-y-4">
@@ -264,6 +270,21 @@ export default function BuildingManagerView({ assets, getBuildingName, getLocati
 
             <TabsContent value="photos">
               <AssetPhotos asset={selectedAsset} />
+            </TabsContent>
+
+            <TabsContent value="warranty">
+              <AssetWarrantyTracker asset={selectedAsset} />
+            </TabsContent>
+
+            <TabsContent value="documents">
+              <AssetDocumentManager 
+                assetId={selectedAsset.id} 
+                buildingId={selectedAsset.building_id}
+              />
+            </TabsContent>
+
+            <TabsContent value="relationships">
+              <AssetRelationships assetId={selectedAsset.id} />
             </TabsContent>
 
             <TabsContent value="history">
