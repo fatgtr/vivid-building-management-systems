@@ -17,6 +17,7 @@ import BuildingManagerView from '@/components/assets/BuildingManagerView';
 import StrataManagerView from '@/components/assets/StrataManagerView';
 import ContractorView from '@/components/assets/ContractorView';
 import CommitteeView from '@/components/assets/CommitteeView';
+import QRScanner from '@/components/qr/QRScanner';
 import { 
   Search, 
   Package, 
@@ -190,21 +191,32 @@ export default function AssetRegister() {
         title="Asset Register" 
         subtitle={`${filteredAssets.length} assets tracked across ${selectedBuildingId ? 'this building' : 'all buildings'}`}
       >
-        {/* Role View Selector - Only show if user has multiple roles */}
-        {(isBuildingManager && isStrataManager) || isAdmin() ? (
-          <Select value={viewMode} onValueChange={setViewMode}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="View Mode" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="auto">Auto (Role-Based)</SelectItem>
-              <SelectItem value="building_manager">Building Manager</SelectItem>
-              <SelectItem value="strata_manager">Strata Manager</SelectItem>
-              <SelectItem value="contractor">Contractor</SelectItem>
-              <SelectItem value="committee">Committee</SelectItem>
-            </SelectContent>
-          </Select>
-        ) : null}
+        <div className="flex gap-2">
+          <QRScanner
+            onScan={(code) => {
+              const asset = assets.find(a => a.id === code || a.barcode === code || a.identifier === code);
+              if (asset) {
+                setSearchQuery(asset.name);
+              }
+            }}
+            buttonText="Scan Asset"
+          />
+          {/* Role View Selector - Only show if user has multiple roles */}
+          {(isBuildingManager && isStrataManager) || isAdmin() ? (
+            <Select value={viewMode} onValueChange={setViewMode}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="View Mode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="auto">Auto (Role-Based)</SelectItem>
+                <SelectItem value="building_manager">Building Manager</SelectItem>
+                <SelectItem value="strata_manager">Strata Manager</SelectItem>
+                <SelectItem value="contractor">Contractor</SelectItem>
+                <SelectItem value="committee">Committee</SelectItem>
+              </SelectContent>
+            </Select>
+          ) : null}
+        </div>
       </PageHeader>
 
       {/* Category Navigation */}
