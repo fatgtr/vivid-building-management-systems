@@ -518,11 +518,11 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Built for <span className="gradient-text">everyone in your building</span>
+              User-centric platform <span className="gradient-text">for everyone</span>
             </h2>
             
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              From property managers to committees to residents, Vivid BMS creates a connected experience for everyone in your building community.
+              Designed for Strata Committee members, Residents, Strata Managers, and Property Managers. Vivid BMS creates a connected experience for everyone in your building community.
             </p>
           </div>
 
