@@ -314,26 +314,35 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-50 via-indigo-50/30 to-white overflow-hidden py-20 lg:py-32">
-        {/* Animated background elements */}
+      <section className="relative overflow-hidden py-20 lg:py-32">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <img 
+            src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1920&q=80" 
+            alt="Modern Building"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-900/95 via-slate-900/90 to-slate-800/95"></div>
+        </div>
+        
+        {/* Animated overlay elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl float-animation"></div>
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-200/20 rounded-full blur-3xl float-animation" style={{ animationDelay: '-3s' }}></div>
-          <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-purple-200/10 rounded-full blur-3xl float-animation" style={{ animationDelay: '-6s' }}></div>
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl float-animation"></div>
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl float-animation" style={{ animationDelay: '-3s' }}></div>
         </div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-5xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-full mb-8 border border-blue-200/50 shadow-lg shadow-blue-100/50">
-              <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
-              <span className="text-blue-700 font-semibold text-sm tracking-wide">For Building Managers Managing Strata Buildings | Assisting Strata Managers</span>
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur-md rounded-full mb-8 border border-white/20 shadow-lg">
+              <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+              <span className="text-cyan-100 font-semibold text-sm tracking-wide">For Building Managers Managing Strata Buildings | Assisting Strata Managers</span>
             </div>
             
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-8 leading-[1.1] tracking-tight">
-              Elevate building operations <span className="gradient-text block mt-3">with intelligent automation</span>
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-8 leading-[1.1] tracking-tight text-white">
+              Elevate building operations <span className="block mt-3 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">with intelligent automation</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-gray-600 mb-12 leading-relaxed max-w-4xl mx-auto font-light">
+            <p className="text-xl md:text-2xl text-gray-200 mb-12 leading-relaxed max-w-4xl mx-auto font-light">
               Empower your team with AI-powered workflows that streamline operations and create exceptional experiences for Building Managers, Strata Managers, Committee Members, and Residents.
             </p>
 
@@ -355,7 +364,7 @@ export default function Home() {
               </Button>
             </div>
             
-            <p className="text-sm text-gray-500 mb-8">No credit card required.</p>
+            <p className="text-sm text-gray-300 mb-8">No credit card required.</p>
 
 
           </div>
