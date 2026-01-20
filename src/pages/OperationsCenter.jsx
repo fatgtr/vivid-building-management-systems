@@ -25,6 +25,8 @@ import MaintenanceSchedule from './MaintenanceSchedule';
 import Inspections from './Inspections';
 import Contractors from './Contractors';
 import Reports from './Reports';
+import PredictiveMaintenanceDashboard from '@/components/maintenance/PredictiveMaintenanceDashboard';
+import MaintenanceScheduleGenerator from '@/components/maintenance/MaintenanceScheduleGenerator';
 
 export default function OperationsCenter() {
   const { selectedBuildingId } = useBuildingContext();
@@ -78,10 +80,18 @@ export default function OperationsCenter() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-9">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
             Overview
+          </TabsTrigger>
+          <TabsTrigger value="predictive" className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            AI Predictions
+          </TabsTrigger>
+          <TabsTrigger value="schedule-ai" className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            AI Schedule
           </TabsTrigger>
           <TabsTrigger value="work-orders" className="flex items-center gap-2">
             <Wrench className="h-4 w-4" />
@@ -289,6 +299,14 @@ export default function OperationsCenter() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="predictive" className="mt-6">
+          <PredictiveMaintenanceDashboard buildingId={selectedBuildingId} />
+        </TabsContent>
+
+        <TabsContent value="schedule-ai" className="mt-6">
+          <MaintenanceScheduleGenerator buildingId={selectedBuildingId} />
         </TabsContent>
 
         <TabsContent value="work-orders" className="mt-6">
