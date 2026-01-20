@@ -330,11 +330,11 @@ export default function Home() {
             </div>
             
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-8 leading-[1.1] tracking-tight">
-              Eliminate building management <span className="gradient-text block mt-3">chaos and downtime</span>
+              Elevate building operations <span className="gradient-text block mt-3">with intelligent automation</span>
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-600 mb-12 leading-relaxed max-w-4xl mx-auto font-light">
-              Transform your building management operations with AI-powered automation and intelligent workflows—built for Building Managers, Strata Managers, Committee Members, and Residents.
+              Empower your team with AI-powered workflows that streamline operations and create exceptional experiences for Building Managers, Strata Managers, Committee Members, and Residents.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
