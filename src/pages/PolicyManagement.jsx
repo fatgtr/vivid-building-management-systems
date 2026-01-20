@@ -5,6 +5,7 @@ import { useBuildingContext } from '@/components/BuildingContext';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -13,24 +14,48 @@ import {
   CheckCircle, 
   AlertCircle,
   ChevronRight,
-  Eye
+  Eye,
+  Edit,
+  History,
+  GitCompare,
+  RotateCcw
 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
+import PolicyVersionHistory from '@/components/policies/PolicyVersionHistory';
+import PolicyVersionComparison from '@/components/policies/PolicyVersionComparison';
 
 export default function PolicyManagement() {
   const { selectedBuildingId } = useBuildingContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPolicy, setSelectedPolicy] = useState(null);
+  const [editingPolicy, setEditingPolicy] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [compareVersions, setCompareVersions] = useState(null);
+  const [revertTarget, setRevertTarget] = useState(null);
   const queryClient = useQueryClient();
 
-  const { data: policies = [], isLoading } = useQuery({
+  const { data: allPolicies = [], isLoading } = useQuery({
     queryKey: ['policies', selectedBuildingId],
     queryFn: () => selectedBuildingId
       ? base44.entities.Policy.filter({ building_id: selectedBuildingId })
       : base44.entities.Policy.list()
   });
+
+  // Filter to show only current versions
+  const policies = allPolicies.filter(p => p.is_current_version !== false);
 
   const approveMutation = useMutation({
     mutationFn: async (policyId) => {
@@ -43,6 +68,94 @@ export default function PolicyManagement() {
       queryClient.invalidateQueries(['policies']);
       toast.success('Policy approved and activated');
       setSelectedPolicy(null);
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ policyId, updates, versionNotes }) => {
+      const currentPolicy = allPolicies.find(p => p.id === policyId);
+      
+      // Mark current version as superseded
+      await base44.entities.Policy.update(policyId, {
+        is_current_version: false,
+        superseded_date: new Date().toISOString()
+      });
+
+      // Create new version
+      const newVersion = await base44.entities.Policy.create({
+        ...currentPolicy,
+        ...updates,
+        parent_policy_id: currentPolicy.parent_policy_id || policyId,
+        version: (currentPolicy.version || 1) + 1,
+        version_notes: versionNotes,
+        is_current_version: true,
+        superseded_by: null,
+        superseded_date: null,
+        created_date: undefined,
+        updated_date: undefined,
+        id: undefined
+      });
+
+      // Update old version with superseded_by
+      await base44.entities.Policy.update(policyId, {
+        superseded_by: newVersion.id
+      });
+
+      return newVersion;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['policies']);
+      toast.success('Policy updated with new version');
+      setEditingPolicy(null);
+      setEditForm({});
+    }
+  });
+
+  const revertMutation = useMutation({
+    mutationFn: async (targetVersion) => {
+      const parentId = targetVersion.parent_policy_id || targetVersion.id;
+      const currentVersions = allPolicies.filter(p => 
+        (p.id === parentId || p.parent_policy_id === parentId) && p.is_current_version
+      );
+
+      // Mark current version as superseded
+      for (const current of currentVersions) {
+        await base44.entities.Policy.update(current.id, {
+          is_current_version: false,
+          superseded_date: new Date().toISOString()
+        });
+      }
+
+      // Create new version based on target
+      const newVersion = await base44.entities.Policy.create({
+        ...targetVersion,
+        parent_policy_id: parentId,
+        version: Math.max(...allPolicies.filter(p => 
+          p.id === parentId || p.parent_policy_id === parentId
+        ).map(p => p.version || 1)) + 1,
+        version_notes: `Reverted to version ${targetVersion.version}`,
+        is_current_version: true,
+        superseded_by: null,
+        superseded_date: null,
+        created_date: undefined,
+        updated_date: undefined,
+        id: undefined
+      });
+
+      // Update previous current with superseded_by
+      for (const current of currentVersions) {
+        await base44.entities.Policy.update(current.id, {
+          superseded_by: newVersion.id
+        });
+      }
+
+      return newVersion;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['policies']);
+      toast.success('Policy reverted to previous version');
+      setRevertTarget(null);
+      setShowVersionHistory(false);
     }
   });
 
@@ -70,11 +183,38 @@ export default function PolicyManagement() {
   const draftPolicies = filteredPolicies.filter(p => p.status === 'draft');
   const activePolicies = filteredPolicies.filter(p => p.status === 'active');
 
+  const handleEdit = (policy) => {
+    setEditingPolicy(policy);
+    setEditForm({
+      title: policy.title,
+      content: policy.content,
+      key_points: policy.key_points?.join('\n') || '',
+      version_notes: ''
+    });
+  };
+
+  const handleSaveEdit = () => {
+    if (!editForm.version_notes?.trim()) {
+      toast.error('Please provide version notes describing the changes');
+      return;
+    }
+
+    updateMutation.mutate({
+      policyId: editingPolicy.id,
+      updates: {
+        title: editForm.title,
+        content: editForm.content,
+        key_points: editForm.key_points.split('\n').filter(p => p.trim())
+      },
+      versionNotes: editForm.version_notes
+    });
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader 
         title="Policy Management" 
-        subtitle={`${policies.length} policies across all categories`}
+        subtitle={`${policies.length} active policies across all categories`}
       />
 
       <Card>
@@ -123,6 +263,9 @@ export default function PolicyManagement() {
                           <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-300">
                             AI Generated
                           </Badge>
+                        )}
+                        {policy.version > 1 && (
+                          <Badge variant="secondary">v{policy.version}</Badge>
                         )}
                       </div>
                       <h4 className="font-semibold text-slate-900">{policy.title}</h4>
@@ -179,17 +322,41 @@ export default function PolicyManagement() {
                         <Badge variant="outline" className="text-green-600 border-green-300">
                           Active
                         </Badge>
+                        {policy.version > 1 && (
+                          <Badge variant="secondary">v{policy.version}</Badge>
+                        )}
                       </div>
                       <h4 className="font-semibold text-slate-900">{policy.title}</h4>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedPolicy(policy)}
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      View
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedPolicy(policy);
+                          setShowVersionHistory(true);
+                        }}
+                      >
+                        <History className="h-4 w-4 mr-2" />
+                        History
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(policy)}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedPolicy(policy)}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        View
+                      </Button>
+                    </div>
                   </div>
 
                   {policy.key_points?.length > 0 && (
@@ -209,12 +376,15 @@ export default function PolicyManagement() {
         </TabsContent>
       </Tabs>
 
-      {/* Policy Review Dialog */}
-      <Dialog open={!!selectedPolicy} onOpenChange={() => setSelectedPolicy(null)}>
+      {/* Policy Review/View Dialog */}
+      <Dialog open={!!selectedPolicy && !showVersionHistory} onOpenChange={() => setSelectedPolicy(null)}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {selectedPolicy?.title}
+              {selectedPolicy?.version > 1 && (
+                <Badge variant="secondary">Version {selectedPolicy.version}</Badge>
+              )}
             </DialogTitle>
           </DialogHeader>
 
@@ -272,6 +442,126 @@ export default function PolicyManagement() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Version History Dialog */}
+      <Dialog open={showVersionHistory} onOpenChange={() => {
+        setShowVersionHistory(false);
+        setCompareVersions(null);
+      }}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="h-5 w-5" />
+              Version History - {selectedPolicy?.title}
+            </DialogTitle>
+          </DialogHeader>
+
+          {compareVersions ? (
+            <div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCompareVersions(null)}
+                className="mb-4"
+              >
+                ← Back to History
+              </Button>
+              <PolicyVersionComparison 
+                version1={compareVersions.v1} 
+                version2={compareVersions.v2} 
+              />
+            </div>
+          ) : (
+            selectedPolicy && (
+              <PolicyVersionHistory
+                policy={selectedPolicy}
+                onCompare={(v1, v2) => setCompareVersions({ v1, v2 })}
+                onRevert={(version) => setRevertTarget(version)}
+              />
+            )
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Policy Dialog */}
+      <Dialog open={!!editingPolicy} onOpenChange={() => setEditingPolicy(null)}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Policy - {editingPolicy?.title}</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Title</label>
+              <Input
+                value={editForm.title || ''}
+                onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-2 block">Content</label>
+              <Textarea
+                value={editForm.content || ''}
+                onChange={(e) => setEditForm({ ...editForm, content: e.target.value })}
+                rows={10}
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-2 block">Key Points (one per line)</label>
+              <Textarea
+                value={editForm.key_points || ''}
+                onChange={(e) => setEditForm({ ...editForm, key_points: e.target.value })}
+                rows={5}
+                placeholder="Enter key points, one per line"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-2 block">Version Notes *</label>
+              <Textarea
+                value={editForm.version_notes || ''}
+                onChange={(e) => setEditForm({ ...editForm, version_notes: e.target.value })}
+                rows={3}
+                placeholder="Describe what changed in this version..."
+              />
+              <p className="text-xs text-slate-500 mt-1">Required: Explain what changes you made</p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingPolicy(null)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit} disabled={updateMutation.isPending}>
+              Save as New Version
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Revert Confirmation Dialog */}
+      <AlertDialog open={!!revertTarget} onOpenChange={() => setRevertTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Revert to Previous Version?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will create a new version based on version {revertTarget?.version}. The current active version will be preserved in history.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => revertMutation.mutate(revertTarget)}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Revert to This Version
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
