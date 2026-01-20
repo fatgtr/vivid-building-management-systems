@@ -35,6 +35,7 @@ import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
 import PolicyVersionHistory from '@/components/policies/PolicyVersionHistory';
 import PolicyVersionComparison from '@/components/policies/PolicyVersionComparison';
+import PolicyTemplateCreator from '@/components/policies/PolicyTemplateCreator';
 
 export default function PolicyManagement() {
   const { selectedBuildingId } = useBuildingContext();
@@ -216,6 +217,17 @@ export default function PolicyManagement() {
         title="Policy Management" 
         subtitle={`${policies.length} active policies across all categories`}
       />
+
+      {selectedBuildingId && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="p-4">
+            <PolicyTemplateCreator 
+              buildingId={selectedBuildingId}
+              onPolicyCreated={() => queryClient.invalidateQueries(['policies'])}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardContent className="p-4">
