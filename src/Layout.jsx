@@ -36,7 +36,8 @@ import {
   Key,
   Heart,
   Briefcase,
-  Truck
+  Truck,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
@@ -57,14 +58,18 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { name: 'Dashboard', icon: LayoutDashboard, page: 'Dashboard', adminOnly: false },
+  { name: 'Resident Portal', icon: Home, page: 'ResidentSelfService', requirePermission: { resource: 'residents', action: 'view' } },
   { name: 'Buildings', icon: Building2, page: 'Buildings', requirePermission: { resource: 'buildings', action: 'view' } },
   { name: 'Residents', icon: Users, page: 'ResidentsCenter', requirePermission: { resource: 'residents', action: 'view' } },
   { name: 'Operations', icon: Wrench, page: 'OperationsCenter', requirePermission: { resource: 'work_orders', action: 'view' } },
+  { name: 'Bulletin Board', icon: Bell, page: 'BulletinBoard', requirePermission: { resource: 'announcements', action: 'view' } },
   { name: 'Bulletin Board', icon: Bell, page: 'BulletinBoard', requirePermission: { resource: 'announcements', action: 'view' } },
   { name: 'Voting', icon: Vote, page: 'VotingCenter', requirePermission: { resource: 'residents', action: 'view' } },
   { name: 'Marketplace', icon: ShoppingBag, page: 'Marketplace', requirePermission: { resource: 'residents', action: 'view' } },
   { name: 'Financial', icon: DollarSign, page: 'FinancialManagement', requirePermission: { resource: 'buildings', action: 'view' } },
   { name: 'Analytics', icon: TrendingUp, page: 'AnalyticsDashboard', requirePermission: { resource: 'buildings', action: 'view' } },
+  { name: 'Emergency', icon: AlertCircle, page: 'EmergencyContacts', requirePermission: { resource: 'buildings', action: 'view' } },
+  { name: 'Resident Portal', icon: Home, page: 'ResidentSelfService', requirePermission: { resource: 'residents', action: 'view' } },
   { name: 'Staff Roster', icon: Calendar, page: 'StaffScheduling', requirePermission: { resource: 'buildings', action: 'view' } },
   { name: 'Keys & Access', icon: Key, page: 'KeyManagement', requirePermission: { resource: 'buildings', action: 'view' } },
   { name: 'Pets', icon: Heart, page: 'PetRegistry', requirePermission: { resource: 'residents', action: 'view' } },
