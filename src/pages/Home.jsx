@@ -68,9 +68,9 @@ export default function Home() {
       subtitle: "Industry-First Innovation",
       description: "Automatic determination of maintenance responsibility based on building-specific bylaws with lot-specific analysis.",
       highlights: [
-        "Analyzes building-specific bylaws",
+        "Analyses building-specific by-laws",
         "Lot-specific analysis for each unit",
-        "References relevant bylaw clauses",
+        "References relevant by-law clauses",
         "Confidence scoring for accuracy"
       ],
       color: "from-blue-500 to-indigo-600"
@@ -644,7 +644,7 @@ export default function Home() {
           </h2>
           
           <p className="text-xl text-gray-600 mb-8">
-            See Vivid BMS in action. Request a personalized demo and discover how we can transform your building management operations.
+            See Vivid BMS in action. Request a personalised demo and discover how we can transform your building management operations.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
@@ -653,7 +653,7 @@ export default function Home() {
                 <Calendar className="h-6 w-6 text-white" />
               </div>
               <div className="text-left">
-                <p className="font-semibold text-gray-900">Personalized demo tailored to your needs</p>
+                <p className="font-semibold text-gray-900">Personalised demo tailored to your needs</p>
               </div>
             </div>
             
@@ -727,7 +727,7 @@ export default function Home() {
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
                     <CheckCircle2 className="h-6 w-6 text-cyan-400 flex-shrink-0" />
-                    <span className="text-gray-300">Full platform customization with your branding</span>
+                    <span className="text-gray-300">Full platform customisation with your branding</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <CheckCircle2 className="h-6 w-6 text-cyan-400 flex-shrink-0" />
