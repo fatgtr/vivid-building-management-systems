@@ -329,56 +329,41 @@ export default function Home() {
               <span className="text-blue-700 font-semibold text-sm tracking-wide">For Building Managers Managing Strata Buildings | Assisting Strata Managers</span>
             </div>
             
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-8 leading-tight tracking-tight">
-              AI-powered building management <span className="gradient-text block mt-2">for the modern era</span>
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-8 leading-[1.1] tracking-tight">
+              Eliminate building management <span className="gradient-text block mt-3">chaos and downtime</span>
             </h1>
             
-            <p className="text-xl text-gray-600 mb-10 leading-relaxed max-w-3xl mx-auto">
-              Powerful platform for Building Managers managing strata buildings that assists Strata Managers. From simple strata plans to complex BMC structures - AI-powered document intelligence, automated compliance tracking, and intelligent maintenance workflows that save 90% of administrative time.
+            <p className="text-xl md:text-2xl text-gray-600 mb-12 leading-relaxed max-w-4xl mx-auto font-light">
+              Transform your building management operations with AI-powered automation and intelligent workflows—built for Building Managers, Strata Managers, Committee Members, and Residents.
             </p>
 
-            <div className="flex flex-wrap gap-4 justify-center mb-12">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
               <Button 
                 size="lg" 
                 onClick={() => setShowDemoModal(true)}
-                className="bg-gradient-to-r from-blue-600 via-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 text-lg px-12 py-7 shadow-2xl shadow-blue-600/30 hover:shadow-blue-600/50 transition-all hover:scale-105"
+                className="bg-blue-600 hover:bg-blue-700 text-white text-base font-semibold px-10 py-7 rounded-lg shadow-lg hover:shadow-xl transition-all w-full sm:w-auto"
               >
-                Book a Demo <ArrowRight className="ml-2 h-5 w-5" />
+                Book a Demo
               </Button>
               <Button 
                 size="lg" 
                 variant="outline"
                 onClick={() => scrollToSection('features')}
-                className="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 text-lg px-12 py-7 hover:scale-105 transition-all"
+                className="border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 text-base font-semibold px-10 py-7 rounded-lg transition-all w-full sm:w-auto"
               >
-                Explore Platform
+                Explore Features
               </Button>
             </div>
+            
+            <p className="text-sm text-gray-500 mb-8">No credit card required.</p>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <CheckCircle2 className="h-5 w-5 text-blue-600" />
-                <span>React + TypeScript</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <CheckCircle2 className="h-5 w-5 text-blue-600" />
-                <span>AI-Powered OCR</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <CheckCircle2 className="h-5 w-5 text-blue-600" />
-                <span>Cloud Infrastructure</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <CheckCircle2 className="h-5 w-5 text-blue-600" />
-                <span>Australian Hosted</span>
-              </div>
-            </div>
+
           </div>
         </div>
       </section>
 
       {/* AI Platform Badge */}
-      <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white py-16 relative overflow-hidden">
+      <section className="bg-slate-900 text-white py-20 relative overflow-hidden border-y border-slate-800">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djItaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTItMnYyaDJ2LTJoLTJ6bTItMnYyaDJ2LTJoLTJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-50"></div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
@@ -398,7 +383,7 @@ export default function Home() {
       </section>
 
       {/* Stats Section */}
-      <section className="bg-gradient-to-b from-slate-900 to-slate-800 text-white py-16">
+      <section className="bg-slate-900 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12 text-center">
             <h3 className="text-2xl font-bold mb-2">Built on Modern Technology</h3>
@@ -460,48 +445,36 @@ export default function Home() {
       </section>
 
       {/* Core Modules */}
-      <section id="features" className="py-20 bg-gray-50">
+      <section id="features" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-3 px-4 py-2 bg-white rounded-full border border-gray-200 mb-6">
-              <span className="text-gray-900 font-semibold">16</span>
-              <span className="text-gray-400">|</span>
-              <span className="text-gray-900 font-semibold">MODULES</span>
-              <span className="text-gray-400">|</span>
-              <span className="text-blue-600 font-semibold">AI POWERED</span>
-              <span className="text-gray-400">|</span>
-              <span className="text-cyan-600 font-semibold flex items-center gap-1">
-                <Sparkles className="h-4 w-4" /> POSSIBILITIES
-              </span>
-            </div>
-            
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Everything you need to manage buildings <span className="gradient-text">effectively</span>
+          <div className="text-center mb-20">
+            <h2 className="text-4xl sm:text-5xl font-bold mb-6 tracking-tight">
+              Everything you need in <span className="gradient-text">one platform</span>
             </h2>
             
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              From AI-powered maintenance to compliance tracking, Vivid BMS provides all the tools modern building managers need in one unified platform.
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto font-light">
+              From AI-powered maintenance to compliance tracking, Vivid BMS provides all the tools modern building managers need.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {coreModules.map((module, idx) => (
-              <Card key={idx} className="border-2 border-gray-200/50 hover:border-blue-400 hover:shadow-2xl transition-all group hover-lift bg-white/80 backdrop-blur-sm">
-                <CardContent className="p-8">
-                  <div className="flex items-start gap-4 mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/30 group-hover:shadow-blue-500/50 transition-all">
-                      <module.icon className="h-8 w-8 text-white" />
+              <Card key={idx} className="border border-gray-200 hover:border-blue-500 hover:shadow-xl transition-all group bg-white overflow-hidden">
+                <CardContent className="p-10">
+                  <div className="flex items-start gap-5 mb-6">
+                    <div className="w-14 h-14 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <module.icon className="h-7 w-7 text-white" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-xl font-bold mb-2 text-gray-900 group-hover:text-blue-600 transition-colors">{module.title}</h3>
-                      <p className="text-gray-600 leading-relaxed">{module.description}</p>
+                      <h3 className="text-2xl font-bold mb-3 text-gray-900">{module.title}</h3>
+                      <p className="text-gray-600 leading-relaxed text-base">{module.description}</p>
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-3 pt-4 border-t border-gray-100">
+                  <div className="grid grid-cols-2 gap-3 pt-6 border-t border-gray-100">
                     {module.features.map((feature, fidx) => (
-                      <div key={fidx} className="flex items-center gap-2 text-sm text-blue-600 font-medium">
-                        <div className="w-2 h-2 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-full"></div>
+                      <div key={fidx} className="flex items-center gap-2 text-sm text-gray-700">
+                        <CheckCircle2 className="h-4 w-4 text-blue-600 flex-shrink-0" />
                         <span>{feature}</span>
                       </div>
                     ))}
@@ -514,15 +487,15 @@ export default function Home() {
       </section>
 
       {/* For Whom Section */}
-      <section id="for-whom" className="py-20 bg-white">
+      <section id="for-whom" className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              User-centric platform <span className="gradient-text">for everyone</span>
+          <div className="text-center mb-20">
+            <h2 className="text-4xl sm:text-5xl font-bold mb-6 tracking-tight">
+              Built for <span className="gradient-text">everyone</span>
             </h2>
             
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Designed for Strata Committee members, Residents, Strata Managers, and Property Managers. Vivid BMS creates a connected experience for everyone in your building community.
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto font-light">
+              From Strata Committee members to Residents, Strata Managers to Property Managers—everyone gets the tools they need.
             </p>
           </div>
 
