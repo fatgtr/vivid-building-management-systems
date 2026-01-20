@@ -14,7 +14,7 @@ import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
 import DocumentUploadDialog from '@/components/documents/DocumentUploadDialog';
 import DocumentVersionDialog from '@/components/documents/DocumentVersionDialog';
-import { FileText, Search, Building2, MoreVertical, Trash2, Download, Upload, Eye, File, FileImage, FileArchive, Folder, ChevronDown, ChevronRight, Scan, History, FileUp, Loader2, CheckCircle2, AlertCircle, Wrench, Tag, Sparkles, FileSearch, ChevronUp } from 'lucide-react';
+import { FileText, Search, Building2, MoreVertical, Trash2, Download, Upload, Eye, File, FileImage, FileArchive, Folder, ChevronDown, ChevronRight, Scan, History, FileUp, Loader2, CheckCircle2, AlertCircle, Wrench, Tag, Sparkles, FileSearch, ChevronUp, Shield, Mail, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   DropdownMenu,
@@ -57,7 +57,14 @@ const assetDocumentCategories = Object.entries(ASSET_CATEGORIES).map(([key, cate
 }));
 
 const documentCategories = [
-  ...priorityCategories,
+  { value: 'invoice', label: 'Invoices', icon: FileText, color: 'bg-emerald-50 border-emerald-200 text-emerald-700' },
+  { value: 'lease', label: 'Leases', icon: FileText, color: 'bg-orange-50 border-orange-200 text-orange-700' },
+  { value: 'bylaws', label: 'By-Laws', icon: FileText, color: 'bg-green-50 border-green-200 text-green-700' },
+  { value: 'meeting_minutes', label: 'Meeting Minutes', icon: FileText, color: 'bg-indigo-50 border-indigo-200 text-indigo-700' },
+  ...priorityCategories.filter(c => c.value !== 'bylaws'),
+  { value: 'compliance', label: 'Compliance', icon: Shield, color: 'bg-red-50 border-red-200 text-red-700' },
+  { value: 'insurance', label: 'Insurance', icon: Shield, color: 'bg-cyan-50 border-cyan-200 text-cyan-700' },
+  { value: 'correspondence', label: 'Correspondence', icon: Mail, color: 'bg-pink-50 border-pink-200 text-pink-700' },
   ...assetDocumentCategories,
   { value: 'other', label: 'Other Documents', icon: File, color: 'bg-slate-50 border-slate-200 text-slate-700' },
 ];
@@ -69,6 +76,10 @@ export default function Documents() {
   const [filterBuilding, setFilterBuilding] = useState('all');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterVisibility, setFilterVisibility] = useState('all');
+  const [filterDateFrom, setFilterDateFrom] = useState('');
+  const [filterDateTo, setFilterDateTo] = useState('');
+  const [filterAIProcessed, setFilterAIProcessed] = useState('all');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [deleteDocument, setDeleteDocument] = useState(null);
   const [expandedCategories, setExpandedCategories] = useState({});
   const [versionDialog, setVersionDialog] = useState(null);
@@ -226,12 +237,20 @@ export default function Documents() {
     const matchesSearch = d.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          d.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          d.ocr_content?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         d.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+                         d.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                         JSON.stringify(d.metadata || {}).toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         JSON.stringify(d.extracted_invoice_data || {}).toLowerCase().includes(searchQuery.toLowerCase());
     const matchesBuilding = filterBuilding === 'all' || d.building_id === filterBuilding;
     const matchesCategory = filterCategory === 'all' || d.category === filterCategory;
     const matchesVisibility = filterVisibility === 'all' || d.visibility === filterVisibility;
+    const matchesAIProcessed = filterAIProcessed === 'all' || 
+                               (filterAIProcessed === 'yes' && d.ai_processed) ||
+                               (filterAIProcessed === 'no' && !d.ai_processed);
+    const matchesDateFrom = !filterDateFrom || new Date(d.created_date) >= new Date(filterDateFrom);
+    const matchesDateTo = !filterDateTo || new Date(d.created_date) <= new Date(filterDateTo);
     const isLatestVersion = !d.parent_document_id || d.status === 'active';
-    return matchesSearch && matchesBuilding && matchesCategory && matchesVisibility && isLatestVersion;
+    return matchesSearch && matchesBuilding && matchesCategory && matchesVisibility && 
+           matchesAIProcessed && matchesDateFrom && matchesDateTo && isLatestVersion;
   });
 
   const documentsByCategory = filteredDocuments.reduce((acc, doc) => {
@@ -268,52 +287,104 @@ export default function Documents() {
       />
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-4">
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input
-            placeholder="Search by title, description, tags, or content..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
+      <Card className="border-0 shadow-sm">
+        <div className="p-4">
+          <div className="flex flex-wrap gap-4 mb-4">
+            <div className="relative flex-1 min-w-[200px] max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input
+                placeholder="Search by title, tags, content, or metadata..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select value={filterBuilding} onValueChange={setFilterBuilding}>
+              <SelectTrigger className="w-[200px]">
+                <Building2 className="h-4 w-4 mr-2 text-slate-400" />
+                <SelectValue placeholder="All Buildings" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Buildings</SelectItem>
+                {buildings.map(b => (
+                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={filterCategory} onValueChange={setFilterCategory}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent className="max-h-[300px]">
+                <SelectItem value="all">All Categories</SelectItem>
+                {documentCategories.map(c => (
+                  <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button 
+              variant="outline" 
+              size="default"
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className="gap-2"
+            >
+              Advanced Filters
+              {showAdvancedFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+          </div>
+
+          {showAdvancedFilters && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-slate-100">
+              <div>
+                <label className="text-xs font-medium text-slate-700 mb-1 block">Date From</label>
+                <Input
+                  type="date"
+                  value={filterDateFrom}
+                  onChange={(e) => setFilterDateFrom(e.target.value)}
+                  className="text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-700 mb-1 block">Date To</label>
+                <Input
+                  type="date"
+                  value={filterDateTo}
+                  onChange={(e) => setFilterDateTo(e.target.value)}
+                  className="text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-700 mb-1 block">Visibility</label>
+                <Select value={filterVisibility} onValueChange={setFilterVisibility}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Visibility</SelectItem>
+                    <SelectItem value="public">Public</SelectItem>
+                    <SelectItem value="residents_only">Residents Only</SelectItem>
+                    <SelectItem value="owners_only">Owners Only</SelectItem>
+                    <SelectItem value="staff_only">Staff Only</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-700 mb-1 block">AI Processed</label>
+                <Select value={filterAIProcessed} onValueChange={setFilterAIProcessed}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Documents</SelectItem>
+                    <SelectItem value="yes">AI Processed Only</SelectItem>
+                    <SelectItem value="no">Not AI Processed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
         </div>
-        <Select value={filterBuilding} onValueChange={setFilterBuilding}>
-          <SelectTrigger className="w-[200px]">
-            <Building2 className="h-4 w-4 mr-2 text-slate-400" />
-            <SelectValue placeholder="All Buildings" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Buildings</SelectItem>
-            {buildings.map(b => (
-              <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={filterCategory} onValueChange={setFilterCategory}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="All Categories" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            {documentCategories.map(c => (
-              <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={filterVisibility} onValueChange={setFilterVisibility}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="All Visibility" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Visibility</SelectItem>
-            <SelectItem value="public">Public</SelectItem>
-            <SelectItem value="residents_only">Residents Only</SelectItem>
-            <SelectItem value="owners_only">Owners Only</SelectItem>
-            <SelectItem value="staff_only">Staff Only</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      </Card>
 
       {filteredDocuments.length === 0 ? (
         <EmptyState
