@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Package, DollarSign, FileText, Wrench, Bell, Calendar } from 'lucide-react';
+import { Package, DollarSign, FileText, Wrench, Bell, Calendar, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import ParcelManagement from '@/components/residents/ParcelManagement';
 import { Link } from 'react-router-dom';

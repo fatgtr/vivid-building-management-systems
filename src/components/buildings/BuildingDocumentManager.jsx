@@ -49,6 +49,7 @@ import BylawsExtractor from './BylawsExtractor';
 import StrataManagementStatementExtractor from './StrataManagementStatementExtractor';
 import CleaningScheduleExtractor from './CleaningScheduleExtractor';
 import AIDocumentUploadCard from './AIDocumentUploadCard';
+import PolicyGenerator from '@/components/documents/PolicyGenerator';
 import {
   Dialog,
   DialogContent,
@@ -713,7 +714,7 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
 
       {/* View Document Details Dialog */}
       <Dialog open={!!viewingDocument} onOpenChange={() => setViewingDocument(null)}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{viewingDocument?.title}</DialogTitle>
             <DialogDescription>
@@ -721,7 +722,7 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
             </DialogDescription>
           </DialogHeader>
           {viewingDocument && (
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm font-medium text-slate-500">Category</p>
@@ -772,6 +773,15 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
                   <div className="max-h-64 overflow-y-auto bg-slate-50 rounded-lg p-4 text-sm">
                     {viewingDocument.ocr_content}
                   </div>
+                </div>
+              )}
+
+              {/* Policy Generator */}
+              {(viewingDocument.category === 'bylaws' || 
+                viewingDocument.category === 'strata_management_statement' ||
+                viewingDocument.category === 'policy') && (
+                <div className="pt-4 border-t">
+                  <PolicyGenerator document={viewingDocument} />
                 </div>
               )}
             </div>

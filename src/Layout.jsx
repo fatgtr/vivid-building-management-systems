@@ -69,6 +69,7 @@ const navItems = [
   { name: 'Financial', icon: DollarSign, page: 'FinancialManagement', requirePermission: { resource: 'buildings', action: 'view' } },
   { name: 'Analytics', icon: TrendingUp, page: 'AnalyticsDashboard', requirePermission: { resource: 'buildings', action: 'view' } },
   { name: 'Emergency', icon: AlertCircle, page: 'EmergencyContacts', requirePermission: { resource: 'buildings', action: 'view' } },
+  { name: 'Policies', icon: FileText, page: 'PolicyManagement', requirePermission: { resource: 'documents', action: 'view' } },
   { name: 'Resident Portal', icon: Home, page: 'ResidentSelfService', requirePermission: { resource: 'residents', action: 'view' } },
   { name: 'Staff Roster', icon: Calendar, page: 'StaffScheduling', requirePermission: { resource: 'buildings', action: 'view' } },
   { name: 'Keys & Access', icon: Key, page: 'KeyManagement', requirePermission: { resource: 'buildings', action: 'view' } },
