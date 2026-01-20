@@ -56,6 +56,15 @@ export default function ResidentSelfService() {
           <TabsTrigger value="requests">My Requests</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="report-issue" className="space-y-6">
+          <IssueReportingForm
+            buildingId={resident?.building_id}
+            unitId={resident?.unit_id}
+            residentName={user?.full_name}
+            onSuccess={() => setActiveTab('overview')}
+          />
+        </TabsContent>
+
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
