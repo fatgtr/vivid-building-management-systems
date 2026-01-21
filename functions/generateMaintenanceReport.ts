@@ -220,30 +220,30 @@ Analyze this data and provide:
         if (analysis.trends && analysis.trends.length > 0) {
             checkPageBreak(40);
             addText('Trends & Insights', 20, yPos, 14, 'bold', [15, 23, 42]);
-            yPos += 8;
+            yPos += 10;
 
             analysis.trends.forEach((trend) => {
-                checkPageBreak(15);
-                doc.setFillColor(224, 242, 254); // Blue-100
-                const trendHeight = addWrappedText(`• ${trend}`, 20, yPos + 5, pageWidth - 40, 9);
-                yPos += trendHeight + 8;
+                checkPageBreak(20);
+                doc.setTextColor(15, 23, 42);
+                const trendHeight = addWrappedText(`• ${trend}`, 20, yPos, pageWidth - 40, 10);
+                yPos += trendHeight + 5;
             });
-            yPos += 5;
+            yPos += 8;
         }
 
         // Recommendations
         if (analysis.recommendations && analysis.recommendations.length > 0) {
             checkPageBreak(40);
             addText('Recommendations', 20, yPos, 14, 'bold', [15, 23, 42]);
-            yPos += 8;
+            yPos += 10;
 
             analysis.recommendations.forEach((rec) => {
-                checkPageBreak(15);
-                doc.setFillColor(240, 253, 244); // Green-50
-                const recHeight = addWrappedText(`✓ ${rec}`, 20, yPos + 5, pageWidth - 40, 9);
-                yPos += recHeight + 8;
+                checkPageBreak(20);
+                doc.setTextColor(15, 23, 42);
+                const recHeight = addWrappedText(`✓ ${rec}`, 20, yPos, pageWidth - 40, 10);
+                yPos += recHeight + 5;
             });
-            yPos += 5;
+            yPos += 8;
         }
 
         // Work Orders Detail
