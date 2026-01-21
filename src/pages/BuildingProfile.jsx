@@ -12,6 +12,7 @@ import PageHeader from '@/components/common/PageHeader';
 import StatusBadge from '@/components/common/StatusBadge';
 import BuildingDocumentManager from '@/components/buildings/BuildingDocumentManager';
 import ReportGenerator from '@/components/buildings/ReportGenerator';
+import MaintenanceReportFilters from '@/components/reports/MaintenanceReportFilters';
 import LocationBasedInspectionGenerator from '@/components/inspections/LocationBasedInspectionGenerator';
 import ComplianceTab from '@/components/buildings/ComplianceTab';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -473,7 +474,8 @@ export default function BuildingProfile() {
           )}
         </TabsContent>
 
-        <TabsContent value="reports">
+        <TabsContent value="reports" className="space-y-6">
+          <MaintenanceReportFilters buildingId={buildingId} buildingName={building.name} />
           <ReportGenerator buildingId={buildingId} buildingName={building.name} />
         </TabsContent>
 
