@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Package, DollarSign, FileText, Wrench, Bell, Calendar, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import ParcelManagement from '@/components/residents/ParcelManagement';
+import IssueReportingForm from '@/components/resident/IssueReportingForm';
+import AmenityBookingForm from '@/components/amenities/AmenityBookingForm';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
@@ -53,6 +55,7 @@ export default function ResidentSelfService() {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="report-issue">Report Issue</TabsTrigger>
+          <TabsTrigger value="book-amenity">Book Amenity</TabsTrigger>
           <TabsTrigger value="payments">Payments</TabsTrigger>
           <TabsTrigger value="parcels">Parcels</TabsTrigger>
           <TabsTrigger value="requests">My Requests</TabsTrigger>
@@ -63,6 +66,13 @@ export default function ResidentSelfService() {
             buildingId={resident?.building_id}
             unitId={resident?.unit_id}
             residentName={user?.full_name}
+            onSuccess={() => setActiveTab('requests')}
+          />
+        </TabsContent>
+
+        <TabsContent value="book-amenity" className="space-y-6">
+          <AmenityBookingForm
+            buildingId={resident?.building_id}
             onSuccess={() => setActiveTab('overview')}
           />
         </TabsContent>

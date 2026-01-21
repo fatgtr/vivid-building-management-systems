@@ -15,7 +15,11 @@ import { format, isPast } from 'date-fns';
 import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
 
+import LevyPaymentManager from '@/components/financial/LevyPaymentManager';
+import { useBuildingContext } from '@/components/BuildingContext';
+
 export default function FinancialManagement() {
+  const { selectedBuildingId } = useBuildingContext();
   const { selectedBuildingId } = useBuildingContext();
   const [showDialog, setShowDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');

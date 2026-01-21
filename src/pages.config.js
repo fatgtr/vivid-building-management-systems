@@ -31,6 +31,7 @@ import PartsInventory from './pages/PartsInventory';
 import PetRegistry from './pages/PetRegistry';
 import PlatformDashboard from './pages/PlatformDashboard';
 import PolicyManagement from './pages/PolicyManagement';
+import PredictiveMaintenance from './pages/PredictiveMaintenance';
 import Reports from './pages/Reports';
 import ResidentPortal from './pages/ResidentPortal';
 import ResidentProfile from './pages/ResidentProfile';
@@ -50,7 +51,6 @@ import Visitors from './pages/Visitors';
 import VividStaffManagement from './pages/VividStaffManagement';
 import VotingCenter from './pages/VotingCenter';
 import WorkOrders from './pages/WorkOrders';
-import PredictiveMaintenance from './pages/PredictiveMaintenance';
 import __Layout from './Layout.jsx';
 
 
@@ -88,6 +88,7 @@ export const PAGES = {
     "PetRegistry": PetRegistry,
     "PlatformDashboard": PlatformDashboard,
     "PolicyManagement": PolicyManagement,
+    "PredictiveMaintenance": PredictiveMaintenance,
     "Reports": Reports,
     "ResidentPortal": ResidentPortal,
     "ResidentProfile": ResidentProfile,
@@ -107,7 +108,6 @@ export const PAGES = {
     "VividStaffManagement": VividStaffManagement,
     "VotingCenter": VotingCenter,
     "WorkOrders": WorkOrders,
-    "PredictiveMaintenance": PredictiveMaintenance,
 }
 
 export const pagesConfig = {

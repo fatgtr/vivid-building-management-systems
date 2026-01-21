@@ -12,7 +12,11 @@ import EnergyAnalyticsDashboard from '@/components/energy/EnergyAnalyticsDashboa
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
 
+import ComprehensiveAnalytics from '@/components/analytics/ComprehensiveAnalytics';
+import { useBuildingContext } from '@/components/BuildingContext';
+
 export default function AnalyticsDashboard() {
+  const { selectedBuildingId } = useBuildingContext();
   const { selectedBuildingId } = useBuildingContext();
 
   const { data: workOrders = [] } = useQuery({
