@@ -3,9 +3,18 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { workOrderId, notificationType } = await req.json();
+    const payload = await req.json();
+    const { workOrderId, notificationType } = payload || {};
+
+    if (!workOrderId) {
+      return Response.json({ error: 'workOrderId is required' }, { status: 400 });
+    }
 
     const workOrder = await base44.asServiceRole.entities.WorkOrder.get(workOrderId);
+    if (!workOrder) {
+      return Response.json({ error: 'Work order not found' }, { status: 404 });
+    }
+
     const building = await base44.asServiceRole.entities.Building.get(workOrder.building_id);
 
     let subject, body, recipients = [];
