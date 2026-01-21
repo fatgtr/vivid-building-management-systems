@@ -140,7 +140,7 @@ Analyze this data and provide:
             doc.setFontSize(size);
             const lines = doc.splitTextToSize(text, maxWidth);
             doc.text(lines, x, y);
-            return lines.length * (size * 0.35);
+            return lines.length * (size * 0.4 + 2);
         };
 
         const checkPageBreak = (requiredSpace = 30) => {
@@ -223,10 +223,10 @@ Analyze this data and provide:
             yPos += 10;
 
             analysis.trends.forEach((trend) => {
-                checkPageBreak(20);
+                checkPageBreak(25);
                 doc.setTextColor(15, 23, 42);
-                const trendHeight = addWrappedText(`• ${trend}`, 20, yPos, pageWidth - 40, 10);
-                yPos += trendHeight + 5;
+                const trendHeight = addWrappedText(`• ${trend}`, 25, yPos, pageWidth - 50, 10);
+                yPos += trendHeight + 3;
             });
             yPos += 8;
         }
@@ -238,10 +238,10 @@ Analyze this data and provide:
             yPos += 10;
 
             analysis.recommendations.forEach((rec) => {
-                checkPageBreak(20);
+                checkPageBreak(25);
                 doc.setTextColor(15, 23, 42);
-                const recHeight = addWrappedText(`✓ ${rec}`, 20, yPos, pageWidth - 40, 10);
-                yPos += recHeight + 5;
+                const recHeight = addWrappedText(`✓ ${rec}`, 25, yPos, pageWidth - 50, 10);
+                yPos += trendHeight + 3;
             });
             yPos += 8;
         }
