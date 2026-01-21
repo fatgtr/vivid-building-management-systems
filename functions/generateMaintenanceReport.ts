@@ -44,10 +44,14 @@ Deno.serve(async (req) => {
             base44.asServiceRole.entities.Contractor.list()
         ]);
 
-        // Filter work orders by date range
+        // Filter work orders by date range - check both created_date and completed_date
         const workOrders = allWorkOrders.filter(wo => {
             const createdDate = new Date(wo.created_date);
-            return createdDate >= startDate && createdDate <= endDate;
+            const completedDate = wo.completed_date ? new Date(wo.completed_date) : null;
+            
+            // Include if created in range OR completed in range
+            return (createdDate >= startDate && createdDate <= endDate) ||
+                   (completedDate && completedDate >= startDate && completedDate <= endDate);
         });
 
         // Get strata committee members and manager email
