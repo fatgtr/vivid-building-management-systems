@@ -18,6 +18,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
+import EnergyDataImporter from './EnergyDataImporter';
 
 export default function EnergyAnalyticsDashboard({ buildingId, unitId = null }) {
   const [analyzing, setAnalyzing] = useState(false);

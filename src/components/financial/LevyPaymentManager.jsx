@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { DollarSign, CreditCard, Download, Plus, Loader2, Calendar, CheckCircle2, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { createPageUrl } from '@/utils';
 
 export default function LevyPaymentManager({ buildingId }) {
   const [showDialog, setShowDialog] = useState(false);
@@ -63,6 +64,25 @@ export default function LevyPaymentManager({ buildingId }) {
         due_date: ''
       });
       toast.success('Levy created successfully');
+    }
+  });
+
+  const payNowMutation = useMutation({
+    mutationFn: async (levyId) => {
+      const { data } = await base44.functions.invoke('createLevyCheckout', {
+        levyId,
+        successUrl: window.location.origin + createPageUrl('PaymentSuccess'),
+        cancelUrl: window.location.origin + createPageUrl('PaymentCancel')
+      });
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    },
+    onError: () => {
+      toast.error('Failed to create checkout session');
     }
   });
 
@@ -170,9 +190,15 @@ export default function LevyPaymentManager({ buildingId }) {
                   </div>
                 </div>
                 {levy.status === 'pending' && (
-                  <Button variant="outline" size="sm" className="gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="gap-2"
+                    onClick={() => payNowMutation.mutate(levy.id)}
+                    disabled={payNowMutation.isPending}
+                  >
                     <CreditCard className="h-4 w-4" />
-                    Pay Now
+                    {payNowMutation.isPending ? 'Processing...' : 'Pay Now'}
                   </Button>
                 )}
               </div>

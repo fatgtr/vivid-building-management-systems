@@ -51,6 +51,8 @@ import Visitors from './pages/Visitors';
 import VividStaffManagement from './pages/VividStaffManagement';
 import VotingCenter from './pages/VotingCenter';
 import WorkOrders from './pages/WorkOrders';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentCancel from './pages/PaymentCancel';
 import __Layout from './Layout.jsx';
 
 
@@ -108,6 +110,8 @@ export const PAGES = {
     "VividStaffManagement": VividStaffManagement,
     "VotingCenter": VotingCenter,
     "WorkOrders": WorkOrders,
+    "PaymentSuccess": PaymentSuccess,
+    "PaymentCancel": PaymentCancel,
 }
 
 export const pagesConfig = {
