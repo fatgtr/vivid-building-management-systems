@@ -10,7 +10,16 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { buildingId, reportPeriod = 'last_month', sendEmail = false } = await req.json();
+        const { 
+            buildingId, 
+            reportPeriod = 'last_month', 
+            sendEmail = false,
+            startDate: customStartDate,
+            endDate: customEndDate,
+            categories = [],
+            priorities = [],
+            statuses = []
+        } = await req.json();
 
         if (!buildingId) {
             return Response.json({ error: 'Building ID is required' }, { status: 400 });
@@ -20,17 +29,19 @@ Deno.serve(async (req) => {
         const now = new Date();
         let startDate, endDate;
         
-        if (reportPeriod === 'last_month') {
+        if (reportPeriod === 'custom' && customStartDate && customEndDate) {
+            startDate = new Date(customStartDate);
+            endDate = new Date(customEndDate);
+        } else if (reportPeriod === 'last_month') {
             startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
             endDate = new Date(now.getFullYear(), now.getMonth(), 0);
         } else if (reportPeriod === 'last_quarter') {
             const currentQuarter = Math.floor(now.getMonth() / 3);
             startDate = new Date(now.getFullYear(), (currentQuarter - 1) * 3, 1);
             endDate = new Date(now.getFullYear(), currentQuarter * 3, 0);
-        } else if (reportPeriod === 'custom') {
-            // For custom date ranges passed in the request
-            startDate = new Date(req.startDate);
-            endDate = new Date(req.endDate);
+        } else {
+            startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            endDate = new Date(now.getFullYear(), now.getMonth(), 0);
         }
 
         const startDateStr = startDate.toISOString().split('T')[0];
@@ -44,14 +55,34 @@ Deno.serve(async (req) => {
             base44.asServiceRole.entities.Contractor.list()
         ]);
 
-        // Filter work orders by date range - check both created_date and completed_date
+        // Filter work orders by date range and other criteria
         const workOrders = allWorkOrders.filter(wo => {
             const createdDate = new Date(wo.created_date);
             const completedDate = wo.completed_date ? new Date(wo.completed_date) : null;
             
-            // Include if created in range OR completed in range
-            return (createdDate >= startDate && createdDate <= endDate) ||
+            // Date filter - include if created in range OR completed in range
+            const dateMatch = (createdDate >= startDate && createdDate <= endDate) ||
                    (completedDate && completedDate >= startDate && completedDate <= endDate);
+            
+            if (!dateMatch) return false;
+            
+            // Category filter
+            if (categories.length > 0) {
+                const woCategory = wo.main_category || wo.category;
+                if (!woCategory || !categories.includes(woCategory)) return false;
+            }
+            
+            // Priority filter
+            if (priorities.length > 0) {
+                if (!wo.priority || !priorities.includes(wo.priority)) return false;
+            }
+            
+            // Status filter
+            if (statuses.length > 0) {
+                if (!wo.status || !statuses.includes(wo.status)) return false;
+            }
+            
+            return true;
         });
 
         // Get strata committee members and manager email
