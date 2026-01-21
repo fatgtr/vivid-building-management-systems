@@ -5,15 +5,12 @@ import { useBuildingContext } from '@/components/BuildingContext';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { TrendingUp, DollarSign, Wrench, AlertTriangle, Calendar, Activity, Zap } from 'lucide-react';
-import PageHeader from '@/components/common/PageHeader';
+import { TrendingUp, Wrench, AlertTriangle, Activity, Zap } from 'lucide-react';
 import { differenceInDays, format, startOfMonth, endOfMonth, eachMonthOfInterval, subMonths, isPast } from 'date-fns';
+import ComprehensiveAnalytics from '@/components/analytics/ComprehensiveAnalytics';
 import EnergyAnalyticsDashboard from '@/components/energy/EnergyAnalyticsDashboard';
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
-
-import ComprehensiveAnalytics from '@/components/analytics/ComprehensiveAnalytics';
-import { useBuildingContext } from '@/components/BuildingContext';
 
 export default function AnalyticsDashboard() {
   const { selectedBuildingId } = useBuildingContext();
@@ -33,17 +30,12 @@ export default function AnalyticsDashboard() {
     queryFn: () => base44.entities.ComplianceRecord.list()
   });
 
-  const { data: maintenanceSchedules = [] } = useQuery({
-    queryKey: ['maintenanceSchedules'],
-    queryFn: () => base44.entities.MaintenanceSchedule.list()
-  });
-
   // Filter by building
   const filteredWO = selectedBuildingId ? workOrders.filter(w => w.building_id === selectedBuildingId) : workOrders;
   const filteredAssets = selectedBuildingId ? assets.filter(a => a.building_id === selectedBuildingId) : assets;
   const filteredCompliance = selectedBuildingId ? complianceRecords.filter(c => c.building_id === selectedBuildingId) : complianceRecords;
 
-  // Work order trends by month
+  // Work order trends
   const last6Months = eachMonthOfInterval({
     start: subMonths(new Date(), 5),
     end: new Date()
@@ -63,7 +55,7 @@ export default function AnalyticsDashboard() {
     };
   });
 
-  // Work orders by category
+  // Category data
   const categoryData = Object.entries(
     filteredWO.reduce((acc, wo) => {
       const cat = wo.main_category || 'other';
@@ -72,14 +64,14 @@ export default function AnalyticsDashboard() {
     }, {})
   ).map(([name, value]) => ({ name: name.replace(/_/g, ' '), value })).slice(0, 6);
 
-  // Asset health distribution
+  // Asset health
   const assetHealthData = [
     { name: 'Critical', value: filteredAssets.filter(a => a.health_score < 40).length },
     { name: 'Fair', value: filteredAssets.filter(a => a.health_score >= 40 && a.health_score < 70).length },
     { name: 'Good', value: filteredAssets.filter(a => a.health_score >= 70).length }
   ].filter(d => d.value > 0);
 
-  // Compliance status
+  // Compliance
   const overdueCompliance = filteredCompliance.filter(c => c.status === 'overdue' || (c.next_due_date && isPast(new Date(c.next_due_date)))).length;
   const dueSoon = filteredCompliance.filter(c => {
     if (c.next_due_date) {
@@ -89,7 +81,6 @@ export default function AnalyticsDashboard() {
     return false;
   }).length;
 
-  // Response time analysis
   const avgResponseTime = filteredWO.filter(wo => wo.completed_date && wo.created_date).reduce((acc, wo) => {
     const days = differenceInDays(new Date(wo.completed_date), new Date(wo.created_date));
     return acc + days;
@@ -97,75 +88,59 @@ export default function AnalyticsDashboard() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Analytics Dashboard"
-        subtitle="Insights and predictive analytics for building operations"
-      />
-
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
-              <Wrench className="h-4 w-4" />
-              Active Work Orders
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{filteredWO.filter(w => w.status !== 'completed' && w.status !== 'cancelled').length}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4" />
-              Compliance Due
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-orange-600">{overdueCompliance + dueSoon}</p>
-            <p className="text-xs text-slate-500">{overdueCompliance} overdue</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
-              <Activity className="h-4 w-4" />
-              Avg Response Time
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{avgResponseTime.toFixed(1)}</p>
-            <p className="text-xs text-slate-500">days</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Asset Health
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">
-              {(filteredAssets.reduce((sum, a) => sum + (a.health_score || 0), 0) / (filteredAssets.length || 1)).toFixed(0)}%
-            </p>
-            <p className="text-xs text-slate-500">average score</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Tabs defaultValue="workorders" className="space-y-6">
+      <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="workorders">Work Orders</TabsTrigger>
           <TabsTrigger value="assets">Assets</TabsTrigger>
           <TabsTrigger value="compliance">Compliance</TabsTrigger>
-          <TabsTrigger value="energy">Energy Analytics</TabsTrigger>
+          <TabsTrigger value="energy">Energy</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="overview">
+          <ComprehensiveAnalytics buildingId={selectedBuildingId} />
+        </TabsContent>
+
         <TabsContent value="workorders" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-slate-500">Active</p>
+                    <p className="text-3xl font-bold">{filteredWO.filter(w => w.status !== 'completed').length}</p>
+                  </div>
+                  <Wrench className="h-10 w-10 text-blue-600 opacity-20" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-slate-500">Avg Response</p>
+                    <p className="text-3xl font-bold">{avgResponseTime.toFixed(1)}</p>
+                    <p className="text-xs text-slate-500">days</p>
+                  </div>
+                  <Activity className="h-10 w-10 text-green-600 opacity-20" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-slate-500">Total Cost</p>
+                    <p className="text-3xl font-bold">
+                      ${(filteredWO.filter(w => w.actual_cost).reduce((sum, w) => sum + w.actual_cost, 0) / 1000).toFixed(1)}k
+                    </p>
+                  </div>
+                  <TrendingUp className="h-10 w-10 text-purple-600 opacity-20" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           <Card>
             <CardHeader>
               <CardTitle>Work Orders Trend</CardTitle>
@@ -210,7 +185,7 @@ export default function AnalyticsDashboard() {
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
-                  <Pie data={assetHealthData} cx="50%" cy="50%" labelLine={false} label={({ name, value }) => `${name}: ${value}`} outerRadius={100} fill="#8884d8" dataKey="value">
+                  <Pie data={assetHealthData} cx="50%" cy="50%" labelLine={false} label={({ name, value }) => `${name}: ${value}`} outerRadius={100} dataKey="value">
                     {assetHealthData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
