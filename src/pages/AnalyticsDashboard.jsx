@@ -17,7 +17,6 @@ import { useBuildingContext } from '@/components/BuildingContext';
 
 export default function AnalyticsDashboard() {
   const { selectedBuildingId } = useBuildingContext();
-  const { selectedBuildingId } = useBuildingContext();
 
   const { data: workOrders = [] } = useQuery({
     queryKey: ['workOrders'],

@@ -20,7 +20,6 @@ import { useBuildingContext } from '@/components/BuildingContext';
 
 export default function FinancialManagement() {
   const { selectedBuildingId } = useBuildingContext();
-  const { selectedBuildingId } = useBuildingContext();
   const [showDialog, setShowDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const queryClient = useQueryClient();
