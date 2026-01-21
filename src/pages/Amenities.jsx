@@ -33,6 +33,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { format } from 'date-fns';
+import CalendarSyncManager from '@/components/amenities/CalendarSyncManager';
 
 const amenityTypes = [
   { value: 'gym', label: 'Gym', icon: '🏋️' },
@@ -369,7 +370,9 @@ export default function Amenities() {
           )}
         </TabsContent>
 
-        <TabsContent value="bookings" className="mt-4">
+        <TabsContent value="bookings" className="mt-4 space-y-6">
+          <CalendarSyncManager />
+          
           <Card className="border-0 shadow-sm overflow-hidden">
             <Table>
               <TableHeader>
