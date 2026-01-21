@@ -6,6 +6,7 @@ import { BuildingProvider, useBuildingContext } from '@/components/BuildingConte
 import { PermissionsProvider, usePermissions } from '@/components/permissions/PermissionsContext';
 import AIAssistant from '@/components/ai/AIAssistant';
 import GlobalNotificationBell from '@/components/notifications/GlobalNotificationBell';
+import GlobalSearchBar from '@/components/search/GlobalSearchBar';
 import { 
   Building2, 
   Home, 
@@ -401,6 +402,12 @@ function LayoutInner({ children, currentPageName }) {
         "pt-16 lg:pt-0"
       )}>
         <div className="p-4 lg:p-8">
+          {/* Global Search Bar */}
+          {user && currentPageName !== 'LandingPage' && currentPageName !== 'Home' && (
+            <div className="mb-6">
+              <GlobalSearchBar />
+            </div>
+          )}
           {children}
         </div>
       </main>
