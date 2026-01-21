@@ -10,15 +10,18 @@ Deno.serve(async (req) => {
     }
 
     const payload = await req.json();
-    const { building_id, search_query, search_type = 'full_text' } = payload || {};
+    const { buildingId, building_id, query, search_query, search_type = 'full_text' } = payload || {};
 
-    if (!search_query) {
-      return Response.json({ error: 'search_query is required' }, { status: 400 });
+    const finalQuery = query || search_query;
+    const finalBuildingId = buildingId || building_id;
+
+    if (!finalQuery) {
+      return Response.json({ error: 'query or search_query is required' }, { status: 400 });
     }
 
     // Fetch all documents for the building
-    const documents = building_id 
-      ? await base44.entities.Document.filter({ building_id })
+    const documents = finalBuildingId 
+      ? await base44.entities.Document.filter({ building_id: finalBuildingId })
       : await base44.entities.Document.list();
 
     if (documents.length === 0) {
@@ -32,11 +35,11 @@ Deno.serve(async (req) => {
 
     if (search_type === 'full_text') {
       // Simple text search
-      const query = search_query.toLowerCase();
+      const searchTerm = finalQuery.toLowerCase();
       results = documents.filter(doc => {
-        const titleMatch = doc.title?.toLowerCase().includes(query);
-        const contentMatch = doc.ocr_content?.toLowerCase().includes(query);
-        const categoryMatch = doc.category?.toLowerCase().includes(query);
+        const titleMatch = doc.title?.toLowerCase().includes(searchTerm);
+        const contentMatch = doc.ocr_content?.toLowerCase().includes(searchTerm);
+        const categoryMatch = doc.category?.toLowerCase().includes(searchTerm);
         return titleMatch || contentMatch || categoryMatch;
       }).map(doc => ({
         document_id: doc.id,
@@ -44,8 +47,8 @@ Deno.serve(async (req) => {
         category: doc.category,
         file_url: doc.file_url,
         upload_date: doc.created_date,
-        relevance_score: doc.title?.toLowerCase().includes(query) ? 1.0 : 0.7,
-        matched_content: extractMatchedContent(doc.ocr_content, query),
+        relevance_score: doc.title?.toLowerCase().includes(searchTerm) ? 1.0 : 0.7,
+        matched_content: extractMatchedContent(doc.ocr_content, searchTerm),
         ai_summary: doc.ai_summary,
         key_points: extractKeyPoints(doc)
       }));
@@ -53,7 +56,7 @@ Deno.serve(async (req) => {
       // AI semantic search - limit to top 20 documents to avoid timeout
       const limitedDocs = documents.slice(0, 20);
       const aiResults = await base44.integrations.Core.InvokeLLM({
-        prompt: `User is searching for: "${search_query}"
+        prompt: `User is searching for: "${finalQuery}"
 
 Available documents:
 ${limitedDocs.map((d, i) => `${i}. ${d.title} (${d.category}): ${d.ai_summary || d.ocr_content?.slice(0, 150) || 'No content'}`).join('\n')}
@@ -111,7 +114,7 @@ Return the most relevant documents ranked by relevance to the search query. For 
 
     return Response.json({
       results: results.slice(0, 20),
-      suggestions: search_type === 'ai_semantic' ? [] : generateSuggestions(search_query)
+      suggestions: search_type === 'ai_semantic' ? [] : generateSuggestions(finalQuery)
     });
 
   } catch (error) {
