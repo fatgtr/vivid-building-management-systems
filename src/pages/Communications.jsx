@@ -20,6 +20,7 @@ import StatusBadge from '@/components/common/StatusBadge';
 import ChatInterface from '@/components/communications/ChatInterface';
 import ChatList from '@/components/communications/ChatList';
 import BroadcastComposer from '@/components/communications/BroadcastComposer';
+import EventRSVPCard from '@/components/communications/EventRSVPCard';
 
 
 import { 
@@ -45,6 +46,8 @@ const announcementTypes = [
 const initialAnnouncementFormState = {
   building_id: '', title: '', content: '', type: 'general', priority: 'normal',
   publish_date: '', expiry_date: '', target_audience: 'all', status: 'draft',
+  is_event: false, event_date: '', event_location: '', rsvp_enabled: false,
+  rsvp_deadline: '', max_attendees: null,
 };
 
 export default function Communications() {
@@ -222,6 +225,9 @@ export default function Communications() {
       type: announcement.type || 'general', priority: announcement.priority || 'normal',
       publish_date: announcement.publish_date || '', expiry_date: announcement.expiry_date || '',
       target_audience: announcement.target_audience || 'all', status: announcement.status || 'draft',
+      is_event: announcement.is_event || false, event_date: announcement.event_date || '',
+      event_location: announcement.event_location || '', rsvp_enabled: announcement.rsvp_enabled || false,
+      rsvp_deadline: announcement.rsvp_deadline || '', max_attendees: announcement.max_attendees || null,
     });
     setShowAnnouncementDialog(true);
   };
@@ -241,6 +247,24 @@ export default function Communications() {
 
   const handlePublishAnnouncement = (announcement) => {
     updateAnnouncementMutation.mutate({ id: announcement.id, data: { ...announcement, status: 'published', publish_date: new Date().toISOString() } });
+  };
+
+  const handleRSVP = async (announcement, rsvpData) => {
+    const existingRSVPs = announcement.rsvp_responses || [];
+    const updatedRSVPs = existingRSVPs.filter(r => r.resident_email !== user.email);
+    
+    updatedRSVPs.push({
+      resident_email: user.email,
+      resident_name: user.full_name,
+      response: rsvpData.response,
+      guests_count: rsvpData.guests_count || 0,
+      responded_date: new Date().toISOString()
+    });
+
+    updateAnnouncementMutation.mutate({
+      id: announcement.id,
+      data: { ...announcement, rsvp_responses: updatedRSVPs }
+    });
   };
 
   const handleMessageClick = (message) => {
@@ -439,9 +463,18 @@ export default function Communications() {
                                   <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" />{announcement.created_date && format(new Date(announcement.created_date), 'MMM d, yyyy')}</span>
                                 </div>
                                 <div className="text-slate-600 text-sm line-clamp-2 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: announcement.content }} />
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
+                                {announcement.is_event && (
+                                 <div className="mt-3">
+                                   <EventRSVPCard 
+                                     announcement={announcement} 
+                                     userEmail={user.email}
+                                     onRSVP={(rsvpData) => handleRSVP(announcement, rsvpData)}
+                                   />
+                                 </div>
+                                )}
+                                </div>
+                                </div>
+                                <div className="flex items-center gap-2">
                               {announcement.status === 'draft' && <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => handlePublishAnnouncement(announcement)}><Send className="h-3.5 w-3.5 mr-1" /> Publish</Button>}
                               {announcement.status === 'scheduled' && announcement.publish_date && <span className="text-xs text-slate-500">Scheduled: {format(new Date(announcement.publish_date), 'MMM d, yyyy h:mm a')}</span>}
                               <DropdownMenu>
@@ -744,6 +777,76 @@ export default function Communications() {
               <div><Label>Expiry Date</Label><Input type="date" value={announcementFormData.expiry_date} onChange={(e) => setAnnouncementFormData({ ...announcementFormData, expiry_date: e.target.value })} /></div>
               <div><Label>Status</Label><Select value={announcementFormData.status} onValueChange={(v) => setAnnouncementFormData({ ...announcementFormData, status: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="draft">Draft</SelectItem><SelectItem value="scheduled">Scheduled</SelectItem><SelectItem value="published">Published</SelectItem><SelectItem value="archived">Archived</SelectItem></SelectContent></Select></div>
               <div className="md:col-span-2"><Label>Content *</Label><ReactQuill key={editingAnnouncement?.id || 'new'} theme="snow" value={announcementFormData.content} onChange={(v) => setAnnouncementFormData({ ...announcementFormData, content: v })} className="bg-white rounded-lg" style={{ minHeight: '200px' }} /></div>
+              
+              {/* Event/RSVP Section */}
+              <div className="md:col-span-2 pt-4 border-t">
+                <div className="flex items-center space-x-2 mb-4">
+                  <Checkbox 
+                    id="is_event" 
+                    checked={announcementFormData.is_event}
+                    onCheckedChange={(checked) => setAnnouncementFormData({ ...announcementFormData, is_event: checked })}
+                  />
+                  <label htmlFor="is_event" className="text-sm font-medium cursor-pointer">
+                    This is an event (enable RSVP)
+                  </label>
+                </div>
+                
+                {announcementFormData.is_event && (
+                  <div className="grid grid-cols-2 gap-4 pl-6">
+                    <div>
+                      <Label>Event Date & Time</Label>
+                      <Input 
+                        type="datetime-local" 
+                        value={announcementFormData.event_date}
+                        onChange={(e) => setAnnouncementFormData({ ...announcementFormData, event_date: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Event Location</Label>
+                      <Input 
+                        value={announcementFormData.event_location}
+                        onChange={(e) => setAnnouncementFormData({ ...announcementFormData, event_location: e.target.value })}
+                        placeholder="e.g., Rooftop Terrace"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <div className="flex items-center space-x-2 mb-3">
+                        <Checkbox 
+                          id="rsvp_enabled" 
+                          checked={announcementFormData.rsvp_enabled}
+                          onCheckedChange={(checked) => setAnnouncementFormData({ ...announcementFormData, rsvp_enabled: checked })}
+                        />
+                        <label htmlFor="rsvp_enabled" className="text-sm font-medium cursor-pointer">
+                          Enable RSVP responses
+                        </label>
+                      </div>
+                      
+                      {announcementFormData.rsvp_enabled && (
+                        <div className="grid grid-cols-2 gap-4 pl-6">
+                          <div>
+                            <Label>RSVP Deadline</Label>
+                            <Input 
+                              type="date" 
+                              value={announcementFormData.rsvp_deadline}
+                              onChange={(e) => setAnnouncementFormData({ ...announcementFormData, rsvp_deadline: e.target.value })}
+                            />
+                          </div>
+                          <div>
+                            <Label>Max Attendees (optional)</Label>
+                            <Input 
+                              type="number" 
+                              min="1"
+                              value={announcementFormData.max_attendees || ''}
+                              onChange={(e) => setAnnouncementFormData({ ...announcementFormData, max_attendees: e.target.value ? parseInt(e.target.value) : null })}
+                              placeholder="Unlimited"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={handleCloseAnnouncementDialog}>Cancel</Button>
