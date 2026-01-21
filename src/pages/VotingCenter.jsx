@@ -15,6 +15,7 @@ import { Vote, Plus, CheckCircle } from 'lucide-react';
 import { format, isPast, isFuture } from 'date-fns';
 import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
+import VotingAnalytics from '@/components/voting/VotingAnalytics';
 
 export default function VotingCenter() {
   const { selectedBuildingId, user } = useBuildingContext();
@@ -81,7 +82,14 @@ export default function VotingCenter() {
         actionLabel="Create Poll"
       />
 
-      <div className="space-y-6">
+      <Tabs defaultValue="polls" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="polls">Active Polls</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="polls">
+          <div className="space-y-6">
         {polls.map((poll) => {
           const pollVotes = votes.filter(v => v.poll_id === poll.id);
           const userVoted = hasVoted(poll.id);
@@ -149,7 +157,13 @@ export default function VotingCenter() {
             </Card>
           );
         })}
-      </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="analytics">
+          <VotingAnalytics buildingId={selectedBuildingId} />
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-2xl">

@@ -1,10 +1,10 @@
 import React from 'react';
-import MarketplaceBoard from '@/components/marketplace/MarketplaceBoard';
+import EnhancedMarketplace from '@/components/marketplace/EnhancedMarketplace';
 
 export default function Marketplace() {
   return (
     <div className="space-y-6">
-      <MarketplaceBoard />
+      <EnhancedMarketplace />
     </div>
   );
 }

@@ -10,6 +10,7 @@ import ContractorDocuments from '@/components/contractor/ContractorDocuments';
 import ComplianceReminders from '@/components/contractor/ComplianceReminders';
 import ContractorTaskCard from '@/components/contractor/ContractorTaskCard';
 import BidProposalGenerator from '@/components/contractor/BidProposalGenerator';
+import BiddingSystem from '@/components/contractor/BiddingSystem';
 import { toast } from 'sonner';
 import { Wrench, FileText, Clock, CheckCircle, Shield, ListTodo } from 'lucide-react';
 
