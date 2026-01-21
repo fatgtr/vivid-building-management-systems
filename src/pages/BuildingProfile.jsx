@@ -13,6 +13,7 @@ import StatusBadge from '@/components/common/StatusBadge';
 import BuildingDocumentManager from '@/components/buildings/BuildingDocumentManager';
 import ReportGenerator from '@/components/buildings/ReportGenerator';
 import MaintenanceReportFilters from '@/components/reports/MaintenanceReportFilters';
+import WorkOrderInsightsDashboard from '@/components/analytics/WorkOrderInsightsDashboard';
 import LocationBasedInspectionGenerator from '@/components/inspections/LocationBasedInspectionGenerator';
 import ComplianceTab from '@/components/buildings/ComplianceTab';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -247,6 +248,7 @@ export default function BuildingProfile() {
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="ai-insights">AI Insights</TabsTrigger>
           <TabsTrigger value="compliance">Compliance</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="inspections">Inspections</TabsTrigger>
@@ -254,6 +256,10 @@ export default function BuildingProfile() {
           <TabsTrigger value="reports">Reports</TabsTrigger>
           <TabsTrigger value="management">Management</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="ai-insights" className="space-y-6">
+          <WorkOrderInsightsDashboard buildingId={buildingId} />
+        </TabsContent>
 
         <TabsContent value="overview" className="space-y-6">
           <Card className="overflow-hidden border-2 hover:border-blue-300 transition-all duration-300 hover:shadow-xl">
