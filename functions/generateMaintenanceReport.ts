@@ -105,8 +105,8 @@ Deno.serve(async (req) => {
             description: wo.description,
         }));
 
-        // AI Analysis
-        const analysisPrompt = `You are a property management AI assistant generating an executive summary for a building maintenance report.
+        // Enhanced AI Analysis with pattern recognition and predictions
+        const analysisPrompt = `You are an expert building maintenance analyst generating a comprehensive report with predictive insights.
 
 Building: ${building.name}
 Report Period: ${startDateStr} to ${endDateStr}
@@ -118,10 +118,11 @@ ${JSON.stringify(workOrderSummary, null, 2)}
 Analyze this data and provide:
 1. Executive summary (2-3 sentences highlighting the period's maintenance activity)
 2. Key metrics (total orders, completion rate, average resolution time, total costs)
-3. Top 3 recurring issues with their frequency
-4. Trends and patterns observed
-5. Recommendations for property managers
-6. Budget insights and cost optimization opportunities`;
+3. Top recurring issues with their frequency
+4. Pattern analysis: Identify categories/priorities that lead to increased costs or longer resolution times
+5. Predictive maintenance alerts: Forecast potential future issues based on historical data and recurring patterns
+6. Proactive recommendations with specific actions and estimated savings
+7. Budget insights and cost optimization opportunities`;
 
         const analysisSchema = {
             type: "object",
@@ -142,8 +143,41 @@ Analyze this data and provide:
                         }
                     }
                 },
-                trends: { type: "array", items: { type: "string" } },
-                recommendations: { type: "array", items: { type: "string" } },
+                patterns: {
+                    type: "array",
+                    items: {
+                        type: "object",
+                        properties: {
+                            description: { type: "string" },
+                            impact: { type: "string" },
+                            severity: { type: "string" }
+                        }
+                    }
+                },
+                predictions: {
+                    type: "array",
+                    items: {
+                        type: "object",
+                        properties: {
+                            asset_or_system: { type: "string" },
+                            predicted_issue: { type: "string" },
+                            timeframe: { type: "string" },
+                            confidence: { type: "string" }
+                        }
+                    }
+                },
+                recommendations: {
+                    type: "array",
+                    items: {
+                        type: "object",
+                        properties: {
+                            title: { type: "string" },
+                            action: { type: "string" },
+                            priority: { type: "string" },
+                            estimated_savings: { type: "string" }
+                        }
+                    }
+                },
                 budget_insights: { type: "string" }
             }
         };
@@ -247,32 +281,63 @@ Analyze this data and provide:
             yPos += 5;
         }
 
-        // Trends & Insights
-        if (analysis.trends && analysis.trends.length > 0) {
+        // Pattern Analysis
+        if (analysis.patterns && analysis.patterns.length > 0) {
             checkPageBreak(40);
-            addText('Trends & Insights', 20, yPos, 14, 'bold', [15, 23, 42]);
+            addText('AI Pattern Analysis', 20, yPos, 14, 'bold', [15, 23, 42]);
             yPos += 10;
 
-            analysis.trends.forEach((trend) => {
-                checkPageBreak(25);
-                doc.setTextColor(15, 23, 42);
-                const trendHeight = addWrappedText(`• ${trend}`, 25, yPos, pageWidth - 50, 10);
-                yPos += trendHeight + 3;
+            analysis.patterns.forEach((pattern) => {
+                checkPageBreak(30);
+                doc.setFillColor(239, 246, 255); // Blue-50
+                doc.roundedRect(15, yPos, pageWidth - 30, 20, 2, 2, 'F');
+                
+                addText(`• ${pattern.description}`, 20, yPos + 6, 10, 'normal', [15, 23, 42]);
+                yPos += 10;
+                addText(`Impact: ${pattern.impact} | Severity: ${pattern.severity}`, 25, yPos, 8, 'normal', [100, 116, 139]);
+                yPos += 15;
             });
             yPos += 8;
         }
 
-        // Recommendations
+        // Predictive Maintenance Alerts
+        if (analysis.predictions && analysis.predictions.length > 0) {
+            checkPageBreak(40);
+            addText('Predictive Maintenance Alerts', 20, yPos, 14, 'bold', [15, 23, 42]);
+            yPos += 10;
+
+            analysis.predictions.forEach((prediction) => {
+                checkPageBreak(30);
+                doc.setFillColor(254, 242, 242); // Red-50
+                doc.roundedRect(15, yPos, pageWidth - 30, 22, 2, 2, 'F');
+                
+                addText(`⚠ ${prediction.asset_or_system}`, 20, yPos + 6, 10, 'bold', [15, 23, 42]);
+                yPos += 10;
+                const predHeight = addWrappedText(prediction.predicted_issue, 25, yPos, pageWidth - 50, 9);
+                yPos += predHeight + 3;
+                addText(`Expected: ${prediction.timeframe} | Confidence: ${prediction.confidence}`, 25, yPos, 8, 'normal', [100, 116, 139]);
+                yPos += 15;
+            });
+            yPos += 8;
+        }
+
+        // Proactive Recommendations
         if (analysis.recommendations && analysis.recommendations.length > 0) {
             checkPageBreak(40);
-            addText('Recommendations', 20, yPos, 14, 'bold', [15, 23, 42]);
+            addText('Proactive Recommendations', 20, yPos, 14, 'bold', [15, 23, 42]);
             yPos += 10;
 
             analysis.recommendations.forEach((rec) => {
-                checkPageBreak(25);
-                doc.setTextColor(15, 23, 42);
-                const recHeight = addWrappedText(`✓ ${rec}`, 25, yPos, pageWidth - 50, 10);
-                yPos += trendHeight + 3;
+                checkPageBreak(35);
+                doc.setFillColor(236, 253, 245); // Green-50
+                doc.roundedRect(15, yPos, pageWidth - 30, 25, 2, 2, 'F');
+                
+                addText(`✓ ${rec.title}`, 20, yPos + 6, 10, 'bold', [15, 23, 42]);
+                yPos += 10;
+                const actionHeight = addWrappedText(rec.action, 25, yPos, pageWidth - 50, 9);
+                yPos += actionHeight + 3;
+                addText(`Priority: ${rec.priority} | Savings: ${rec.estimated_savings}`, 25, yPos, 8, 'normal', [100, 116, 139]);
+                yPos += 15;
             });
             yPos += 8;
         }
