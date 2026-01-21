@@ -11,6 +11,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Search, Calendar as CalendarIcon, Clock, Users, DollarSign, MapPin } from 'lucide-react';
 import AmenityBookingCalendar from './AmenityBookingCalendar';
 import StatusBadge from '@/components/common/StatusBadge';
+import StripeCheckoutButton from '@/components/payments/StripeCheckoutButton';
 import { format } from 'date-fns';
 
 const amenityTypeIcons = {
@@ -223,9 +224,17 @@ export default function ResidentAmenityList() {
                             <div className="text-right">
                               <p className="text-sm text-slate-500">Fee</p>
                               <p className="text-lg font-bold text-blue-600">${amenity.booking_fee}</p>
-                              {!booking.fee_paid && booking.status === 'approved' && (
-                                <Badge variant="destructive" className="mt-1">Unpaid</Badge>
-                              )}
+                              {!booking.fee_paid && booking.status === 'approved' ? (
+                                <div className="mt-2">
+                                  <StripeCheckoutButton 
+                                    bookingId={booking.id} 
+                                    amount={amenity.booking_fee}
+                                    label="Pay"
+                                  />
+                                </div>
+                              ) : booking.fee_paid ? (
+                                <Badge className="mt-1 bg-green-100 text-green-800">Paid</Badge>
+                              ) : null}
                             </div>
                           )}
                         </div>
