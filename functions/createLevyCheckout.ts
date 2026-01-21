@@ -8,6 +8,12 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'), {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    
+    const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { levyId, successUrl, cancelUrl } = await req.json();
 
     // Get levy payment details
