@@ -3,130 +3,150 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    
-    // Authenticate user
     const user = await base44.auth.me();
+
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { 
-      buildingName,
-      documentCategory,
-      searchQuery
-    } = await req.json();
+    const { building_id, search_query, search_type = 'full_text' } = await req.json();
 
-    if (!buildingName && !documentCategory && !searchQuery) {
-      return Response.json({ 
-        error: 'At least one search parameter is required' 
-      }, { status: 400 });
+    if (!search_query) {
+      return Response.json({ error: 'search_query is required' }, { status: 400 });
     }
 
-    // Find the building if specified
-    let building = null;
-    if (buildingName) {
-      const buildings = await base44.entities.Building.list();
-      building = buildings.find(b => 
-        b.name?.toLowerCase().includes(buildingName.toLowerCase())
-      );
-      
-      if (!building) {
-        return Response.json({ 
-          error: `Building "${buildingName}" not found` 
-        }, { status: 404 });
-      }
-    }
+    // Fetch all documents for the building
+    const documents = building_id 
+      ? await base44.entities.Document.filter({ building_id })
+      : await base44.entities.Document.list();
 
-    // Search for documents
-    let documents = await base44.entities.Document.list();
-    
-    // Filter by building
-    if (building) {
-      documents = documents.filter(d => d.building_id === building.id);
-    }
-    
-    // Filter by category
-    if (documentCategory) {
-      documents = documents.filter(d => 
-        d.category?.toLowerCase().includes(documentCategory.toLowerCase())
-      );
-    }
-
-    // Search in titles, descriptions, and OCR content
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      documents = documents.filter(d => 
-        d.title?.toLowerCase().includes(query) ||
-        d.description?.toLowerCase().includes(query) ||
-        d.ocr_content?.toLowerCase().includes(query) ||
-        d.ai_summary?.toLowerCase().includes(query)
-      );
-    }
-
-    // Get related bylaws if documents are bylaws-related
-    const documentIds = documents.map(d => d.id);
-    let bylaws = [];
-    
-    if (building && documentCategory?.toLowerCase().includes('bylaw')) {
-      bylaws = await base44.entities.BuildingBylaw.filter({ 
-        building_id: building.id 
+    if (documents.length === 0) {
+      return Response.json({
+        results: [],
+        suggestions: []
       });
     }
 
-    // Get strata management info if relevant
-    let strataInfo = [];
-    if (building && documentCategory?.toLowerCase().includes('strata')) {
-      strataInfo = await base44.entities.StrataManagementInfo.filter({ 
-        building_id: building.id 
+    let results = [];
+
+    if (search_type === 'full_text') {
+      // Simple text search
+      const query = search_query.toLowerCase();
+      results = documents.filter(doc => {
+        const titleMatch = doc.title?.toLowerCase().includes(query);
+        const contentMatch = doc.ocr_content?.toLowerCase().includes(query);
+        const categoryMatch = doc.category?.toLowerCase().includes(query);
+        return titleMatch || contentMatch || categoryMatch;
+      }).map(doc => ({
+        document_id: doc.id,
+        title: doc.title,
+        category: doc.category,
+        file_url: doc.file_url,
+        upload_date: doc.created_date,
+        relevance_score: doc.title?.toLowerCase().includes(query) ? 1.0 : 0.7,
+        matched_content: extractMatchedContent(doc.ocr_content, query),
+        ai_summary: doc.ai_summary,
+        key_points: extractKeyPoints(doc)
+      }));
+    } else if (search_type === 'ai_semantic') {
+      // AI semantic search
+      const aiResults = await base44.integrations.Core.InvokeLLM({
+        prompt: `User is searching for: "${search_query}"
+
+Available documents:
+${documents.map(d => `- ${d.title} (${d.category}): ${d.ai_summary || d.ocr_content?.slice(0, 200)}`).join('\n')}
+
+Return the most relevant documents ranked by relevance to the search query. For each result include:
+- document_id (from the list above, use the array index)
+- relevance_score (0-1)
+- reasoning for why it matches
+- key_points that relate to the search`,
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            results: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  document_index: { type: 'number' },
+                  relevance_score: { type: 'number' },
+                  reasoning: { type: 'string' },
+                  key_points: {
+                    type: 'array',
+                    items: { type: 'string' }
+                  }
+                }
+              }
+            },
+            suggestions: {
+              type: 'array',
+              items: { type: 'string' }
+            }
+          }
+        }
       });
+
+      results = aiResults.results.map(r => {
+        const doc = documents[r.document_index];
+        if (!doc) return null;
+        return {
+          document_id: doc.id,
+          title: doc.title,
+          category: doc.category,
+          file_url: doc.file_url,
+          upload_date: doc.created_date,
+          relevance_score: r.relevance_score,
+          ai_summary: doc.ai_summary,
+          key_points: r.key_points,
+          ai_reasoning: r.reasoning
+        };
+      }).filter(Boolean);
     }
 
-    // Format results
-    const results = documents.map(doc => ({
-      id: doc.id,
-      title: doc.title,
-      category: doc.category,
-      description: doc.description,
-      fileUrl: doc.file_url,
-      ocrContent: doc.ocr_content ? doc.ocr_content.substring(0, 2000) : null,
-      aiSummary: doc.ai_summary,
-      uploadedDate: doc.created_date,
-      expiryDate: doc.expiry_date,
-      buildingId: doc.building_id,
-      buildingName: building?.name
-    }));
+    // Sort by relevance
+    results.sort((a, b) => (b.relevance_score || 0) - (a.relevance_score || 0));
 
     return Response.json({
-      success: true,
-      building: building ? {
-        id: building.id,
-        name: building.name,
-        address: building.address
-      } : null,
-      documents: results,
-      bylaws: bylaws.map(b => ({
-        id: b.id,
-        title: b.title,
-        type: b.bylaw_type,
-        description: b.description,
-        restrictions: b.restrictions,
-        effectiveDate: b.effective_date,
-        status: b.status
-      })),
-      strataInfo: strataInfo.map(s => ({
-        id: s.id,
-        title: s.title,
-        type: s.info_type,
-        description: s.description,
-        requirements: s.requirements
-      })),
-      total: results.length
+      results: results.slice(0, 20),
+      suggestions: search_type === 'ai_semantic' ? [] : generateSuggestions(search_query)
     });
 
   } catch (error) {
-    console.error('Document search error:', error);
-    return Response.json({ 
-      error: error.message || 'Failed to search documents' 
-    }, { status: 500 });
+    console.error('Error searching documents:', error);
+    return Response.json({ error: error.message }, { status: 500 });
   }
 });
+
+function extractMatchedContent(content, query) {
+  if (!content) return [];
+  const words = query.toLowerCase().split(' ');
+  const sentences = content.split(/[.!?]+/);
+  const matches = [];
+  
+  for (const sentence of sentences) {
+    if (words.some(word => sentence.toLowerCase().includes(word))) {
+      matches.push(sentence.trim());
+      if (matches.length >= 3) break;
+    }
+  }
+  
+  return matches;
+}
+
+function extractKeyPoints(doc) {
+  const points = [];
+  if (doc.category) points.push(doc.category.replace(/_/g, ' '));
+  if (doc.subcategory) points.push(doc.subcategory);
+  if (doc.tags && Array.isArray(doc.tags)) points.push(...doc.tags);
+  return points.slice(0, 5);
+}
+
+function generateSuggestions(query) {
+  const suggestions = [];
+  if (query.includes('fire')) suggestions.push('fire safety', 'fire protection systems');
+  if (query.includes('lift')) suggestions.push('elevator', 'vertical transportation');
+  if (query.includes('water')) suggestions.push('plumbing', 'hydraulic systems');
+  if (query.includes('electric')) suggestions.push('electrical systems', 'power distribution');
+  return suggestions.slice(0, 3);
+}
