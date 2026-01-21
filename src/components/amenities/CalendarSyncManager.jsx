@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Check, Loader2, RefreshCw, AlertCircle } from 'lucide-react';
+import OutlookCalendarSync from './OutlookCalendarSync';
 import { toast } from 'sonner';
 
 export default function CalendarSyncManager() {
@@ -68,6 +69,9 @@ export default function CalendarSyncManager() {
   }
 
   return (
+    <div className="space-y-6">
+      <OutlookCalendarSync />
+      
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
@@ -151,5 +155,6 @@ export default function CalendarSyncManager() {
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 }
