@@ -50,6 +50,7 @@ import Visitors from './pages/Visitors';
 import VividStaffManagement from './pages/VividStaffManagement';
 import VotingCenter from './pages/VotingCenter';
 import WorkOrders from './pages/WorkOrders';
+import PredictiveMaintenance from './pages/PredictiveMaintenance';
 import __Layout from './Layout.jsx';
 
 
@@ -106,6 +107,7 @@ export const PAGES = {
     "VividStaffManagement": VividStaffManagement,
     "VotingCenter": VotingCenter,
     "WorkOrders": WorkOrders,
+    "PredictiveMaintenance": PredictiveMaintenance,
 }
 
 export const pagesConfig = {
