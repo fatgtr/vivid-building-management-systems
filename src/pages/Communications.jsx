@@ -21,6 +21,8 @@ import ChatInterface from '@/components/communications/ChatInterface';
 import ChatList from '@/components/communications/ChatList';
 import BroadcastComposer from '@/components/communications/BroadcastComposer';
 import EventRSVPCard from '@/components/communications/EventRSVPCard';
+import DirectMessaging from '@/components/communications/DirectMessaging';
+import AnnouncementPushNotifier from '@/components/communications/AnnouncementPushNotifier';
 
 
 import { 
@@ -384,15 +386,7 @@ export default function Communications() {
         </TabsList>
 
         <TabsContent value="chat" className="mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Your Chats</h3>
-              <ChatList chats={userChats} userEmail={user.email} onSelectChat={setSelectedChat} selectedChatId={selectedChat?.id} />
-            </div>
-            <div className="lg:col-span-2">
-              <ChatInterface chat={selectedChat} userEmail={user.email} onClose={() => setSelectedChat(null)} />
-            </div>
-          </div>
+          <DirectMessaging buildingId={selectedBuildingId} />
         </TabsContent>
 
         <TabsContent value="broadcast" className="mt-6">
