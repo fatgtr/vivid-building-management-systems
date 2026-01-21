@@ -11,72 +11,72 @@ Deno.serve(async (req) => {
 
     const { building_id, months_ahead = 6 } = await req.json();
 
-    // Fetch historical energy usage
+    if (!building_id) {
+      return Response.json({ error: 'building_id is required' }, { status: 400 });
+    }
+
+    // Fetch historical energy data
     const energyData = await base44.entities.EnergyUsage.filter({ building_id });
-    
-    // Sort by date
-    const sortedData = energyData.sort((a, b) => 
-      new Date(a.reading_date) - new Date(b.reading_date)
-    );
 
-    // Get building details
-    const building = await base44.entities.Building.get(building_id);
+    if (energyData.length === 0) {
+      return Response.json({
+        predictions: {
+          monthly_predictions: [],
+          total_predicted_cost: 0,
+          confidence_level: 'low',
+          risk_factors: ['Insufficient historical data for accurate predictions']
+        }
+      });
+    }
 
-    const predictionPrompt = `Based on the following historical energy usage data, predict future energy costs:
+    // Use AI to predict future costs
+    const predictions = await base44.integrations.Core.InvokeLLM({
+      prompt: `Based on this historical energy usage data, predict the next ${months_ahead} months of energy costs:
 
-Historical Data (${sortedData.length} readings):
-${sortedData.slice(-24).map(d => `
-- Date: ${d.reading_date}
-- Energy Type: ${d.energy_type}
-- Consumption: ${d.consumption_kwh} kWh
-- Cost: $${d.cost || 'N/A'}
-- Temperature: ${d.temperature_avg || 'N/A'}°C
-`).join('\n')}
+Historical data: ${JSON.stringify(energyData.slice(-12))}
 
-Building: ${building.name} (${building.building_type}, ${building.total_units} units)
-
-Please predict energy consumption and costs for the next ${months_ahead} months, considering:
-1. Historical consumption patterns
-2. Seasonal variations
-3. Typical energy price trends
-4. Building characteristics
-
-Provide monthly predictions with confidence levels and factors influencing each prediction.`;
-
-    const { data: predictions } = await base44.integrations.Core.InvokeLLM({
-      prompt: predictionPrompt,
+Provide monthly predictions with:
+1. Month name
+2. Predicted consumption (kWh)
+3. Predicted cost
+4. Confidence level (high/medium/low)
+5. Key factors affecting this month
+6. Overall risk factors
+7. Cost optimization opportunities`,
       response_json_schema: {
-        type: "object",
+        type: 'object',
         properties: {
           monthly_predictions: {
-            type: "array",
+            type: 'array',
             items: {
-              type: "object",
+              type: 'object',
               properties: {
-                month: { type: "string" },
-                predicted_consumption_kwh: { type: "number" },
-                predicted_cost: { type: "number" },
-                confidence_level: { type: "string", enum: ["high", "medium", "low"] },
+                month: { type: 'string' },
+                predicted_consumption_kwh: { type: 'number' },
+                predicted_cost: { type: 'number' },
+                confidence_level: { type: 'string', enum: ['high', 'medium', 'low'] },
                 key_factors: {
-                  type: "array",
-                  items: { type: "string" }
+                  type: 'array',
+                  items: { type: 'string' }
                 }
               }
             }
           },
-          total_predicted_cost: { type: "number" },
-          cost_trend: { type: "string" },
+          total_predicted_cost: { type: 'number' },
+          confidence_level: { type: 'string', enum: ['high', 'medium', 'low'] },
           risk_factors: {
-            type: "array",
-            items: { type: "string" }
+            type: 'array',
+            items: { type: 'string' }
           },
           cost_optimization_opportunities: {
-            type: "array",
+            type: 'array',
             items: {
-              type: "object",
+              type: 'object',
               properties: {
-                opportunity: { type: "string" },
-                potential_savings: { type: "number" }
+                title: { type: 'string' },
+                description: { type: 'string' },
+                estimated_savings: { type: 'number' },
+                implementation_difficulty: { type: 'string', enum: ['easy', 'medium', 'hard'] }
               }
             }
           }
@@ -84,12 +84,10 @@ Provide monthly predictions with confidence levels and factors influencing each 
       }
     });
 
-    return Response.json({
-      success: true,
-      predictions,
-      building_name: building.name
-    });
+    return Response.json({ predictions });
+
   } catch (error) {
+    console.error('Error predicting energy costs:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
