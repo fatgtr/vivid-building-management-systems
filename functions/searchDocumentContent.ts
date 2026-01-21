@@ -9,7 +9,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { building_id, search_query, search_type = 'full_text' } = await req.json();
+    const payload = await req.json();
+    const { building_id, search_query, search_type = 'full_text' } = payload || {};
 
     if (!search_query) {
       return Response.json({ error: 'search_query is required' }, { status: 400 });
@@ -49,15 +50,16 @@ Deno.serve(async (req) => {
         key_points: extractKeyPoints(doc)
       }));
     } else if (search_type === 'ai_semantic') {
-      // AI semantic search
+      // AI semantic search - limit to top 20 documents to avoid timeout
+      const limitedDocs = documents.slice(0, 20);
       const aiResults = await base44.integrations.Core.InvokeLLM({
         prompt: `User is searching for: "${search_query}"
 
 Available documents:
-${documents.map(d => `- ${d.title} (${d.category}): ${d.ai_summary || d.ocr_content?.slice(0, 200)}`).join('\n')}
+${limitedDocs.map((d, i) => `${i}. ${d.title} (${d.category}): ${d.ai_summary || d.ocr_content?.slice(0, 150) || 'No content'}`).join('\n')}
 
 Return the most relevant documents ranked by relevance to the search query. For each result include:
-- document_id (from the list above, use the array index)
+- document_index (0-${limitedDocs.length - 1})
 - relevance_score (0-1)
 - reasoning for why it matches
 - key_points that relate to the search`,
@@ -87,8 +89,8 @@ Return the most relevant documents ranked by relevance to the search query. For 
         }
       });
 
-      results = aiResults.results.map(r => {
-        const doc = documents[r.document_index];
+      results = (aiResults.results || []).map(r => {
+        const doc = limitedDocs[r.document_index];
         if (!doc) return null;
         return {
           document_id: doc.id,
