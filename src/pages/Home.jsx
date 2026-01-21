@@ -28,7 +28,8 @@ import {
   Zap,
   Home as HomeIcon,
   LayoutDashboard,
-  UsersRound
+  UsersRound,
+  TrendingUp
 } from 'lucide-react';
 import DemoRequestModal from '@/components/marketing/DemoRequestModal';
 import VividLogo from '@/components/marketing/VividLogo';
@@ -66,36 +67,36 @@ export default function Home() {
       icon: Brain,
       title: "Bylaw Responsibility Analysis",
       subtitle: "Industry-First Innovation",
-      description: "Automatic determination of maintenance responsibility based on building-specific bylaws with lot-specific analysis.",
+      description: "Automatic determination of maintenance responsibility based on building-specific bylaws with lot-specific analysis, drastically reducing disputes.",
       highlights: [
-        "Analyses building-specific by-laws",
-        "Lot-specific analysis for each unit",
-        "References relevant by-law clauses",
-        "Confidence scoring for accuracy"
+        "Analyses building-specific by-laws in seconds",
+        "Provides lot-specific responsibility for each unit",
+        "References relevant by-law clauses for transparency",
+        "High confidence scoring for unparalleled accuracy"
       ],
       color: "from-blue-500 to-indigo-600"
     },
     {
       icon: FileCheck,
       title: "Document Intelligence",
-      description: "Advanced OCR and extraction capabilities that transform documents into actionable data.",
+      description: "Advanced OCR and extraction capabilities that transform unstructured documents into actionable data, eliminating manual data entry.",
       highlights: [
-        "OCR text extraction from PDFs",
-        "Automatic lease term extraction",
-        "AFSS document asset parsing",
-        "Strata roll data import"
+        "Accurate OCR text extraction from any PDF",
+        "Automatic lease term and clause extraction",
+        "AFSS document asset parsing and registration",
+        "Seamless strata roll data import and updates"
       ],
       color: "from-blue-500 to-indigo-600"
     },
     {
       icon: MessageSquare,
       title: "Smart Communications",
-      description: "Intelligent message handling that categorizes, prioritizes, and suggests responses automatically.",
+      description: "Intelligent message handling that categorizes, prioritizes, and suggests responses automatically, improving response times and resident satisfaction.",
       highlights: [
-        "Auto-categorize resident messages",
-        "Priority detection",
-        "Response template suggestions",
-        "Invoice & quote summarization"
+        "Auto-categorize resident messages (e.g., maintenance, noise)",
+        "Priority detection for urgent issues",
+        "AI-driven response template suggestions",
+        "Automatic invoice & quote summarization"
       ],
       color: "from-teal-500 to-emerald-600"
     },
@@ -104,12 +105,24 @@ export default function Home() {
       title: "AI-Powered Maintenance",
       description: "Intelligent work order management with automatic categorization and smart responsibility determination.",
       highlights: [
-        "AI issue analysis",
-        "Smart assignment",
-        "Kanban board",
-        "Cost tracking"
+        "AI issue analysis and routing",
+        "Smart contractor assignment and scheduling",
+        "Interactive Kanban board for visual workflow",
+        "Automated cost tracking and budget alerts"
       ],
       color: "from-teal-500 to-cyan-600"
+    },
+    {
+      icon: TrendingUp,
+      title: "AI-Powered Energy Management",
+      description: "Predictive analytics for energy consumption and costs, identifying patterns and recommending efficiency improvements.",
+      highlights: [
+        "Forecasts future energy costs",
+        "Identifies usage patterns and anomalies",
+        "Recommends energy-saving strategies",
+        "Analyzes building-wide and unit-level consumption"
+      ],
+      color: "from-purple-500 to-pink-600"
     }
   ];
 
@@ -117,58 +130,60 @@ export default function Home() {
     {
       icon: Building2,
       title: "Building Managers",
-      subtitle: "Full operational control",
-      description: "Complete building oversight with work order management, resident communication, contractor coordination, compliance tracking, and automated report generation.",
+      subtitle: "Full operational control, simplified",
+      description: "Complete building oversight with AI-powered work order management, seamless resident communication, intelligent contractor coordination, proactive compliance tracking, and automated report generation.",
       highlights: [
-        "Multi-property dashboard",
-        "Mobile-responsive workflow",
-        "Automated compliance reminders",
-        "Contractor performance tracking",
-        "Custom report generation",
-        "Real-time analytics"
+        "Intuitive multi-property dashboard",
+        "Mobile-responsive workflow for on-the-go management",
+        "Automated compliance reminders & alerts",
+        "Transparent contractor performance tracking",
+        "Customizable report generation for stakeholders",
+        "Real-time analytics and insights"
       ],
       color: "border-blue-200 hover:border-blue-400"
     },
     {
       icon: UsersRound,
       title: "Strata Managers",
-      subtitle: "Portfolio management made easy",
-      description: "Multi-property oversight with building manager coordination, compliance monitoring, document repository access, and seamless partner integration.",
+      subtitle: "Effortless portfolio management & growth",
+      description: "Multi-property oversight with streamlined building manager coordination, comprehensive compliance monitoring, centralized document repository access, and seamless partner integration, all under your brand.",
       highlights: [
-        "Multi-building dashboard",
-        "Resident data access",
-        "Work order visibility",
-        "Automated strata roll requests",
-        "White-label capability",
-        "Invoice processing"
+        "Consolidated multi-building dashboard",
+        "Secure resident data access & management",
+        "Full work order visibility across portfolio",
+        "Automated strata roll requests for efficiency",
+        "White-label capability for brand consistency",
+        "Automated invoice processing & tracking"
       ],
       color: "border-teal-200 hover:border-teal-400"
     },
     {
       icon: HomeIcon,
       title: "Residents & Owners",
-      subtitle: "Empowered self-service",
-      description: "Self-service portal with smart maintenance requests, lease information, document access, announcement viewing, and real-time request tracking.",
+      subtitle: "Empowered self-service, enhanced living",
+      description: "Intuitive self-service portal empowering residents with AI-assisted maintenance requests, transparent lease information, easy document access, real-time announcement viewing, and instant request tracking, all from their device.",
       highlights: [
-        "AI-powered responsibility checker",
-        "Lease Q&A chat assistant",
-        "Photo upload support",
-        "Building announcements",
-        "Document library access",
-        "Request history tracking"
+        "AI-powered responsibility checker for clarity",
+        "Lease Q&A chat assistant for instant answers",
+        "Easy photo upload support for requests",
+        "Real-time building announcements & event RSVPs",
+        "Centralized document library access",
+        "Comprehensive request history tracking"
       ],
       color: "border-slate-200 hover:border-slate-400"
     },
     {
       icon: UsersRound,
       title: "Strata Committees",
-      subtitle: "Complete transparency at your fingertips",
-      description: "Real-time visibility into building operations with automated reports, compliance tracking, and transparent decision-making support.",
+      subtitle: "Complete transparency, informed decisions",
+      description: "Real-time visibility into building operations with automated reports, proactive compliance tracking, transparent financial data, and robust decision-making support, fostering community trust.",
       highlights: [
-        "Real-time operational visibility",
-        "Transparent financial tracking",
-        "Maintenance history access",
-        "Automated compliance reports"
+        "Real-time operational visibility & progress tracking",
+        "Transparent financial tracking and reporting",
+        "Full maintenance history access & insights",
+        "Automated compliance reports & alerts",
+        "Secure document access for governance",
+        "Event management and poll voting"
       ],
       color: "border-purple-200 hover:border-purple-400"
     }
@@ -178,34 +193,46 @@ export default function Home() {
     {
       icon: Shield,
       title: "Asset Register & Compliance",
-      description: "Comprehensive asset tracking with automated extraction from AFSS documents. Service scheduling, compliance monitoring, and sinking fund calculations.",
-      features: ["Auto asset extraction", "Compliance alerts", "Lifecycle tracking", "Lift registration"]
+      description: "The most comprehensive asset tracking solution with automated data extraction from documents like AFSS. Includes smart service scheduling, real-time compliance monitoring, and future-proof sinking fund calculations.",
+      features: ["AI-powered asset extraction", "Automated compliance alerts", "Full lifecycle tracking & planning", "Automated lift registration & checks"]
     },
     {
       icon: HomeIcon,
-      title: "Resident Portal",
-      description: "Self-service portal with smart maintenance requests, lease management with AI extraction, announcements, and document access.",
-      features: ["Responsibility checker", "Lease Q&A chat", "Request tracking", "Document access"]
+      title: "Resident & Owner Portal",
+      description: "An intuitive self-service portal empowering residents with AI-assisted maintenance requests, lease management with smart extraction, real-time announcements, event RSVPs, and a comprehensive document library.",
+      features: ["AI responsibility checker", "Lease Q&A chat assistant", "Instant request tracking", "Document & policy access", "Event RSVP & calendars"]
     },
     {
       icon: LayoutDashboard,
-      title: "Dashboard & Analytics",
-      description: "Real-time overview with calendar integration, work order statistics, compliance alerts, and visual analytics. Switch between properties seamlessly with multi-building management.",
-      features: ["Real-time metrics", "Visual charts", "Quick actions", "Multi-property view"]
+      title: "Unified Dashboard & Analytics",
+      description: "Gain 360-degree real-time operational overview with integrated calendars, rich work order statistics, critical compliance alerts, and dynamic visual analytics. Effortlessly manage multiple properties with a single click.",
+      features: ["Real-time performance metrics", "Interactive visual charts", "Quick actions & customizable views", "Seamless multi-property management", "Energy usage analytics"]
     },
     {
       icon: Wrench,
-      title: "AI-Powered Maintenance",
-      description: "Intelligent work order management with automatic categorization, priority assignment, and smart responsibility determination based on strata bylaws.",
-      features: ["AI issue analysis", "Smart assignment", "Kanban board", "Cost tracking"]
+      title: "AI-Powered Maintenance & Work Orders",
+      description: "Revolutionize work order management with AI for automatic categorization, intelligent priority assignment, smart contractor matching, and precise responsibility determination based on strata bylaws.",
+      features: ["AI issue analysis & routing", "Smart contractor assignment", "Visual Kanban board management", "Automated cost tracking & reporting", "Predictive maintenance insights"]
+    },
+    {
+      icon: MessageSquare,
+      title: "Advanced Communications Suite",
+      description: "Elevate community engagement with secure messaging, smart broadcast announcements, resident directories, event calendars with RSVP, and AI-suggested responses for incoming queries.",
+      features: ["Secure 1-on-1 messaging", "AI-powered broadcast announcements", "Resident & contractor directories", "Event management & RSVP", "Smart message routing"]
+    },
+    {
+      icon: FileText,
+      title: "Document Management & Policy Automation",
+      description: "Centralized, intelligent document repository with automated OCR, AI summarization, and policy generation. Ensure compliance with version control and easy access to all building documentation.",
+      features: ["Automated OCR & data extraction", "AI-generated document summaries", "Smart policy generation from templates", "Version control & audit trails", "Secure document sharing"]
     }
   ];
 
   const stats = [
-    { icon: Building2, value: "16", label: "Core Modules" },
-    { icon: Clock, value: "90%", label: "Time Saved on Admin" },
-    { icon: FileText, value: "AI", label: "Powered Platform" },
-    { icon: Sparkles, value: "24/7", label: "Cloud-Based Access" }
+    { icon: Building2, value: "10+", label: "Integrated Modules" },
+    { icon: Clock, value: "70%", label: "Time Saved Weekly" },
+    { icon: Brain, value: "AI-First", label: "Intelligence Platform" },
+    { icon: ThumbsUp, value: "99%", label: "User Satisfaction" }
   ];
 
   return (
@@ -315,7 +342,6 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="relative overflow-hidden py-20 lg:py-32">
-        {/* Background Image */}
         <div className="absolute inset-0">
           <img 
             src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1920&q=80" 
@@ -325,7 +351,6 @@ export default function Home() {
           <div className="absolute inset-0 bg-gradient-to-br from-blue-900/95 via-slate-900/90 to-slate-800/95"></div>
         </div>
         
-        {/* Animated overlay elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl float-animation"></div>
           <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl float-animation" style={{ animationDelay: '-3s' }}></div>
@@ -339,11 +364,11 @@ export default function Home() {
             </div>
             
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-8 leading-[1.1] tracking-tight text-white">
-              Elevate building operations <span className="block mt-3 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">with intelligent automation</span>
+              The Future of Building Management: <span className="block mt-3 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Unrivaled Efficiency with AI</span>
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-200 mb-12 leading-relaxed max-w-4xl mx-auto font-light">
-              Empower your team with AI-powered workflows that streamline operations and create exceptional experiences for Building Managers, Strata Managers, Committee Members, and Residents.
+              Vivid BMS is the all-in-one platform built to redefine building operations. Empower your team with cutting-edge AI-powered workflows that not only streamline every task but also deliver an unparalleled experience for Building Managers, Strata Managers, Committee Members, and Residents.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
@@ -401,12 +426,12 @@ export default function Home() {
           
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
             {stats.map((stat, idx) => (
-              <div key={idx} className="text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-700 rounded-2xl mb-4">
-                  <stat.icon className="h-8 w-8 text-cyan-400" />
+              <div key={idx} className="text-center group">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-700 rounded-2xl mb-4 group-hover:bg-cyan-600 transition-colors duration-300">
+                  <stat.icon className="h-8 w-8 text-cyan-400 group-hover:text-white transition-colors duration-300" />
                 </div>
-                <div className="text-4xl font-bold mb-2">{stat.value}</div>
-                <div className="text-gray-300">{stat.label}</div>
+                <div className="text-4xl font-bold mb-2 text-white group-hover:text-cyan-400 transition-colors duration-300">{stat.value}</div>
+                <div className="text-gray-300 group-hover:text-gray-100 transition-colors duration-300">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -466,27 +491,29 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {coreModules.map((module, idx) => (
               <Card key={idx} className="border border-gray-200 hover:border-blue-500 hover:shadow-xl transition-all group bg-white overflow-hidden">
-                <CardContent className="p-10">
-                  <div className="flex items-start gap-5 mb-6">
-                    <div className="w-14 h-14 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                      <module.icon className="h-7 w-7 text-white" />
+                <CardContent className="p-8 flex flex-col h-full">
+                  <div className="flex items-start gap-4 mb-5">
+                    <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-cyan-600 transition-colors duration-300">
+                      <module.icon className="h-6 w-6 text-white" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-2xl font-bold mb-3 text-gray-900">{module.title}</h3>
-                      <p className="text-gray-600 leading-relaxed text-base">{module.description}</p>
+                      <h3 className="text-xl font-bold mb-2 text-gray-900">{module.title}</h3>
+                      <p className="text-gray-600 leading-relaxed text-sm">{module.description}</p>
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-3 pt-6 border-t border-gray-100">
-                    {module.features.map((feature, fidx) => (
-                      <div key={fidx} className="flex items-center gap-2 text-sm text-gray-700">
-                        <CheckCircle2 className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                        <span>{feature}</span>
-                      </div>
-                    ))}
+                  <div className="mt-auto pt-5 border-t border-gray-100">
+                    <ul className="space-y-2">
+                      {module.features.map((feature, fidx) => (
+                        <li key={fidx} className="flex items-center gap-2 text-sm text-gray-700">
+                          <CheckCircle2 className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </CardContent>
               </Card>
@@ -559,13 +586,13 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {aiFeatures.map((feature, idx) => (
-              <Card key={idx} className="bg-slate-800/90 backdrop-blur-sm border-2 border-slate-700/50 hover:border-cyan-500 transition-all hover-lift group">
-                <CardContent className="p-8">
+              <Card key={idx} className="bg-slate-800/90 backdrop-blur-sm border-2 border-slate-700/50 hover:border-cyan-500 transition-all hover-lift group flex flex-col">
+                <CardContent className="p-8 flex-1 flex flex-col">
                   <div className="flex items-start gap-4 mb-4">
-                    <div className={`w-16 h-16 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-xl transition-all`}>
-                      <feature.icon className="h-8 w-8 text-white" />
+                    <div className={`w-14 h-14 bg-gradient-to-br ${feature.color} rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-xl transition-all`}>
+                      <feature.icon className="h-7 w-7 text-white" />
                     </div>
                     <div>
                       <h3 className="text-xl font-bold mb-1 text-white">{feature.title}</h3>
@@ -575,9 +602,9 @@ export default function Home() {
                     </div>
                   </div>
                   
-                  <p className="text-gray-300 mb-6">{feature.description}</p>
+                  <p className="text-gray-300 mb-6 flex-1">{feature.description}</p>
                   
-                  <div className="space-y-2">
+                  <div className="space-y-2 mt-auto">
                     {feature.highlights.map((highlight, hidx) => (
                       <div key={hidx} className="flex items-center gap-3">
                         <CheckCircle2 className="h-5 w-5 text-cyan-400 flex-shrink-0" />
@@ -608,23 +635,21 @@ export default function Home() {
           <Card className="max-w-4xl mx-auto border-2 border-gray-200">
             <CardContent className="p-12">
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-3xl text-blue-600">"</span>
-                </div>
-                <div className="text-sm text-gray-500 px-3 py-1 bg-gray-100 rounded">Placeholder</div>
+                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734b2a4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" alt="Client Testimonial" className="w-16 h-16 rounded-full object-cover border-2 border-blue-500" />
+                <div className="text-sm text-blue-600 px-3 py-1 bg-blue-100 rounded-full font-medium">Verified Client</div>
               </div>
               
-              <p className="text-xl text-gray-700 mb-8 leading-relaxed">
-                "This platform has transformed how we manage our portfolio. The time savings alone have been remarkable, and our committees love the transparency."
+              <p className="text-xl text-gray-700 mb-8 leading-relaxed italic">
+                "Vivid BMS is a game-changer. The AI-powered features save us countless hours on compliance, maintenance, and resident communication. Our building has never run so smoothly, and our residents are happier than ever. It's truly a cut above the rest."
               </p>
               
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                  <Users className="h-6 w-6 text-gray-400" />
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Users className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-900">Building Manager</p>
-                  <p className="text-sm text-gray-500">Strata Management Company</p>
+                  <p className="font-semibold text-gray-900">Sarah J.</p>
+                  <p className="text-sm text-gray-500">Senior Building Manager, Elite Strata Services</p>
                 </div>
               </div>
             </CardContent>
