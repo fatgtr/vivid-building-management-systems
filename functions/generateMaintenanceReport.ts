@@ -251,17 +251,16 @@ Analyze this data and provide:
         for (const wo of workOrders.slice(0, 20)) { // Limit to 20 work orders for PDF size
             checkPageBreak(80);
 
-            // Work order box
-            doc.setFillColor(249, 250, 251);
-            doc.roundedRect(15, yPos, pageWidth - 30, 'auto', 2, 2, 'F');
+            // Work order separator line
             doc.setDrawColor(229, 231, 235);
             doc.setLineWidth(0.5);
             doc.line(15, yPos, pageWidth - 15, yPos);
+            yPos += 5;
 
-            addText(wo.title, 20, yPos + 6, 11, 'bold', [15, 23, 42]);
-            yPos += 12;
+            addText(wo.title, 20, yPos, 11, 'bold', [15, 23, 42]);
+            yPos += 8;
 
-            addText(`Category: ${wo.category} | Priority: ${wo.priority} | Status: ${wo.status}`, 20, yPos, 8, 'normal', [100, 116, 139]);
+            addText(`Category: ${wo.main_category || wo.category || 'N/A'} | Priority: ${wo.priority} | Status: ${wo.status}`, 20, yPos, 8, 'normal', [100, 116, 139]);
             yPos += 6;
 
             if (wo.description) {
