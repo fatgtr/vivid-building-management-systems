@@ -48,11 +48,15 @@ Deno.serve(async (req) => {
         const endDateStr = endDate.toISOString().split('T')[0];
 
         // Fetch all necessary data
-        const [building, allWorkOrders, residents, contractors] = await Promise.all([
+        const [building, allWorkOrders, residents, contractors, maintenanceSchedules, assets, inspections, documents] = await Promise.all([
             base44.asServiceRole.entities.Building.get(buildingId),
             base44.asServiceRole.entities.WorkOrder.filter({ building_id: buildingId }),
             base44.asServiceRole.entities.Resident.filter({ building_id: buildingId }),
-            base44.asServiceRole.entities.Contractor.list()
+            base44.asServiceRole.entities.Contractor.list(),
+            base44.asServiceRole.entities.MaintenanceSchedule.filter({ building_id: buildingId }).catch(() => []),
+            base44.asServiceRole.entities.Asset.filter({ building_id: buildingId }).catch(() => []),
+            base44.asServiceRole.entities.Inspection.filter({ building_id: buildingId }).catch(() => []),
+            base44.asServiceRole.entities.Document.filter({ building_id: buildingId }).catch(() => [])
         ]);
 
         // Filter work orders by date range and other criteria
@@ -92,37 +96,104 @@ Deno.serve(async (req) => {
             building.strata_managing_agent_email
         ].filter(e => e);
 
+        // Categorize work orders
+        const completedWorkOrders = workOrders.filter(wo => wo.status === 'completed');
+        const pendingWorkOrders = workOrders.filter(wo => wo.status === 'open' || wo.status === 'in_progress');
+        const residentReported = workOrders.filter(wo => wo.reported_by && residents.find(r => r.email === wo.reported_by));
+        
+        // Scheduled maintenance in date range
+        const scheduledMaintenance = maintenanceSchedules.filter(ms => {
+            if (!ms.next_due_date) return false;
+            const dueDate = new Date(ms.next_due_date);
+            return dueDate >= startDate && dueDate <= endDate;
+        });
+        
+        const overdueMaintenance = maintenanceSchedules.filter(ms => {
+            if (!ms.next_due_date) return false;
+            return new Date(ms.next_due_date) < now && ms.status !== 'completed';
+        });
+
+        // Inspections in date range
+        const completedInspections = inspections.filter(insp => {
+            if (!insp.inspection_date) return false;
+            const inspDate = new Date(insp.inspection_date);
+            return inspDate >= startDate && inspDate <= endDate && insp.status === 'completed';
+        });
+
+        // Defects and critical issues
+        const defects = workOrders.filter(wo => 
+            wo.priority === 'urgent' || wo.priority === 'high' || 
+            wo.title?.toLowerCase().includes('defect') || 
+            wo.description?.toLowerCase().includes('defect')
+        );
+
+        // Assets requiring attention
+        const criticalAssets = assets.filter(a => 
+            a.operational_status === 'degraded' || 
+            a.operational_status === 'down' ||
+            a.health_score < 50 ||
+            (a.next_service_date && new Date(a.next_service_date) < now)
+        );
+
+        // Calculate costs
+        const totalCost = workOrders.reduce((sum, wo) => sum + (wo.actual_cost || wo.estimated_cost || 0), 0);
+        const maintenanceCost = completedWorkOrders.reduce((sum, wo) => sum + (wo.actual_cost || 0), 0);
+        const pendingEstimatedCost = pendingWorkOrders.reduce((sum, wo) => sum + (wo.estimated_cost || 0), 0);
+
         // Prepare data for AI analysis
         const workOrderSummary = workOrders.map(wo => ({
             title: wo.title,
-            category: wo.category,
+            category: wo.main_category || wo.category,
             priority: wo.priority,
             status: wo.status,
             created_date: wo.created_date,
             completed_date: wo.completed_date,
             estimated_cost: wo.estimated_cost,
             actual_cost: wo.actual_cost,
+            is_resident_reported: !!residents.find(r => r.email === wo.reported_by),
             description: wo.description,
         }));
 
-        // Enhanced AI Analysis with pattern recognition and predictions
+        // Enhanced AI Analysis with comprehensive data
         const analysisPrompt = `You are an expert building maintenance analyst generating a comprehensive report with predictive insights.
 
 Building: ${building.name}
 Report Period: ${startDateStr} to ${endDateStr}
-Total Work Orders: ${workOrders.length}
 
-Work Orders Summary:
-${JSON.stringify(workOrderSummary, null, 2)}
+WORK ORDERS (${workOrders.length} total):
+- Completed: ${completedWorkOrders.length}
+- Pending: ${pendingWorkOrders.length}
+- Resident Reported: ${residentReported.length}
+- Defects/Critical: ${defects.length}
 
-Analyze this data and provide:
-1. Executive summary (2-3 sentences highlighting the period's maintenance activity)
-2. Key metrics (total orders, completion rate, average resolution time, total costs)
+SCHEDULED MAINTENANCE:
+- Due in Period: ${scheduledMaintenance.length}
+- Overdue: ${overdueMaintenance.length}
+
+INSPECTIONS:
+- Completed: ${completedInspections.length}
+
+ASSETS:
+- Critical Attention Required: ${criticalAssets.length}
+
+COSTS:
+- Total Actual Cost: $${totalCost.toFixed(2)}
+- Completed Work Cost: $${maintenanceCost.toFixed(2)}
+- Pending Estimated Cost: $${pendingEstimatedCost.toFixed(2)}
+
+Work Orders Detail:
+${JSON.stringify(workOrderSummary.slice(-30), null, 2)}
+
+Analyze this comprehensive data and provide:
+1. Executive summary (2-3 sentences covering all activity types)
+2. Key metrics across all categories
 3. Top recurring issues with their frequency
-4. Pattern analysis: Identify categories/priorities that lead to increased costs or longer resolution times
-5. Predictive maintenance alerts: Forecast potential future issues based on historical data and recurring patterns
+4. Pattern analysis: Categories/priorities affecting costs and timelines
+5. Predictive maintenance alerts based on historical data and asset conditions
 6. Proactive recommendations with specific actions and estimated savings
-7. Budget insights and cost optimization opportunities`;
+7. Budget insights and cost optimization opportunities
+8. Service quality assessment for resident-reported issues
+9. Compliance and safety observations from inspections and defects`;
 
         const analysisSchema = {
             type: "object",
@@ -178,7 +249,9 @@ Analyze this data and provide:
                         }
                     }
                 },
-                budget_insights: { type: "string" }
+                budget_insights: { type: "string" },
+                service_quality_score: { type: "number" },
+                compliance_notes: { type: "string" }
             }
         };
 
@@ -243,10 +316,10 @@ Analyze this data and provide:
         yPos += 10;
 
         const metrics = [
-            { label: 'Total Work Orders', value: analysis.total_work_orders || workOrders.length, color: [37, 99, 235] },
-            { label: 'Completed', value: analysis.completed_work_orders || workOrders.filter(w => w.status === 'completed').length, color: [34, 197, 94] },
-            { label: 'Total Cost', value: `$${(analysis.total_cost || workOrders.reduce((sum, w) => sum + (w.actual_cost || w.estimated_cost || 0), 0)).toLocaleString()}`, color: [251, 146, 60] },
-            { label: 'Avg Resolution', value: `${Math.round(analysis.average_resolution_days || 7)} days`, color: [168, 85, 247] }
+            { label: 'Total Work Orders', value: workOrders.length, color: [37, 99, 235] },
+            { label: 'Completed', value: completedWorkOrders.length, color: [34, 197, 94] },
+            { label: 'Pending', value: pendingWorkOrders.length, color: [251, 146, 60] },
+            { label: 'Total Cost', value: `$${totalCost.toLocaleString()}`, color: [168, 85, 247] }
         ];
 
         const boxWidth = (pageWidth - 50) / 4;
@@ -262,15 +335,129 @@ Analyze this data and provide:
         });
         yPos += 35;
 
+        // Scheduled Maintenance Summary
+        checkPageBreak(50);
+        addText('Scheduled Maintenance', 20, yPos, 14, 'bold', [15, 23, 42]);
+        yPos += 8;
+
+        const scheduleMetrics = [
+            { label: 'Completed Tasks', value: scheduledMaintenance.filter(m => m.status === 'completed').length, color: [34, 197, 94] },
+            { label: 'Due This Period', value: scheduledMaintenance.length, color: [251, 146, 60] },
+            { label: 'Overdue Tasks', value: overdueMaintenance.length, color: [220, 38, 38] },
+            { label: 'Total Schedules', value: maintenanceSchedules.length, color: [37, 99, 235] }
+        ];
+
+        const miniBoxWidth = (pageWidth - 50) / 4;
+        scheduleMetrics.forEach((metric, idx) => {
+            const xPos = 15 + (idx * (miniBoxWidth + 5));
+            doc.setFillColor(250, 250, 250);
+            doc.roundedRect(xPos, yPos, miniBoxWidth, 20, 2, 2, 'F');
+            doc.setDrawColor(229, 231, 235);
+            doc.roundedRect(xPos, yPos, miniBoxWidth, 20, 2, 2, 'S');
+            
+            addText(metric.value.toString(), xPos + 5, yPos + 10, 12, 'bold', metric.color);
+            addText(metric.label, xPos + 5, yPos + 16, 7, 'normal', [100, 116, 139]);
+        });
+        yPos += 28;
+
+        // Overdue Maintenance Details
+        if (overdueMaintenance.length > 0) {
+            checkPageBreak(30);
+            addText('⚠ Overdue Maintenance Tasks', 20, yPos, 12, 'bold', [220, 38, 38]);
+            yPos += 8;
+            
+            overdueMaintenance.slice(0, 5).forEach((task) => {
+                checkPageBreak(15);
+                doc.setFillColor(254, 242, 242);
+                doc.roundedRect(15, yPos, pageWidth - 30, 12, 2, 2, 'F');
+                addText(`• ${task.task_name || task.asset_name || 'Maintenance Task'}`, 20, yPos + 6, 9, 'normal', [15, 23, 42]);
+                addText(`Due: ${task.next_due_date ? new Date(task.next_due_date).toLocaleDateString() : 'N/A'}`, pageWidth - 60, yPos + 6, 8, 'normal', [220, 38, 38]);
+                yPos += 14;
+            });
+            yPos += 5;
+        }
+
+        // Resident Reported Issues
+        if (residentReported.length > 0) {
+            checkPageBreak(40);
+            addText('Resident Service Requests', 20, yPos, 14, 'bold', [15, 23, 42]);
+            yPos += 8;
+            
+            const residentMetrics = [
+                { label: 'Total Requests', value: residentReported.length },
+                { label: 'Resolved', value: residentReported.filter(w => w.status === 'completed').length },
+                { label: 'Avg Response', value: `${analysis.average_resolution_days || 5} days` }
+            ];
+            
+            residentMetrics.forEach((metric, idx) => {
+                addText(`${metric.label}: `, 25, yPos, 10, 'normal', [100, 116, 139]);
+                addText(metric.value.toString(), 25 + (idx * 60) + 40, yPos, 10, 'bold', [15, 23, 42]);
+                yPos += 6;
+            });
+            yPos += 8;
+        }
+
+        // Defects & Critical Issues
+        if (defects.length > 0) {
+            checkPageBreak(40);
+            addText('Defects & Critical Issues', 20, yPos, 14, 'bold', [15, 23, 42]);
+            yPos += 8;
+
+            defects.slice(0, 5).forEach((defect) => {
+                checkPageBreak(20);
+                doc.setFillColor(254, 242, 242);
+                doc.roundedRect(15, yPos, pageWidth - 30, 15, 2, 2, 'F');
+                
+                addText(`⚠ ${defect.title}`, 20, yPos + 6, 10, 'bold', [15, 23, 42]);
+                addText(`${defect.priority} | ${defect.status}`, pageWidth - 70, yPos + 6, 8, 'normal', [220, 38, 38]);
+                yPos += 18;
+            });
+            yPos += 5;
+        }
+
+        // Asset Health Summary
+        if (criticalAssets.length > 0) {
+            checkPageBreak(40);
+            addText('Assets Requiring Attention', 20, yPos, 14, 'bold', [15, 23, 42]);
+            yPos += 8;
+
+            criticalAssets.slice(0, 5).forEach((asset) => {
+                checkPageBreak(15);
+                doc.setFillColor(254, 249, 195);
+                doc.roundedRect(15, yPos, pageWidth - 30, 12, 2, 2, 'F');
+                addText(`• ${asset.name}`, 20, yPos + 6, 9, 'normal', [15, 23, 42]);
+                addText(`Status: ${asset.operational_status}`, pageWidth - 70, yPos + 6, 8, 'normal', [251, 146, 60]);
+                yPos += 14;
+            });
+            yPos += 5;
+        }
+
+        // Inspections Summary
+        if (completedInspections.length > 0) {
+            checkPageBreak(30);
+            addText('Inspections Completed', 20, yPos, 14, 'bold', [15, 23, 42]);
+            yPos += 8;
+            addText(`Total Inspections: ${completedInspections.length}`, 25, yPos, 10, 'normal', [15, 23, 42]);
+            yPos += 8;
+            
+            const findingsCount = completedInspections.reduce((sum, insp) => 
+                sum + (insp.findings?.length || 0), 0);
+            if (findingsCount > 0) {
+                addText(`Total Findings: ${findingsCount}`, 25, yPos, 10, 'normal', [251, 146, 60]);
+                yPos += 8;
+            }
+        }
+        yPos += 10;
+
         // Recurring Issues
         if (analysis.recurring_issues && analysis.recurring_issues.length > 0) {
             checkPageBreak(50);
-            addText('Recurring Issues', 20, yPos, 14, 'bold', [15, 23, 42]);
+            addText('Top Recurring Issues', 20, yPos, 14, 'bold', [15, 23, 42]);
             yPos += 8;
 
             analysis.recurring_issues.slice(0, 5).forEach((issue, idx) => {
                 checkPageBreak(20);
-                doc.setFillColor(254, 242, 242); // Red-50
+                doc.setFillColor(254, 242, 242);
                 doc.roundedRect(15, yPos, pageWidth - 30, 15, 2, 2, 'F');
                 
                 addText(`${idx + 1}. ${issue.issue}`, 20, yPos + 6, 10, 'normal', [15, 23, 42]);
@@ -403,17 +590,52 @@ Analyze this data and provide:
             yPos += 5;
         }
 
-        // Budget Insights
-        if (analysis.budget_insights) {
-            doc.addPage();
-            yPos = 20;
-            addText('Budget & Cost Analysis', 20, yPos, 16, 'bold', [15, 23, 42]);
-            yPos += 12;
+        // Budget & Cost Analysis
+        doc.addPage();
+        yPos = 20;
+        addText('Budget & Cost Analysis', 20, yPos, 16, 'bold', [15, 23, 42]);
+        yPos += 12;
 
-            doc.setFillColor(254, 249, 195); // Yellow-100
+        // Cost Breakdown
+        const costBreakdown = [
+            { label: 'Completed Work', value: `$${maintenanceCost.toLocaleString()}`, color: [34, 197, 94] },
+            { label: 'Pending (Est.)', value: `$${pendingEstimatedCost.toLocaleString()}`, color: [251, 146, 60] },
+            { label: 'Total Period', value: `$${totalCost.toLocaleString()}`, color: [37, 99, 235] }
+        ];
+
+        costBreakdown.forEach((item, idx) => {
+            checkPageBreak(10);
+            addText(`${item.label}:`, 25, yPos, 10, 'normal', [100, 116, 139]);
+            addText(item.value, 100, yPos, 12, 'bold', item.color);
+            yPos += 10;
+        });
+        yPos += 10;
+
+        if (analysis.budget_insights) {
+            checkPageBreak(40);
+            doc.setFillColor(254, 249, 195);
             doc.roundedRect(15, yPos, pageWidth - 30, 40, 3, 3, 'F');
             const budgetHeight = addWrappedText(analysis.budget_insights, 20, yPos + 8, pageWidth - 40, 10);
             yPos += budgetHeight + 15;
+        }
+
+        // Service Quality & Compliance
+        if (analysis.service_quality_score || analysis.compliance_notes) {
+            checkPageBreak(50);
+            addText('Service Quality & Compliance', 20, yPos, 16, 'bold', [15, 23, 42]);
+            yPos += 12;
+
+            if (analysis.service_quality_score) {
+                addText(`Resident Satisfaction Score: ${analysis.service_quality_score}/10`, 25, yPos, 10, 'bold', [34, 197, 94]);
+                yPos += 10;
+            }
+
+            if (analysis.compliance_notes) {
+                doc.setFillColor(236, 253, 245);
+                doc.roundedRect(15, yPos, pageWidth - 30, 30, 3, 3, 'F');
+                const compHeight = addWrappedText(analysis.compliance_notes, 20, yPos + 8, pageWidth - 40, 10);
+                yPos += compHeight + 15;
+            }
         }
 
         // Footer on last page
