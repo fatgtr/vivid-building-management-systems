@@ -638,6 +638,127 @@ Analyze this comprehensive data and provide:
             }
         }
 
+        // Visual Charts Section
+        doc.addPage();
+        yPos = 20;
+        addText('Visual Analytics', 20, yPos, 16, 'bold', [15, 23, 42]);
+        yPos += 15;
+
+        // Work Orders by Status Chart
+        const statusData = [
+            { label: 'Completed', value: completedWorkOrders.length, color: [34, 197, 94] },
+            { label: 'Pending', value: pendingWorkOrders.length, color: [251, 146, 60] },
+            { label: 'Defects', value: defects.length, color: [220, 38, 38] }
+        ];
+
+        addText('Work Orders by Status', 25, yPos, 12, 'bold', [15, 23, 42]);
+        yPos += 10;
+
+        const chartHeight = 60;
+        const chartWidth = pageWidth - 50;
+        const maxValue = Math.max(...statusData.map(d => d.value), 1);
+        const barWidth = (chartWidth - 40) / statusData.length;
+
+        statusData.forEach((item, idx) => {
+            const barHeight = (item.value / maxValue) * chartHeight;
+            const x = 25 + (idx * barWidth) + (idx * 10);
+            const y = yPos + chartHeight - barHeight;
+
+            // Draw bar
+            doc.setFillColor(...item.color);
+            doc.roundedRect(x, y, barWidth - 5, barHeight, 2, 2, 'F');
+
+            // Draw value on top
+            doc.setFontSize(10);
+            doc.setTextColor(15, 23, 42);
+            doc.text(item.value.toString(), x + (barWidth - 5) / 2, y - 3, { align: 'center' });
+
+            // Draw label
+            doc.setFontSize(8);
+            doc.setTextColor(100, 116, 139);
+            doc.text(item.label, x + (barWidth - 5) / 2, yPos + chartHeight + 8, { align: 'center' });
+        });
+
+        yPos += chartHeight + 20;
+
+        // Cost Breakdown Chart
+        if (totalCost > 0) {
+            checkPageBreak(90);
+            addText('Cost Breakdown', 25, yPos, 12, 'bold', [15, 23, 42]);
+            yPos += 10;
+
+            const costData = [
+                { label: 'Completed', value: maintenanceCost, color: [34, 197, 94] },
+                { label: 'Pending', value: pendingEstimatedCost, color: [251, 146, 60] }
+            ].filter(d => d.value > 0);
+
+            const maxCost = Math.max(...costData.map(d => d.value), 1);
+
+            costData.forEach((item, idx) => {
+                const barHeight = (item.value / maxCost) * chartHeight;
+                const x = 25 + (idx * barWidth) + (idx * 10);
+                const y = yPos + chartHeight - barHeight;
+
+                doc.setFillColor(...item.color);
+                doc.roundedRect(x, y, barWidth - 5, barHeight, 2, 2, 'F');
+
+                doc.setFontSize(9);
+                doc.setTextColor(15, 23, 42);
+                doc.text(`$${item.value.toLocaleString()}`, x + (barWidth - 5) / 2, y - 3, { align: 'center' });
+
+                doc.setFontSize(8);
+                doc.setTextColor(100, 116, 139);
+                doc.text(item.label, x + (barWidth - 5) / 2, yPos + chartHeight + 8, { align: 'center' });
+            });
+
+            yPos += chartHeight + 20;
+        }
+
+        // Work Orders by Category (Top 5)
+        const categoryCount = {};
+        workOrders.forEach(wo => {
+            const cat = wo.main_category || wo.category || 'Other';
+            categoryCount[cat] = (categoryCount[cat] || 0) + 1;
+        });
+
+        const topCategories = Object.entries(categoryCount)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5)
+            .map(([label, value]) => ({ label, value }));
+
+        if (topCategories.length > 0) {
+            checkPageBreak(90);
+            addText('Work Orders by Category (Top 5)', 25, yPos, 12, 'bold', [15, 23, 42]);
+            yPos += 10;
+
+            const maxCatValue = Math.max(...topCategories.map(d => d.value), 1);
+            const colors = [
+                [37, 99, 235], [34, 197, 94], [251, 146, 60], [168, 85, 247], [236, 72, 153]
+            ];
+
+            topCategories.forEach((item, idx) => {
+                const barLength = (item.value / maxCatValue) * (pageWidth - 80);
+                const y = yPos + (idx * 15);
+
+                // Label
+                doc.setFontSize(8);
+                doc.setTextColor(100, 116, 139);
+                const labelText = item.label.length > 20 ? item.label.substring(0, 17) + '...' : item.label;
+                doc.text(labelText, 25, y + 6);
+
+                // Bar
+                doc.setFillColor(...colors[idx % colors.length]);
+                doc.roundedRect(80, y, barLength, 10, 2, 2, 'F');
+
+                // Value
+                doc.setFontSize(9);
+                doc.setTextColor(15, 23, 42);
+                doc.text(item.value.toString(), 82 + barLength, y + 7);
+            });
+
+            yPos += topCategories.length * 15 + 10;
+        }
+
         // Footer on last page
         const totalPages = doc.internal.pages.length - 1;
         for (let i = 1; i <= totalPages; i++) {
