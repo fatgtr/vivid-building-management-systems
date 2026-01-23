@@ -65,7 +65,6 @@ const navItems = [
   { name: 'Operations', icon: Wrench, page: 'OperationsCenter', requirePermission: { resource: 'work_orders', action: 'view' } },
   { name: 'Predictive AI', icon: Sparkles, page: 'PredictiveMaintenance', requirePermission: { resource: 'work_orders', action: 'view' } },
   { name: 'Bulletin Board', icon: Bell, page: 'BulletinBoard', requirePermission: { resource: 'announcements', action: 'view' } },
-  { name: 'Bulletin Board', icon: Bell, page: 'BulletinBoard', requirePermission: { resource: 'announcements', action: 'view' } },
   { name: 'Voting', icon: Vote, page: 'VotingCenter', requirePermission: { resource: 'residents', action: 'view' } },
   { name: 'Marketplace', icon: ShoppingBag, page: 'Marketplace', requirePermission: { resource: 'residents', action: 'view' } },
   { name: 'Financial', icon: DollarSign, page: 'FinancialManagement', requirePermission: { resource: 'buildings', action: 'view' } },
