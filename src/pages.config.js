@@ -28,6 +28,8 @@ import OperationsCenter from './pages/OperationsCenter';
 import PartnerDashboard from './pages/PartnerDashboard';
 import PartnerManagement from './pages/PartnerManagement';
 import PartsInventory from './pages/PartsInventory';
+import PaymentCancel from './pages/PaymentCancel';
+import PaymentSuccess from './pages/PaymentSuccess';
 import PetRegistry from './pages/PetRegistry';
 import PlatformDashboard from './pages/PlatformDashboard';
 import PolicyManagement from './pages/PolicyManagement';
@@ -51,8 +53,6 @@ import Visitors from './pages/Visitors';
 import VividStaffManagement from './pages/VividStaffManagement';
 import VotingCenter from './pages/VotingCenter';
 import WorkOrders from './pages/WorkOrders';
-import PaymentSuccess from './pages/PaymentSuccess';
-import PaymentCancel from './pages/PaymentCancel';
 import __Layout from './Layout.jsx';
 
 
@@ -87,6 +87,8 @@ export const PAGES = {
     "PartnerDashboard": PartnerDashboard,
     "PartnerManagement": PartnerManagement,
     "PartsInventory": PartsInventory,
+    "PaymentCancel": PaymentCancel,
+    "PaymentSuccess": PaymentSuccess,
     "PetRegistry": PetRegistry,
     "PlatformDashboard": PlatformDashboard,
     "PolicyManagement": PolicyManagement,
@@ -110,8 +112,6 @@ export const PAGES = {
     "VividStaffManagement": VividStaffManagement,
     "VotingCenter": VotingCenter,
     "WorkOrders": WorkOrders,
-    "PaymentSuccess": PaymentSuccess,
-    "PaymentCancel": PaymentCancel,
 }
 
 export const pagesConfig = {

@@ -6,9 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import PageHeader from '@/components/common/PageHeader';
 import { useBuildingContext } from '@/components/BuildingContext';
 import { ASSET_CATEGORIES } from '@/components/categories/assetCategories';
+import CapitalWorksPlanForm from '@/components/capital/CapitalWorksPlanForm';
 import { 
   TrendingUp, 
   AlertTriangle, 
@@ -18,13 +20,16 @@ import {
   Download,
   Building2,
   Clock,
-  Shield
+  Shield,
+  Plus
 } from 'lucide-react';
 import { format, differenceInYears, addYears } from 'date-fns';
 
 export default function CapitalWorksPlanning() {
   const { selectedBuildingId, managedBuildings } = useBuildingContext();
   const [forecastYears, setForecastYears] = useState(10);
+  const [showPlanDialog, setShowPlanDialog] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(null);
 
   const { data: assets = [], isLoading } = useQuery({
     queryKey: ['assets', selectedBuildingId],
@@ -41,6 +46,15 @@ export default function CapitalWorksPlanning() {
   const { data: buildings = [] } = useQuery({
     queryKey: ['buildings'],
     queryFn: () => base44.entities.Building.list(),
+  });
+
+  const { data: capitalPlans = [] } = useQuery({
+    queryKey: ['capitalWorksPlans', selectedBuildingId],
+    queryFn: () => {
+      if (!selectedBuildingId) return [];
+      return base44.entities.CapitalWorksPlan.filter({ building_id: selectedBuildingId });
+    },
+    enabled: !!selectedBuildingId,
   });
 
   const calculateAssetMetrics = (asset) => {
@@ -186,10 +200,16 @@ export default function CapitalWorksPlanning() {
         title="Capital Works Planning" 
         subtitle={`${forecastYears}-year forecast for ${getBuildingName(selectedBuildingId)}`}
       >
-        <Button onClick={generateReport} className="gap-2">
-          <Download className="h-4 w-4" />
-          Generate Report
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setShowPlanDialog(true)} variant="outline" className="gap-2">
+            <FileText className="h-4 w-4" />
+            NSW 10-Year Plan
+          </Button>
+          <Button onClick={generateReport} className="gap-2">
+            <Download className="h-4 w-4" />
+            Generate Report
+          </Button>
+        </div>
       </PageHeader>
 
       {/* Summary Cards */}
@@ -250,6 +270,56 @@ export default function CapitalWorksPlanning() {
           </CardContent>
         </Card>
       </div>
+
+      {/* NSW Capital Works Plans */}
+      {capitalPlans.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              NSW 10-Year Capital Works Fund Plans
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {capitalPlans.map(plan => (
+                <Card key={plan.id} className="border-2">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-semibold">Plan starting {format(new Date(plan.start_date), 'MMM yyyy')}</h4>
+                          <Badge variant={plan.status === 'approved' ? 'default' : 'secondary'}>
+                            {plan.status}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-slate-500">
+                          {plan.expenditure_items?.length || 0} items • ${plan.opening_balance?.toLocaleString() || 0} opening balance
+                        </p>
+                        {plan.approved_date && (
+                          <p className="text-xs text-slate-500 mt-1">
+                            Approved: {format(new Date(plan.approved_date), 'MMM d, yyyy')}
+                          </p>
+                        )}
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setSelectedPlan(plan);
+                          setShowPlanDialog(true);
+                        }}
+                      >
+                        View/Edit
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Tabs */}
       <Tabs defaultValue="forecast" className="space-y-6">
@@ -503,6 +573,29 @@ export default function CapitalWorksPlanning() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* NSW 10-Year Plan Dialog */}
+      <Dialog open={showPlanDialog} onOpenChange={(open) => {
+        setShowPlanDialog(open);
+        if (!open) setSelectedPlan(null);
+      }}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedPlan ? 'Edit' : 'Create'} NSW 10-Year Capital Works Fund Plan
+            </DialogTitle>
+          </DialogHeader>
+          <CapitalWorksPlanForm
+            buildingId={selectedBuildingId}
+            building={buildings.find(b => b.id === selectedBuildingId)}
+            existingPlan={selectedPlan}
+            onClose={() => {
+              setShowPlanDialog(false);
+              setSelectedPlan(null);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
