@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, Trash2, Save, FileText, DollarSign, TrendingUp } from 'lucide-react';
+import CapitalWorksPlanLinksPanel from './CapitalWorksPlanLinksPanel';
+import { Plus, Trash2, Save, FileText, DollarSign, TrendingUp, Link as LinkIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
 const CATEGORIES = [
@@ -247,7 +248,9 @@ export default function CapitalWorksPlanForm({ buildingId, building, existingPla
               </div>
             </div>
           </div>
+        </TabsContent>
 
+        <TabsContent value="expenditure" className="space-y-4">
           {/* Anticipated Expenditure */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -384,6 +387,20 @@ export default function CapitalWorksPlanForm({ buildingId, building, existingPla
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        {existingPlan && (
+          <TabsContent value="links">
+            <CapitalWorksPlanLinksPanel
+              planId={existingPlan.id}
+              buildingId={buildingId}
+              linkedDocuments={formData.documents || []}
+              linkedAssets={formData.related_asset_ids || []}
+              onUpdate={() => queryClient.invalidateQueries({ queryKey: ['capitalWorksPlans'] })}
+            />
+          </TabsContent>
+        )}
+      </Tabs>
 
           {/* Notes */}
           <div>
