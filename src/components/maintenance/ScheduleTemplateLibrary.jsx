@@ -4,9 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import * as TabsPrimitive from '@radix-ui/react-tabs';
 import { CheckCircle2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+
+const Tabs = TabsPrimitive.Root;
+const TabsList = TabsPrimitive.List;
+const TabsTrigger = TabsPrimitive.Trigger;
+const TabsContent = TabsPrimitive.Content;
 
 const SCHEDULE_TEMPLATES = {
   structural_components: [
