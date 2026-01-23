@@ -156,6 +156,15 @@ export default function CapitalWorksPlanForm({ buildingId, building, existingPla
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Tabs */}
+          <Tabs defaultValue="details" className="space-y-6">
+            <TabsList>
+              <TabsTrigger value="details">Plan Details</TabsTrigger>
+              <TabsTrigger value="expenditure">Expenditure Items</TabsTrigger>
+              {existingPlan && <TabsTrigger value="links">Linked Items</TabsTrigger>}
+            </TabsList>
+
+            <TabsContent value="details" className="space-y-4">
           {/* Scheme Details */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">1. Scheme Details</h3>
@@ -248,9 +257,9 @@ export default function CapitalWorksPlanForm({ buildingId, building, existingPla
               </div>
             </div>
           </div>
-        </TabsContent>
+            </TabsContent>
 
-        <TabsContent value="expenditure" className="space-y-4">
+            <TabsContent value="expenditure" className="space-y-4">
           {/* Anticipated Expenditure */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -387,20 +396,20 @@ export default function CapitalWorksPlanForm({ buildingId, building, existingPla
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
+            </TabsContent>
 
-        {existingPlan && (
-          <TabsContent value="links">
-            <CapitalWorksPlanLinksPanel
-              planId={existingPlan.id}
-              buildingId={buildingId}
-              linkedDocuments={formData.documents || []}
-              linkedAssets={formData.related_asset_ids || []}
-              onUpdate={() => queryClient.invalidateQueries({ queryKey: ['capitalWorksPlans'] })}
-            />
-          </TabsContent>
-        )}
-      </Tabs>
+            {existingPlan && (
+              <TabsContent value="links">
+                <CapitalWorksPlanLinksPanel
+                  planId={existingPlan.id}
+                  buildingId={buildingId}
+                  linkedDocuments={formData.documents || []}
+                  linkedAssets={formData.related_asset_ids || []}
+                  onUpdate={() => queryClient.invalidateQueries({ queryKey: ['capitalWorksPlans'] })}
+                />
+              </TabsContent>
+            )}
+          </Tabs>
 
           {/* Notes */}
           <div>
