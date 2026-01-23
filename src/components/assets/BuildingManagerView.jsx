@@ -27,7 +27,6 @@ import {
   FileText
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { Button } from "@/components/ui/button";
 
 const complianceStatusConfig = {
   compliant: { icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50', label: 'Compliant' },
