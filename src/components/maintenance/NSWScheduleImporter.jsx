@@ -68,13 +68,16 @@ export default function NSWScheduleImporter({ buildingId, onImportComplete }) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <Label htmlFor="schedule-file">Upload Schedule Document</Label>
+          <label htmlFor="schedule-file" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Upload Schedule Document
+          </label>
           <Input
             id="schedule-file"
             type="file"
             accept=".pdf,.docx,.doc,.xlsx,.xls"
             onChange={handleFileChange}
             disabled={processing}
+            className="mt-2"
           />
           <p className="text-xs text-slate-500 mt-1">
             Supported formats: PDF, Word, Excel
