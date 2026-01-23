@@ -143,9 +143,13 @@ export default function ScheduleTemplateLibrary({ buildingId, onTemplateApplied 
       <CardContent>
         <Tabs defaultValue="fire_safety_systems" className="w-full">
           <ScrollArea className="w-full whitespace-nowrap">
-            <TabsList className="inline-flex w-max">
+            <TabsList className="inline-flex w-max h-auto p-1 bg-slate-100 rounded-lg">
               {Object.keys(SCHEDULE_TEMPLATES).map(category => (
-                <TabsTrigger key={category} value={category} className="text-xs">
+                <TabsTrigger 
+                  key={category} 
+                  value={category} 
+                  className="text-xs px-3 py-1.5 rounded-md data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm"
+                >
                   {CATEGORY_LABELS[category]}
                 </TabsTrigger>
               ))}
