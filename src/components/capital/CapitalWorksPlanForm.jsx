@@ -415,20 +415,17 @@ export default function CapitalWorksPlanForm({ buildingId, building, existingPla
               </Card>
             </CardContent>
           </Card>
-        </TabsContent>
-
-        {existingPlan && (
-          <TabsContent value="links">
-            <CapitalWorksPlanLinksPanel
-              planId={existingPlan.id}
-              buildingId={buildingId}
-              linkedDocuments={formData.documents || []}
-              linkedAssets={formData.related_asset_ids || []}
-              onUpdate={() => queryClient.invalidateQueries({ queryKey: ['capitalWorksPlans'] })}
-            />
-          </TabsContent>
         )}
-      </Tabs>
+
+        {activeSection === 'links' && existingPlan && (
+          <CapitalWorksPlanLinksPanel
+            planId={existingPlan.id}
+            buildingId={buildingId}
+            linkedDocuments={formData.documents || []}
+            linkedAssets={formData.related_asset_ids || []}
+            onUpdate={() => queryClient.invalidateQueries({ queryKey: ['capitalWorksPlans'] })}
+          />
+        )}
 
       <Card>
         <CardContent className="p-6 space-y-4">
