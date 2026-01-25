@@ -275,9 +275,9 @@ export default function CapitalWorksPlanForm({ buildingId, building, existingPla
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+        )}
 
-        <TabsContent value="expenditure" className="space-y-4">
+        {activeSection === 'expenditure' && (
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
