@@ -259,19 +259,29 @@ export default function CapitalWorksPlanForm({ buildingId, building, existingPla
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Tabs defaultValue="structural_components" className="w-full">
-                <ScrollArea className="w-full" orientation="horizontal">
-                  <TabsList className="inline-flex w-max h-auto p-1 mb-2">
+              <div>
+                <Label className="mb-2 block">Select Category</Label>
+                <Select defaultValue="structural_components" onValueChange={(value) => {
+                  const element = document.getElementById(`category-${value}`);
+                  if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
                     {CATEGORIES.map(cat => (
-                      <TabsTrigger key={cat.value} value={cat.value} className="text-xs whitespace-nowrap">
+                      <SelectItem key={cat.value} value={cat.value}>
                         {cat.label}
-                      </TabsTrigger>
+                      </SelectItem>
                     ))}
-                  </TabsList>
-                </ScrollArea>
+                  </SelectContent>
+                </Select>
+              </div>
 
+              <div className="space-y-6">
                 {CATEGORIES.map(category => (
-                  <TabsContent key={category.value} value={category.value} className="space-y-3">
+                  <div key={category.value} id={`category-${category.value}`} className="space-y-3 pt-4 border-t first:border-t-0 first:pt-0">
+                    <h3 className="font-semibold text-lg">{category.label}</h3>
                     {formData.expenditure_items
                       .map((item, index) => ({ item, index }))
                       .filter(({ item }) => item.category === category.value)
@@ -364,9 +374,9 @@ export default function CapitalWorksPlanForm({ buildingId, building, existingPla
                       <Plus className="h-4 w-4 mr-2" />
                       Add Item to {category.label}
                     </Button>
-                  </TabsContent>
+                  </div>
                 ))}
-              </Tabs>
+              </div>
 
               <Card className="bg-blue-50 border-blue-200">
                 <CardContent className="p-4">
