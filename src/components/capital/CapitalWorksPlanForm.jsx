@@ -260,10 +260,10 @@ export default function CapitalWorksPlanForm({ buildingId, building, existingPla
             </CardHeader>
             <CardContent className="space-y-4">
               <Tabs defaultValue="structural_components" className="w-full">
-                <ScrollArea className="w-full whitespace-nowrap pb-2">
-                  <TabsList className="inline-flex w-max h-auto p-1">
+                <ScrollArea className="w-full" orientation="horizontal">
+                  <TabsList className="inline-flex w-max h-auto p-1 mb-2">
                     {CATEGORIES.map(cat => (
-                      <TabsTrigger key={cat.value} value={cat.value} className="text-xs">
+                      <TabsTrigger key={cat.value} value={cat.value} className="text-xs whitespace-nowrap">
                         {cat.label}
                       </TabsTrigger>
                     ))}
