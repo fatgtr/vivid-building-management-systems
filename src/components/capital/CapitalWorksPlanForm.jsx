@@ -427,43 +427,44 @@ export default function CapitalWorksPlanForm({ buildingId, building, existingPla
           />
         )}
 
-      <Card>
-        <CardContent className="p-6 space-y-4">
-          <div>
-            <Label>Additional Notes</Label>
-            <Textarea
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              rows={3}
-              placeholder="Any additional information about the plan..."
-            />
-          </div>
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            <div>
+              <Label>Additional Notes</Label>
+              <Textarea
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                rows={3}
+                placeholder="Any additional information about the plan..."
+              />
+            </div>
 
-          <div className="flex gap-3 justify-end pt-4 border-t">
-            {onClose && (
-              <Button variant="outline" onClick={onClose}>
-                Cancel
+            <div className="flex gap-3 justify-end pt-4 border-t">
+              {onClose && (
+                <Button variant="outline" onClick={onClose}>
+                  Cancel
+                </Button>
+              )}
+              <Button
+                onClick={() => saveMutation.mutate({ ...formData, status: 'draft' })}
+                disabled={saveMutation.isPending}
+                variant="outline"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save as Draft
               </Button>
-            )}
-            <Button
-              onClick={() => saveMutation.mutate({ ...formData, status: 'draft' })}
-              disabled={saveMutation.isPending}
-              variant="outline"
-            >
-              <Save className="h-4 w-4 mr-2" />
-              Save as Draft
-            </Button>
-            <Button
-              onClick={() => saveMutation.mutate({ ...formData, status: 'approved' })}
-              disabled={saveMutation.isPending}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Save className="h-4 w-4 mr-2" />
-              Save and Submit for Approval
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+              <Button
+                onClick={() => saveMutation.mutate({ ...formData, status: 'approved' })}
+                disabled={saveMutation.isPending}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save and Submit for Approval
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
