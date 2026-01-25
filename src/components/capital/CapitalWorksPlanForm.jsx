@@ -37,7 +37,6 @@ const CATEGORIES = [
 
 export default function CapitalWorksPlanForm({ buildingId, building, existingPlan, onClose }) {
   const queryClient = useQueryClient();
-  const [activeSection, setActiveSection] = useState('details');
   const [formData, setFormData] = useState(existingPlan || {
     building_id: buildingId,
     strata_plan_number: building?.strata_plan_number || '',
@@ -135,44 +134,16 @@ export default function CapitalWorksPlanForm({ buildingId, building, existingPla
 
   const totals = calculateTotals();
 
-  const menuItems = [
-    { id: 'details', label: 'Plan Details', icon: FileText },
-    { id: 'expenditure', label: 'Expenditure Items', icon: DollarSign },
-    ...(existingPlan ? [{ id: 'links', label: 'Linked Items', icon: TrendingUp }] : [])
-  ];
-
   return (
-    <div className="flex gap-6">
-      {/* Sidebar Navigation */}
-      <div className="w-64 flex-shrink-0">
-        <Card className="sticky top-4">
-          <CardContent className="p-3">
-            <nav className="space-y-1">
-              {menuItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setActiveSection(item.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      activeSection === item.id
-                        ? 'bg-blue-50 text-blue-700'
-                        : 'text-slate-600 hover:bg-slate-50'
-                    }`}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {item.label}
-                  </button>
-                );
-              })}
-            </nav>
-          </CardContent>
-        </Card>
-      </div>
+    <div className="space-y-6">
+      <Tabs defaultValue="details" className="w-full">
+        <TabsList>
+          <TabsTrigger value="details">Plan Details</TabsTrigger>
+          <TabsTrigger value="expenditure">Expenditure Items</TabsTrigger>
+          {existingPlan && <TabsTrigger value="links">Linked Items</TabsTrigger>}
+        </TabsList>
 
-      {/* Main Content */}
-      <div className="flex-1 space-y-4">
-        {activeSection === 'details' && (
+        <TabsContent value="details" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -275,9 +246,9 @@ export default function CapitalWorksPlanForm({ buildingId, building, existingPla
               </div>
             </CardContent>
           </Card>
-        )}
+        </TabsContent>
 
-        {activeSection === 'expenditure' && (
+        <TabsContent value="expenditure" className="space-y-4">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -415,56 +386,58 @@ export default function CapitalWorksPlanForm({ buildingId, building, existingPla
               </Card>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {existingPlan && (
+          <TabsContent value="links">
+            <CapitalWorksPlanLinksPanel
+              planId={existingPlan.id}
+              buildingId={buildingId}
+              linkedDocuments={formData.documents || []}
+              linkedAssets={formData.related_asset_ids || []}
+              onUpdate={() => queryClient.invalidateQueries({ queryKey: ['capitalWorksPlans'] })}
+            />
+          </TabsContent>
         )}
+      </Tabs>
 
-        {activeSection === 'links' && existingPlan && (
-          <CapitalWorksPlanLinksPanel
-            planId={existingPlan.id}
-            buildingId={buildingId}
-            linkedDocuments={formData.documents || []}
-            linkedAssets={formData.related_asset_ids || []}
-            onUpdate={() => queryClient.invalidateQueries({ queryKey: ['capitalWorksPlans'] })}
-          />
-        )}
+      <Card>
+        <CardContent className="p-6 space-y-4">
+          <div>
+            <Label>Additional Notes</Label>
+            <Textarea
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              rows={3}
+              placeholder="Any additional information about the plan..."
+            />
+          </div>
 
-        <Card>
-          <CardContent className="p-6 space-y-4">
-            <div>
-              <Label>Additional Notes</Label>
-              <Textarea
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                rows={3}
-                placeholder="Any additional information about the plan..."
-              />
-            </div>
-
-            <div className="flex gap-3 justify-end pt-4 border-t">
-              {onClose && (
-                <Button variant="outline" onClick={onClose}>
-                  Cancel
-                </Button>
-              )}
-              <Button
-                onClick={() => saveMutation.mutate({ ...formData, status: 'draft' })}
-                disabled={saveMutation.isPending}
-                variant="outline"
-              >
-                <Save className="h-4 w-4 mr-2" />
-                Save as Draft
+          <div className="flex gap-3 justify-end pt-4 border-t">
+            {onClose && (
+              <Button variant="outline" onClick={onClose}>
+                Cancel
               </Button>
-              <Button
-                onClick={() => saveMutation.mutate({ ...formData, status: 'approved' })}
-                disabled={saveMutation.isPending}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <Save className="h-4 w-4 mr-2" />
-                Save and Submit for Approval
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            )}
+            <Button
+              onClick={() => saveMutation.mutate({ ...formData, status: 'draft' })}
+              disabled={saveMutation.isPending}
+              variant="outline"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Save as Draft
+            </Button>
+            <Button
+              onClick={() => saveMutation.mutate({ ...formData, status: 'approved' })}
+              disabled={saveMutation.isPending}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Save and Submit for Approval
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
