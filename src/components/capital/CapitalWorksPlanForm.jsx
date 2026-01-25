@@ -37,6 +37,7 @@ const CATEGORIES = [
 
 export default function CapitalWorksPlanForm({ buildingId, building, existingPlan, onClose }) {
   const queryClient = useQueryClient();
+  const [activeSection, setActiveSection] = useState('details');
   const [formData, setFormData] = useState(existingPlan || {
     building_id: buildingId,
     strata_plan_number: building?.strata_plan_number || '',
