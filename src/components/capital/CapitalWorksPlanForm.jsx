@@ -135,16 +135,44 @@ export default function CapitalWorksPlanForm({ buildingId, building, existingPla
 
   const totals = calculateTotals();
 
-  return (
-    <div className="space-y-6">
-      <Tabs defaultValue="details" className="w-full">
-        <TabsList>
-          <TabsTrigger value="details">Plan Details</TabsTrigger>
-          <TabsTrigger value="expenditure">Expenditure Items</TabsTrigger>
-          {existingPlan && <TabsTrigger value="links">Linked Items</TabsTrigger>}
-        </TabsList>
+  const menuItems = [
+    { id: 'details', label: 'Plan Details', icon: FileText },
+    { id: 'expenditure', label: 'Expenditure Items', icon: DollarSign },
+    ...(existingPlan ? [{ id: 'links', label: 'Linked Items', icon: TrendingUp }] : [])
+  ];
 
-        <TabsContent value="details" className="space-y-4">
+  return (
+    <div className="flex gap-6">
+      {/* Sidebar Navigation */}
+      <div className="w-64 flex-shrink-0">
+        <Card className="sticky top-4">
+          <CardContent className="p-3">
+            <nav className="space-y-1">
+              {menuItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveSection(item.id)}
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      activeSection === item.id
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {item.label}
+                  </button>
+                );
+              })}
+            </nav>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 space-y-4">
+        {activeSection === 'details' && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
