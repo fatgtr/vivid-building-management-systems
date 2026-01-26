@@ -57,31 +57,65 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-const navItems = [
-  { name: 'Dashboard', icon: LayoutDashboard, page: 'Dashboard', adminOnly: false },
-  { name: 'Resident Portal', icon: Home, page: 'ResidentSelfService', requirePermission: { resource: 'residents', action: 'view' } },
-  { name: 'Buildings', icon: Building2, page: 'Buildings', requirePermission: { resource: 'buildings', action: 'view' } },
-  { name: 'Residents', icon: Users, page: 'ResidentsCenter', requirePermission: { resource: 'residents', action: 'view' } },
+// Primary daily operations for building managers
+const primaryNavItems = [
+  { name: 'Dashboard', icon: LayoutDashboard, page: 'Dashboard' },
   { name: 'Operations', icon: Wrench, page: 'OperationsCenter', requirePermission: { resource: 'work_orders', action: 'view' } },
-  { name: 'Predictive AI', icon: Sparkles, page: 'PredictiveMaintenance', requirePermission: { resource: 'work_orders', action: 'view' } },
-  { name: 'Bulletin Board', icon: Bell, page: 'BulletinBoard', requirePermission: { resource: 'announcements', action: 'view' } },
-  { name: 'Voting', icon: Vote, page: 'VotingCenter', requirePermission: { resource: 'residents', action: 'view' } },
-  { name: 'Marketplace', icon: ShoppingBag, page: 'Marketplace', requirePermission: { resource: 'residents', action: 'view' } },
-  { name: 'Financial', icon: DollarSign, page: 'FinancialManagement', requirePermission: { resource: 'buildings', action: 'view' } },
-  { name: 'Analytics', icon: TrendingUp, page: 'AnalyticsDashboard', requirePermission: { resource: 'buildings', action: 'view' } },
-  { name: 'Emergency', icon: AlertCircle, page: 'EmergencyContacts', requirePermission: { resource: 'buildings', action: 'view' } },
-  { name: 'Policies', icon: FileText, page: 'PolicyManagement', requirePermission: { resource: 'documents', action: 'view' } },
-  { name: 'Resident Portal', icon: Home, page: 'ResidentSelfService', requirePermission: { resource: 'residents', action: 'view' } },
-  { name: 'Staff Roster', icon: Calendar, page: 'StaffScheduling', requirePermission: { resource: 'buildings', action: 'view' } },
-  { name: 'Keys & Access', icon: Key, page: 'KeyManagement', requirePermission: { resource: 'buildings', action: 'view' } },
-  { name: 'Pets', icon: Heart, page: 'PetRegistry', requirePermission: { resource: 'residents', action: 'view' } },
-  { name: 'Services', icon: Briefcase, page: 'ServiceDirectory', requirePermission: { resource: 'residents', action: 'view' } },
-  { name: 'Move Coordinator', icon: Truck, page: 'MoveCoordinator', requirePermission: { resource: 'residents', action: 'view' } },
-  { name: 'Parts Inventory', icon: Package, page: 'PartsInventory', requirePermission: { resource: 'buildings', action: 'view' } },
+  { name: 'Residents', icon: Users, page: 'ResidentsCenter', requirePermission: { resource: 'residents', action: 'view' } },
   { name: 'Communications', icon: MessageSquare, page: 'Communications', requirePermission: { resource: 'announcements', action: 'view' } },
-  { name: 'Capital Works', icon: TrendingUp, page: 'CapitalWorksPlanning', requirePermission: { resource: 'buildings', action: 'view' } },
-  { name: 'Knowledge Base', icon: FileText, page: 'StrataKnowledgeBase', requirePermission: { resource: 'documents', action: 'view' } },
-  { name: 'Smart Devices', icon: Settings, page: 'SmartDevices', requirePermission: { resource: 'buildings', action: 'view' } },
+  { name: 'Emergency', icon: AlertCircle, page: 'EmergencyContacts', requirePermission: { resource: 'buildings', action: 'view' } },
+];
+
+// Grouped secondary features
+const navGroups = [
+  {
+    name: 'Building Management',
+    icon: Building2,
+    items: [
+      { name: 'Buildings', icon: Building2, page: 'Buildings', requirePermission: { resource: 'buildings', action: 'view' } },
+      { name: 'Asset Register', icon: ClipboardCheck, page: 'AssetRegister', requirePermission: { resource: 'buildings', action: 'view' } },
+      { name: 'Parts Inventory', icon: Package, page: 'PartsInventory', requirePermission: { resource: 'buildings', action: 'view' } },
+      { name: 'Keys & Access', icon: Key, page: 'KeyManagement', requirePermission: { resource: 'buildings', action: 'view' } },
+      { name: 'Smart Devices', icon: Settings, page: 'SmartDevices', requirePermission: { resource: 'buildings', action: 'view' } },
+    ]
+  },
+  {
+    name: 'Community',
+    icon: Bell,
+    items: [
+      { name: 'Bulletin Board', icon: Bell, page: 'BulletinBoard', requirePermission: { resource: 'announcements', action: 'view' } },
+      { name: 'Voting', icon: Vote, page: 'VotingCenter', requirePermission: { resource: 'residents', action: 'view' } },
+      { name: 'Marketplace', icon: ShoppingBag, page: 'Marketplace', requirePermission: { resource: 'residents', action: 'view' } },
+      { name: 'Amenities', icon: Calendar, page: 'Amenities', requirePermission: { resource: 'residents', action: 'view' } },
+    ]
+  },
+  {
+    name: 'Financial & Planning',
+    icon: DollarSign,
+    items: [
+      { name: 'Financial', icon: DollarSign, page: 'FinancialManagement', requirePermission: { resource: 'buildings', action: 'view' } },
+      { name: 'Capital Works', icon: TrendingUp, page: 'CapitalWorksPlanning', requirePermission: { resource: 'buildings', action: 'view' } },
+      { name: 'Analytics', icon: TrendingUp, page: 'AnalyticsDashboard', requirePermission: { resource: 'buildings', action: 'view' } },
+      { name: 'Predictive AI', icon: Sparkles, page: 'PredictiveMaintenance', requirePermission: { resource: 'work_orders', action: 'view' } },
+    ]
+  },
+  {
+    name: 'Resources',
+    icon: FileText,
+    items: [
+      { name: 'Policies', icon: FileText, page: 'PolicyManagement', requirePermission: { resource: 'documents', action: 'view' } },
+      { name: 'Knowledge Base', icon: FileText, page: 'StrataKnowledgeBase', requirePermission: { resource: 'documents', action: 'view' } },
+      { name: 'Staff Roster', icon: Calendar, page: 'StaffScheduling', requirePermission: { resource: 'buildings', action: 'view' } },
+      { name: 'Services', icon: Briefcase, page: 'ServiceDirectory', requirePermission: { resource: 'residents', action: 'view' } },
+      { name: 'Pets', icon: Heart, page: 'PetRegistry', requirePermission: { resource: 'residents', action: 'view' } },
+      { name: 'Move Coordinator', icon: Truck, page: 'MoveCoordinator', requirePermission: { resource: 'residents', action: 'view' } },
+    ]
+  },
+];
+
+// Special access items
+const specialNavItems = [
+  { name: 'Resident Portal', icon: Home, page: 'ResidentSelfService', requirePermission: { resource: 'residents', action: 'view' } },
   { name: 'Contractor Portal', icon: HardHat, page: 'ContractorPortal', contractorOnly: true },
   { name: 'Platform Admin', icon: Sparkles, page: 'PlatformDashboard', adminOnly: true },
   { name: 'Role Management', icon: Shield, page: 'RoleManagement', adminOnly: true },
@@ -94,8 +128,13 @@ function LayoutInner({ children, currentPageName }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState({});
   const { selectedBuildingId, setSelectedBuildingId, managedBuildings, isAdmin } = useBuildingContext();
   const { can, isAdmin: isPermissionAdmin, hasRole } = usePermissions();
+
+  const toggleGroup = (groupName) => {
+    setExpandedGroups(prev => ({ ...prev, [groupName]: !prev[groupName] }));
+  };
 
   useEffect(() => {
     // Don't require auth for landing page
@@ -308,39 +347,149 @@ function LayoutInner({ children, currentPageName }) {
 
         {/* Navigation */}
         <nav className="p-3 space-y-1 overflow-y-auto h-[calc(100vh-16rem)] custom-scrollbar">
-          {navItems.map((item) => {
-            const isActive = currentPageName === item.page;
+          {/* Primary Navigation - Always Visible */}
+          <div className="space-y-1">
+            {primaryNavItems.map((item) => {
+              const isActive = currentPageName === item.page;
 
-            // Check admin-only pages
-            if (item.adminOnly && !isAdmin && !isPermissionAdmin()) return null;
+              // Check permission-based pages
+              if (item.requirePermission && !isPermissionAdmin()) {
+                const { resource, action } = item.requirePermission;
+                if (!can(resource, action)) return null;
+              }
 
-            // Check contractor-only pages
-            if (item.contractorOnly && !isContractor) return null;
-            if (!item.contractorOnly && isContractor && item.page !== 'Dashboard') return null;
+              return (
+                <Link
+                  key={item.page}
+                  to={createPageUrl(item.page)}
+                  onClick={() => setSidebarOpen(false)}
+                  className={cn(
+                    "sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all",
+                    isActive 
+                      ? "text-blue-600 bg-blue-50" 
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                  )}
+                >
+                  <item.icon className={cn("h-4 w-4 flex-shrink-0", isActive && "text-blue-600")} />
+                  {!collapsed && <span className="truncate">{item.name}</span>}
+                </Link>
+              );
+            })}
+          </div>
 
-            // Check permission-based pages
-            if (item.requirePermission && !isPermissionAdmin()) {
-              const { resource, action } = item.requirePermission;
-              if (!can(resource, action)) return null;
-            }
+          {/* Separator */}
+          {!collapsed && <div className="border-t border-slate-200 my-3" />}
 
-            return (
-              <Link
-                key={item.page}
-                to={createPageUrl(item.page)}
-                onClick={() => setSidebarOpen(false)}
-                className={cn(
-                  "sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all",
-                  isActive 
-                    ? "text-blue-600 bg-blue-50" 
-                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                )}
-              >
-                <item.icon className={cn("h-4 w-4 flex-shrink-0", isActive && "text-blue-600")} />
-                {!collapsed && <span className="truncate">{item.name}</span>}
-              </Link>
-            );
-          })}
+          {/* Grouped Navigation */}
+          <div className="space-y-1">
+            {navGroups.map((group) => {
+              const hasVisibleItems = group.items.some(item => {
+                if (item.requirePermission && !isPermissionAdmin()) {
+                  const { resource, action } = item.requirePermission;
+                  return can(resource, action);
+                }
+                return true;
+              });
+
+              if (!hasVisibleItems) return null;
+
+              const isExpanded = expandedGroups[group.name];
+              const hasActiveItem = group.items.some(item => currentPageName === item.page);
+
+              return (
+                <div key={group.name}>
+                  <button
+                    onClick={() => toggleGroup(group.name)}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all",
+                      hasActiveItem
+                        ? "text-blue-600 bg-blue-50"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    )}
+                  >
+                    <group.icon className="h-4 w-4 flex-shrink-0" />
+                    {!collapsed && (
+                      <>
+                        <span className="truncate flex-1 text-left">{group.name}</span>
+                        <ChevronDown className={cn(
+                          "h-4 w-4 transition-transform",
+                          isExpanded && "rotate-180"
+                        )} />
+                      </>
+                    )}
+                  </button>
+
+                  {isExpanded && !collapsed && (
+                    <div className="ml-6 mt-1 space-y-1 border-l-2 border-slate-200 pl-3">
+                      {group.items.map((item) => {
+                        const isActive = currentPageName === item.page;
+
+                        // Check permission-based pages
+                        if (item.requirePermission && !isPermissionAdmin()) {
+                          const { resource, action } = item.requirePermission;
+                          if (!can(resource, action)) return null;
+                        }
+
+                        return (
+                          <Link
+                            key={item.page}
+                            to={createPageUrl(item.page)}
+                            onClick={() => setSidebarOpen(false)}
+                            className={cn(
+                              "flex items-center gap-3 px-3 py-1.5 rounded-lg text-sm transition-all",
+                              isActive 
+                                ? "text-blue-600 font-medium" 
+                                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                            )}
+                          >
+                            <item.icon className="h-3.5 w-3.5 flex-shrink-0" />
+                            <span className="truncate">{item.name}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Special Access Items */}
+          {!collapsed && <div className="border-t border-slate-200 my-3" />}
+          <div className="space-y-1">
+            {specialNavItems.map((item) => {
+              const isActive = currentPageName === item.page;
+
+              // Check admin-only pages
+              if (item.adminOnly && !isAdmin && !isPermissionAdmin()) return null;
+
+              // Check contractor-only pages
+              if (item.contractorOnly && !isContractor) return null;
+
+              // Check permission-based pages
+              if (item.requirePermission && !isPermissionAdmin()) {
+                const { resource, action } = item.requirePermission;
+                if (!can(resource, action)) return null;
+              }
+
+              return (
+                <Link
+                  key={item.page}
+                  to={createPageUrl(item.page)}
+                  onClick={() => setSidebarOpen(false)}
+                  className={cn(
+                    "sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all",
+                    isActive 
+                      ? "text-blue-600 bg-blue-50" 
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                  )}
+                >
+                  <item.icon className={cn("h-4 w-4 flex-shrink-0", isActive && "text-blue-600")} />
+                  {!collapsed && <span className="truncate">{item.name}</span>}
+                </Link>
+              );
+            })}
+          </div>
         </nav>
 
         {/* User Section */}
