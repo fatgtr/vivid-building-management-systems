@@ -118,10 +118,10 @@ export default function DirectMessaging({ buildingId }) {
       building_id: buildingId,
       subject: newChatSubject,
       participants,
-      chat_type: 'direct',
+      chat_type: isManagement ? 'resident_management' : 'resident_management',
       status: 'active',
       last_message: '',
-      unread_count: {}
+      unread_count: 0
     });
   };
 
