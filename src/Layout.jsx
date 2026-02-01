@@ -87,6 +87,7 @@ const navGroups = [
       { name: 'Voting', icon: Vote, page: 'VotingCenter', requirePermission: { resource: 'residents', action: 'view' } },
       { name: 'Marketplace', icon: ShoppingBag, page: 'Marketplace', requirePermission: { resource: 'residents', action: 'view' } },
       { name: 'Amenities', icon: Calendar, page: 'Amenities', requirePermission: { resource: 'residents', action: 'view' } },
+      { name: 'Visitor Parking', icon: Car, page: 'VisitorParkingSetup', requirePermission: { resource: 'buildings', action: 'view' } },
     ]
   },
   {
