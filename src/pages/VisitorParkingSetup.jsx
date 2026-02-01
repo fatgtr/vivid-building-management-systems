@@ -15,6 +15,7 @@ import { Plus, Edit, Trash2, Car, MapPin, Clock, Users, Settings } from 'lucide-
 import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
+import ParkingSpotManager from '@/components/parking/ParkingSpotManager';
 
 export default function VisitorParkingSetup() {
   const { selectedBuildingId, managedBuildings } = useBuildingContext();
@@ -233,6 +234,9 @@ export default function VisitorParkingSetup() {
                     </p>
                   </div>
                 )}
+                <div className="pt-3 border-t">
+                  <ParkingSpotManager zone={zone} />
+                </div>
               </CardContent>
             </Card>
           ))}
