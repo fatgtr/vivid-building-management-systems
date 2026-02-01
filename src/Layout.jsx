@@ -39,7 +39,8 @@ import {
   Briefcase,
   Truck,
   AlertCircle,
-  Car
+  Car,
+  MapPin
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
