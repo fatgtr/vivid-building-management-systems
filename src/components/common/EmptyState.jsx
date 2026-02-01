@@ -6,7 +6,7 @@ export default function EmptyState({
   icon: Icon, 
   title, 
   description, 
-  action, 
+  onAction, 
   actionLabel = "Add New" 
 }) {
   return (
@@ -16,8 +16,8 @@ export default function EmptyState({
       </div>
       <h3 className="text-lg font-semibold text-slate-900 mb-2">{title}</h3>
       <p className="text-slate-500 text-center max-w-sm mb-6">{description}</p>
-      {action && (
-        <Button onClick={action} className="bg-blue-600 hover:bg-blue-700">
+      {onAction && (
+        <Button onClick={onAction} className="bg-blue-600 hover:bg-blue-700">
           <Plus className="h-4 w-4 mr-2" />
           {actionLabel}
         </Button>
