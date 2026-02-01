@@ -4,7 +4,6 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -118,11 +117,12 @@ export default function BroadcastComposer({ buildingId, onSuccess }) {
 
         <div>
           <Label>Message</Label>
-          <Textarea
+          <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Your message to residents..."
             rows={5}
+            className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
           />
         </div>
 
