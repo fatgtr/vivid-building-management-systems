@@ -103,6 +103,7 @@ import VividStaffManagement from './pages/VividStaffManagement';
 import VotingCenter from './pages/VotingCenter';
 import WorkOrders from './pages/WorkOrders';
 import VisitorParkingSetup from './pages/VisitorParkingSetup';
+import ResidentParkingManagement from './pages/ResidentParkingManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -163,6 +164,7 @@ export const PAGES = {
     "VotingCenter": VotingCenter,
     "WorkOrders": WorkOrders,
     "VisitorParkingSetup": VisitorParkingSetup,
+    "ResidentParkingManagement": ResidentParkingManagement,
 }
 
 export const pagesConfig = {
