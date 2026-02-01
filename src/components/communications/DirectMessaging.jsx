@@ -6,7 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Send, User, Search, Loader2 } from 'lucide-react';
+import { MessageSquare, Send, User, Search, Loader2, Plus } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -14,12 +17,26 @@ export default function DirectMessaging({ buildingId }) {
   const [selectedChat, setSelectedChat] = useState(null);
   const [messageText, setMessageText] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showNewChatDialog, setShowNewChatDialog] = useState(false);
+  const [newChatSubject, setNewChatSubject] = useState('');
+  const [newChatRecipient, setNewChatRecipient] = useState('');
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
     queryKey: ['current-user'],
     queryFn: () => base44.auth.me(),
+  });
+
+  const { data: residents = [] } = useQuery({
+    queryKey: ['residents', buildingId],
+    queryFn: () => base44.entities.Resident.filter({ building_id: buildingId }),
+    enabled: !!buildingId,
+  });
+
+  const { data: buildings = [] } = useQuery({
+    queryKey: ['buildings'],
+    queryFn: () => base44.entities.Building.list(),
   });
 
   const { data: chats = [], isLoading: chatsLoading } = useQuery({
@@ -44,6 +61,10 @@ export default function DirectMessaging({ buildingId }) {
     onSuccess: (newChat) => {
       queryClient.invalidateQueries({ queryKey: ['chats'] });
       setSelectedChat(newChat);
+      setShowNewChatDialog(false);
+      setNewChatSubject('');
+      setNewChatRecipient('');
+      toast.success('Chat created');
     },
   });
 
@@ -85,15 +106,46 @@ export default function DirectMessaging({ buildingId }) {
 
   const isManagement = user?.role === 'admin';
 
+  const handleCreateChat = () => {
+    if (!newChatSubject.trim() || !newChatRecipient) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
+    const participants = [user.email, newChatRecipient];
+    
+    createChatMutation.mutate({
+      building_id: buildingId,
+      subject: newChatSubject,
+      participants,
+      chat_type: 'direct',
+      status: 'active',
+      last_message: '',
+      unread_count: {}
+    });
+  };
+
+  const currentBuilding = buildings.find(b => b.id === buildingId);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[700px]">
       {/* Chat List */}
       <Card className="lg:col-span-1 flex flex-col">
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <MessageSquare className="h-4 w-4" />
-            Conversations
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <MessageSquare className="h-4 w-4" />
+              Conversations
+            </CardTitle>
+            <Button 
+              size="sm" 
+              onClick={() => setShowNewChatDialog(true)}
+              className="bg-blue-600 hover:bg-blue-700 h-7 px-2"
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              New
+            </Button>
+          </div>
           <div className="relative mt-2">
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
@@ -228,6 +280,77 @@ export default function DirectMessaging({ buildingId }) {
           </div>
         )}
       </Card>
+
+      {/* New Chat Dialog */}
+      <Dialog open={showNewChatDialog} onOpenChange={setShowNewChatDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Start New Conversation</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Subject</Label>
+              <Input
+                value={newChatSubject}
+                onChange={(e) => setNewChatSubject(e.target.value)}
+                placeholder="e.g., Maintenance Request, General Inquiry"
+              />
+            </div>
+            <div>
+              <Label>Send To</Label>
+              <Select value={newChatRecipient} onValueChange={setNewChatRecipient}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select recipient..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {isManagement ? (
+                    <>
+                      <SelectItem value="all_residents">All Residents</SelectItem>
+                      {residents.map((resident) => (
+                        <SelectItem key={resident.id} value={resident.email}>
+                          {resident.first_name} {resident.last_name} - Unit {resident.unit_number}
+                        </SelectItem>
+                      ))}
+                    </>
+                  ) : (
+                    <>
+                      {currentBuilding?.manager_email && (
+                        <SelectItem value={currentBuilding.manager_email}>
+                          Building Manager - {currentBuilding.manager_name}
+                        </SelectItem>
+                      )}
+                      {currentBuilding?.strata_managing_agent_email && (
+                        <SelectItem value={currentBuilding.strata_managing_agent_email}>
+                          Strata Manager - {currentBuilding.strata_managing_agent_name}
+                        </SelectItem>
+                      )}
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="outline" onClick={() => setShowNewChatDialog(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleCreateChat}
+                disabled={createChatMutation.isPending || !newChatSubject.trim() || !newChatRecipient}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {createChatMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  'Start Chat'
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
