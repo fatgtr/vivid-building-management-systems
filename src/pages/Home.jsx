@@ -123,6 +123,18 @@ export default function Home() {
         "Analyzes building-wide and unit-level consumption"
       ],
       color: "from-[#00529F] to-[#003d75]"
+    },
+    {
+      icon: LayoutDashboard,
+      title: "Smart Analytics & Insights",
+      description: "Comprehensive analytics dashboard with AI-driven insights for data-informed decision making and operational optimization.",
+      highlights: [
+        "Real-time performance dashboards",
+        "Predictive trend analysis and forecasting",
+        "Automated compliance and risk reporting",
+        "Custom metrics and KPI tracking"
+      ],
+      color: "from-[#FEBE10] to-[#d9a509]"
     }
   ];
 
