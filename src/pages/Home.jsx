@@ -409,80 +409,83 @@ export default function Home() {
       </section>
 
       {/* AI Platform Badge */}
-      <section className="bg-slate-900 text-white py-20 relative overflow-hidden border-y border-slate-800">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djItaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTItMnYyaDJ2LTJoLTJ6bTItMnYyaDJ2LTJoLTJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-50"></div>
+      <section className="bg-gradient-to-br from-[#00529F] via-[#003d75] to-slate-900 text-white py-20 relative overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 left-0 w-96 h-96 bg-[#FEBE10]/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#00529F]/20 rounded-full blur-3xl"></div>
+        </div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#00529F]/20 border border-[#FEBE10]/30 rounded-full mb-6 shadow-lg shadow-[#00529F]/20">
+          <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur-md border border-[#FEBE10]/30 rounded-full mb-6 shadow-lg">
             <Sparkles className="h-4 w-4 text-[#FEBE10] animate-pulse" />
-            <span className="text-[#FEBE10] font-semibold text-sm tracking-wide">AI-Powered Platform</span>
+            <span className="text-white font-semibold text-sm tracking-wide">AI-Powered Platform</span>
           </div>
           
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            Intelligence built into <span className="gradient-text">every feature</span>
+            Intelligence built into <span className="bg-gradient-to-r from-[#FEBE10] to-white bg-clip-text text-transparent">every feature</span>
           </h2>
           
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-200 max-w-3xl mx-auto">
             Leveraging cutting-edge AI models, our platform transforms complex building management tasks into automated workflows. Advanced OCR, natural language processing, and machine learning capabilities built into every feature.
           </p>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="bg-slate-900 text-white py-20">
+      <section className="bg-white text-gray-900 py-20 border-y border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12 text-center">
-            <h3 className="text-2xl font-bold mb-2">Built on Modern Technology</h3>
-            <p className="text-gray-400">Enterprise-grade platform powered by cutting-edge AI and cloud infrastructure</p>
+            <h3 className="text-2xl font-bold mb-2 text-gray-900">Built on Modern Technology</h3>
+            <p className="text-gray-600">Enterprise-grade platform powered by cutting-edge AI and cloud infrastructure</p>
           </div>
           
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
             {stats.map((stat, idx) => (
               <div key={idx} className="text-center group">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-700 rounded-2xl mb-4 group-hover:bg-[#00529F] transition-colors duration-300">
-                  <stat.icon className="h-8 w-8 text-[#FEBE10] group-hover:text-white transition-colors duration-300" />
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-[#00529F] to-[#003d75] rounded-2xl mb-4 group-hover:scale-110 transition-all duration-300 shadow-lg">
+                  <stat.icon className="h-8 w-8 text-white" />
                 </div>
-                <div className="text-4xl font-bold mb-2 text-white group-hover:text-[#FEBE10] transition-colors duration-300">{stat.value}</div>
-                <div className="text-gray-300 group-hover:text-gray-100 transition-colors duration-300">{stat.label}</div>
+                <div className="text-4xl font-bold mb-2 text-[#00529F] group-hover:text-[#FEBE10] transition-colors duration-300">{stat.value}</div>
+                <div className="text-gray-600 font-medium">{stat.label}</div>
               </div>
             ))}
           </div>
 
           <div className="max-w-5xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="bg-slate-800/90 backdrop-blur-sm border-2 border-slate-700/50 hover:border-[#00529F]/50 transition-all hover-lift group">
+              <Card className="bg-white border-2 border-gray-200 hover:border-[#00529F] transition-all hover-lift group">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-[#00529F] to-[#003d75] rounded-xl flex items-center justify-center shadow-lg shadow-[#00529F]/30 group-hover:shadow-[#00529F]/50 transition-all">
+                    <div className="w-12 h-12 bg-gradient-to-br from-[#00529F] to-[#003d75] rounded-xl flex items-center justify-center shadow-lg shadow-[#00529F]/20 group-hover:shadow-[#00529F]/40 transition-all">
                       <Brain className="h-6 w-6 text-white" />
                     </div>
-                    <h4 className="font-bold text-white text-lg">Advanced AI Models</h4>
+                    <h4 className="font-bold text-gray-900 text-lg">Advanced AI Models</h4>
                   </div>
-                  <p className="text-sm text-gray-300 leading-relaxed">Powered by advanced AI models for intelligent document processing, bylaw analysis, and automated workflows</p>
+                  <p className="text-sm text-gray-600 leading-relaxed">Powered by advanced AI models for intelligent document processing, bylaw analysis, and automated workflows</p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-slate-800/90 backdrop-blur-sm border-2 border-slate-700/50 hover:border-[#FEBE10]/50 transition-all hover-lift group">
+              <Card className="bg-white border-2 border-gray-200 hover:border-[#FEBE10] transition-all hover-lift group">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-[#FEBE10] to-[#d9a509] rounded-xl flex items-center justify-center shadow-lg shadow-[#FEBE10]/30 group-hover:shadow-[#FEBE10]/50 transition-all">
+                    <div className="w-12 h-12 bg-gradient-to-br from-[#FEBE10] to-[#d9a509] rounded-xl flex items-center justify-center shadow-lg shadow-[#FEBE10]/20 group-hover:shadow-[#FEBE10]/40 transition-all">
                       <Shield className="h-6 w-6 text-white" />
                     </div>
-                    <h4 className="font-bold text-white text-lg">Enterprise Security</h4>
+                    <h4 className="font-bold text-gray-900 text-lg">Enterprise Security</h4>
                   </div>
-                  <p className="text-sm text-gray-300 leading-relaxed">Built on Base44 platform with React, TypeScript, and Tailwind CSS. Bank-level encryption and Australian data residency</p>
+                  <p className="text-sm text-gray-600 leading-relaxed">Built on Base44 platform with React, TypeScript, and Tailwind CSS. Bank-level encryption and Australian data residency</p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-slate-800/90 backdrop-blur-sm border-2 border-slate-700/50 hover:border-[#00529F]/50 transition-all hover-lift group">
+              <Card className="bg-white border-2 border-gray-200 hover:border-[#00529F] transition-all hover-lift group">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-[#00529F] to-[#003d75] rounded-xl flex items-center justify-center shadow-lg shadow-[#00529F]/30 group-hover:shadow-[#00529F]/50 transition-all">
+                    <div className="w-12 h-12 bg-gradient-to-br from-[#00529F] to-[#003d75] rounded-xl flex items-center justify-center shadow-lg shadow-[#00529F]/20 group-hover:shadow-[#00529F]/40 transition-all">
                       <Zap className="h-6 w-6 text-white" />
                     </div>
-                    <h4 className="font-bold text-white text-lg">Cloud Infrastructure</h4>
+                    <h4 className="font-bold text-gray-900 text-lg">Cloud Infrastructure</h4>
                   </div>
-                  <p className="text-sm text-gray-300 leading-relaxed">Serverless architecture with Deno Deploy for backend functions. 99.9% uptime SLA with auto-scaling capabilities</p>
+                  <p className="text-sm text-gray-600 leading-relaxed">Serverless architecture with Deno Deploy for backend functions. 99.9% uptime SLA with auto-scaling capabilities</p>
                 </CardContent>
               </Card>
             </div>
