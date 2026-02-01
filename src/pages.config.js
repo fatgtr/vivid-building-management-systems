@@ -84,6 +84,7 @@ import PlatformDashboard from './pages/PlatformDashboard';
 import PolicyManagement from './pages/PolicyManagement';
 import PredictiveMaintenance from './pages/PredictiveMaintenance';
 import Reports from './pages/Reports';
+import ResidentParkingManagement from './pages/ResidentParkingManagement';
 import ResidentPortal from './pages/ResidentPortal';
 import ResidentProfile from './pages/ResidentProfile';
 import ResidentSelfService from './pages/ResidentSelfService';
@@ -98,12 +99,11 @@ import StaffScheduling from './pages/StaffScheduling';
 import StrataKnowledgeBase from './pages/StrataKnowledgeBase';
 import TaskManagement from './pages/TaskManagement';
 import VerifyContractor from './pages/VerifyContractor';
+import VisitorParkingSetup from './pages/VisitorParkingSetup';
 import Visitors from './pages/Visitors';
 import VividStaffManagement from './pages/VividStaffManagement';
 import VotingCenter from './pages/VotingCenter';
 import WorkOrders from './pages/WorkOrders';
-import VisitorParkingSetup from './pages/VisitorParkingSetup';
-import ResidentParkingManagement from './pages/ResidentParkingManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -145,6 +145,7 @@ export const PAGES = {
     "PolicyManagement": PolicyManagement,
     "PredictiveMaintenance": PredictiveMaintenance,
     "Reports": Reports,
+    "ResidentParkingManagement": ResidentParkingManagement,
     "ResidentPortal": ResidentPortal,
     "ResidentProfile": ResidentProfile,
     "ResidentSelfService": ResidentSelfService,
@@ -159,12 +160,11 @@ export const PAGES = {
     "StrataKnowledgeBase": StrataKnowledgeBase,
     "TaskManagement": TaskManagement,
     "VerifyContractor": VerifyContractor,
+    "VisitorParkingSetup": VisitorParkingSetup,
     "Visitors": Visitors,
     "VividStaffManagement": VividStaffManagement,
     "VotingCenter": VotingCenter,
     "WorkOrders": WorkOrders,
-    "VisitorParkingSetup": VisitorParkingSetup,
-    "ResidentParkingManagement": ResidentParkingManagement,
 }
 
 export const pagesConfig = {

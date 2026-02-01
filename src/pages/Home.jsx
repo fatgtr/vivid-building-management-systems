@@ -619,43 +619,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              What our customers <span className="gradient-text">are saying</span>
-            </h2>
-            
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Hear from property managers and committees who have transformed their building management with Vivid BMS.
-            </p>
-          </div>
 
-          <Card className="max-w-4xl mx-auto border-2 border-gray-200">
-            <CardContent className="p-12">
-              <div className="flex items-center gap-4 mb-6">
-                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734b2a4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" alt="Client Testimonial" className="w-16 h-16 rounded-full object-cover border-2 border-blue-500" />
-                <div className="text-sm text-blue-600 px-3 py-1 bg-blue-100 rounded-full font-medium">Verified Client</div>
-              </div>
-              
-              <p className="text-xl text-gray-700 mb-8 leading-relaxed italic">
-                "Vivid BMS is a game-changer. The AI-powered features save us countless hours on compliance, maintenance, and resident communication. Our building has never run so smoothly, and our residents are happier than ever. It's truly a cut above the rest."
-              </p>
-              
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Users className="h-6 w-6 text-blue-600" />
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900">Sarah J.</p>
-                  <p className="text-sm text-gray-500">Senior Building Manager, Elite Strata Services</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
 
       {/* CTA Section - Get Started */}
       <section className="py-20 bg-gradient-to-br from-blue-50 via-indigo-50/30 to-cyan-50 relative overflow-hidden">
