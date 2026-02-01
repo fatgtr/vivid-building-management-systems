@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { AlertTriangle, Send, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -16,6 +17,7 @@ export default function BroadcastComposer({ buildingId, onSuccess }) {
   const [message, setMessage] = useState('');
   const [priority, setPriority] = useState('normal');
   const [targetAudience, setTargetAudience] = useState('all');
+  const [selectedResidentIds, setSelectedResidentIds] = useState([]);
   const [sendEmail, setSendEmail] = useState(false);
   const queryClient = useQueryClient();
 
@@ -33,8 +35,9 @@ export default function BroadcastComposer({ buildingId, onSuccess }) {
       // Create notifications for each recipient
       const filteredResidents = residents.filter(r => {
         if (targetAudience === 'all') return true;
-        if (targetAudience === 'owners') return r.is_owner;
-        if (targetAudience === 'tenants') return !r.is_owner;
+        if (targetAudience === 'owners') return r.resident_type === 'owner';
+        if (targetAudience === 'tenants') return r.resident_type === 'tenant';
+        if (targetAudience === 'specific') return selectedResidentIds.includes(r.id);
         return true;
       });
 
@@ -61,6 +64,7 @@ export default function BroadcastComposer({ buildingId, onSuccess }) {
       setMessage('');
       setPriority('normal');
       setTargetAudience('all');
+      setSelectedResidentIds([]);
       setSendEmail(false);
       if (onSuccess) onSuccess();
     },
@@ -74,8 +78,9 @@ export default function BroadcastComposer({ buildingId, onSuccess }) {
 
     const filteredResidents = residents.filter(r => {
       if (targetAudience === 'all') return true;
-      if (targetAudience === 'owners') return r.is_owner;
-      if (targetAudience === 'tenants') return !r.is_owner;
+      if (targetAudience === 'owners') return r.resident_type === 'owner';
+      if (targetAudience === 'tenants') return r.resident_type === 'tenant';
+      if (targetAudience === 'specific') return selectedResidentIds.includes(r.id);
       return true;
     });
 
@@ -146,10 +151,37 @@ export default function BroadcastComposer({ buildingId, onSuccess }) {
                 <SelectItem value="all">All Residents</SelectItem>
                 <SelectItem value="owners">Owners Only</SelectItem>
                 <SelectItem value="tenants">Tenants Only</SelectItem>
+                <SelectItem value="specific">Specific Residents</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
+
+        {targetAudience === 'specific' && (
+          <div className="border rounded-lg p-4 max-h-64 overflow-y-auto">
+            <Label className="mb-3 block">Select Residents ({selectedResidentIds.length} selected)</Label>
+            <div className="space-y-2">
+              {residents.map((resident) => (
+                <div key={resident.id} className="flex items-center gap-2">
+                  <Checkbox
+                    id={`resident-${resident.id}`}
+                    checked={selectedResidentIds.includes(resident.id)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedResidentIds([...selectedResidentIds, resident.id]);
+                      } else {
+                        setSelectedResidentIds(selectedResidentIds.filter(id => id !== resident.id));
+                      }
+                    }}
+                  />
+                  <label htmlFor={`resident-${resident.id}`} className="text-sm cursor-pointer">
+                    {resident.first_name} {resident.last_name} - Unit {resident.unit_number}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
           <div>
@@ -174,8 +206,9 @@ export default function BroadcastComposer({ buildingId, onSuccess }) {
             <p className="text-sm text-gray-600">
               Recipients: <span className="font-semibold">{residents.filter(r => {
                 if (targetAudience === 'all') return true;
-                if (targetAudience === 'owners') return r.is_owner;
-                if (targetAudience === 'tenants') return !r.is_owner;
+                if (targetAudience === 'owners') return r.resident_type === 'owner';
+                if (targetAudience === 'tenants') return r.resident_type === 'tenant';
+                if (targetAudience === 'specific') return selectedResidentIds.includes(r.id);
                 return true;
               }).length}</span>
             </p>
