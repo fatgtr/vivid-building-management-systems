@@ -38,7 +38,8 @@ import {
   Heart,
   Briefcase,
   Truck,
-  AlertCircle
+  AlertCircle,
+  Car
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
