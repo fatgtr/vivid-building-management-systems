@@ -119,6 +119,7 @@ const navGroups = [
 
 // Special access items
 const specialNavItems = [
+  { name: 'System Settings', icon: Settings, page: 'SystemSettings', adminOnly: true },
   { name: 'Resident Portal', icon: Home, page: 'ResidentSelfService', requirePermission: { resource: 'residents', action: 'view' } },
   { name: 'Contractor Portal', icon: HardHat, page: 'ContractorPortal', contractorOnly: true },
   { name: 'Platform Admin', icon: Sparkles, page: 'PlatformDashboard', adminOnly: true },
