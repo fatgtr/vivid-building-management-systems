@@ -32,7 +32,8 @@ import {
   Shield,
   Palette,
   DollarSign,
-  TrendingUp
+  TrendingUp,
+  MapPin
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
