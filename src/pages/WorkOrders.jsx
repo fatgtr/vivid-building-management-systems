@@ -45,26 +45,28 @@ import { format } from 'date-fns';
 import { ASSET_CATEGORIES, formatSubcategoryLabel, getSubcategories } from '@/components/categories/assetCategories';
 
 const initialFormState = {
-  building_id: '',
-  unit_id: '',
-  asset_id: '',
-  is_common_area: false,
-  title: '',
-  description: '',
-  main_category: '',
-  subcategory: '',
-  priority: 'medium',
-  status: 'open',
-  reported_by_name: '',
-  assigned_to: '',
-  assigned_contractor_id: '',
-  due_date: '',
-  estimated_cost: '',
-  actual_cost: '',
-  notes: '',
-  is_recurring: false,
-  recurrence_pattern: 'monthly',
-  recurrence_end_date: '',
+building_id: '',
+unit_id: '',
+asset_id: '',
+is_common_area: false,
+title: '',
+description: '',
+main_category: '',
+subcategory: '',
+priority: 'medium',
+status: 'open',
+reported_by_name: '',
+assigned_to: '',
+assigned_contractor_id: '',
+due_date: '',
+estimated_cost: '',
+actual_cost: '',
+notes: '',
+is_recurring: false,
+recurrence_pattern: 'monthly',
+recurrence_end_date: '',
+permission_to_enter: false,
+entry_instructions: '',
 };
 
 export default function WorkOrders() {
@@ -74,6 +76,8 @@ export default function WorkOrders() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
+  const [filterCategory, setFilterCategory] = useState('all');
+  const [filterBuilding, setFilterBuilding] = useState('all');
   const [deleteOrder, setDeleteOrder] = useState(null);
   const [viewingOrder, setViewingOrder] = useState(null);
   const [uploadingFiles, setUploadingFiles] = useState(false);
