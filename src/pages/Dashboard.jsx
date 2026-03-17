@@ -386,51 +386,11 @@ export default function Dashboard() {
 
         {/* Middle Column */}
         <div className="space-y-6">
-          {/* Items Requiring Action */}
-          <Card className="overflow-hidden border-2 border-red-200 shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-red-400">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-red-500/20 to-transparent rounded-bl-full" />
-            <CardHeader className="pb-3 bg-gradient-to-r from-red-50 to-orange-50">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center shadow-lg shadow-red-500/30 animate-pulse">
-                  <AlertCircle className="h-5 w-5 text-white" />
-                </div>
-                <CardTitle className="text-base font-bold text-slate-900">Items Requiring Action</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {filteredDocuments.filter(d => d.expiry_date && new Date(d.expiry_date) < new Date()).length > 0 && (
-                <div className="flex items-center justify-between p-3 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-red-600" />
-                    <span className="text-sm font-medium text-slate-700">Expired Documents</span>
-                  </div>
-                  <Badge className="bg-red-600 text-white">
-                    {filteredDocuments.filter(d => d.expiry_date && new Date(d.expiry_date) < new Date()).length}
-                  </Badge>
-                </div>
-              )}
-              {filteredWorkOrders.filter(wo => wo.status === 'open' && wo.priority === 'urgent').length > 0 && (
-                <div className="flex items-center justify-between p-3 rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-2">
-                    <Wrench className="h-4 w-4 text-orange-600" />
-                    <span className="text-sm font-medium text-slate-700">Urgent Work Orders</span>
-                  </div>
-                  <Badge className="bg-orange-600 text-white">
-                    {filteredWorkOrders.filter(wo => wo.status === 'open' && wo.priority === 'urgent').length}
-                  </Badge>
-                </div>
-              )}
-              {filteredWorkOrders.filter(wo => wo.status === 'open').length === 0 && filteredDocuments.filter(d => d.expiry_date && new Date(d.expiry_date) < new Date()).length === 0 && (
-                <div className="text-center py-8">
-                  <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-2">
-                    <TrendingUp className="h-6 w-6 text-green-600" />
-                  </div>
-                  <p className="text-sm font-medium text-slate-700">All clear!</p>
-                  <p className="text-xs text-slate-500 mt-1">No items requiring action</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <ActionItemsWidget
+            workOrders={filteredWorkOrders}
+            documents={filteredDocuments}
+            amenityBookings={filteredAmenityBookings}
+          />
 
           {/* Notes */}
           <Card className="overflow-hidden border-2 border-yellow-200 shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-yellow-400">
