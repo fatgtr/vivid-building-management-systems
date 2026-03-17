@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { format } from 'date-fns';
 import MobileInspectionConductor from '@/components/inspections/MobileInspectionConductor';
+import InspectionChecklistManager from '@/components/inspections/InspectionChecklistManager';
 
 const inspectionTypes = [
   { value: 'fire_safety', label: 'Fire Safety' },
