@@ -416,8 +416,6 @@ export default function Inspections() {
             </div>
           )}
         </TabsContent>
-      </Tabs>
-
       {/* Add/Edit Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -701,6 +699,11 @@ export default function Inspections() {
           onClose={() => setCreatingWorkOrder(null)}
         />
       )}
+
+        <TabsContent value="checklists" className="mt-6">
+          <InspectionChecklistManager buildingId={filterBuilding !== 'all' ? filterBuilding : null} buildings={buildings} />
+        </TabsContent>
+      </Tabs>
 
       {/* Mobile Inspector */}
       {showMobileInspector && (
