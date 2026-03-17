@@ -286,6 +286,29 @@ export default function Documents() {
         actionIcon={Upload}
       />
 
+      {/* Quick Filter Tabs */}
+      <div className="flex gap-2 flex-wrap">
+        {[
+          { key: 'all', label: 'All Documents', count: accessibleDocuments.length },
+          { key: 'expired', label: 'Expired Documents', count: accessibleDocuments.filter(d => d.expiry_date && new Date(d.expiry_date) < new Date()).length, color: 'text-red-600 border-red-300 bg-red-50' },
+          { key: 'expiring_soon', label: 'Expiring Soon', count: accessibleDocuments.filter(d => { if (!d.expiry_date) return false; const days = Math.ceil((new Date(d.expiry_date) - new Date()) / (1000 * 60 * 60 * 24)); return days >= 0 && days <= 30; }).length, color: 'text-orange-600 border-orange-300 bg-orange-50' },
+        ].map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => {
+              if (tab.key === 'all') { setFilterCategory('all'); setFilterDateFrom(''); setFilterDateTo(''); }
+              if (tab.key === 'expired') {
+                const today = new Date().toISOString().split('T')[0];
+                setFilterDateTo(today);
+              }
+            }}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all ${tab.color || 'text-slate-700 border-slate-300 bg-white hover:bg-slate-50'}`}
+          >
+            {tab.label} ({tab.count})
+          </button>
+        ))}
+      </div>
+
       {/* Filters */}
       <Card className="border-0 shadow-sm">
         <div className="p-4">
