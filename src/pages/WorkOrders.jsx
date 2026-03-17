@@ -471,7 +471,9 @@ export default function WorkOrders() {
                          order.description?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = filterStatus === 'all' || order.status === filterStatus;
     const matchesPriority = filterPriority === 'all' || order.priority === filterPriority;
-    return matchesSearch && matchesStatus && matchesPriority;
+    const matchesCategory = filterCategory === 'all' || order.main_category === filterCategory;
+    const matchesBuilding = filterBuilding === 'all' || order.building_id === filterBuilding;
+    return matchesSearch && matchesStatus && matchesPriority && matchesCategory && matchesBuilding;
   });
 
   const statusCounts = {
@@ -562,6 +564,27 @@ export default function WorkOrders() {
             <SelectItem value="high">High</SelectItem>
             <SelectItem value="medium">Medium</SelectItem>
             <SelectItem value="low">Low</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={filterBuilding} onValueChange={setFilterBuilding}>
+          <SelectTrigger className="w-[180px]">
+            <Building2 className="h-4 w-4 mr-2 text-slate-400" />
+            <SelectValue placeholder="All Buildings" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Buildings</SelectItem>
+            {buildings.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={filterCategory} onValueChange={setFilterCategory}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="All Categories" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {Object.entries(ASSET_CATEGORIES).map(([key, cat]) => (
+              <SelectItem key={key} value={key}>{cat.label}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
