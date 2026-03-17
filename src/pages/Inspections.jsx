@@ -275,6 +275,7 @@ export default function Inspections() {
         <TabsList>
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="all">All Inspections</TabsTrigger>
+          <TabsTrigger value="checklists">Checklists</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dashboard" className="mt-6">
