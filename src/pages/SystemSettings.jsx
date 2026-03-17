@@ -58,11 +58,12 @@ export default function SystemSettings() {
   const generalSettings = [
     { title: 'Logo & Branding', description: 'Customize your application logo and branding', icon: Image, page: 'BrandingSettings' },
     { title: 'Buildings', description: 'Manage building configurations and settings', icon: Building2, page: 'Buildings' },
-    { title: 'Work Orders', description: 'Configure work order categories and workflows', icon: Wrench, page: 'WorkOrderSettings' },
+    { title: 'Work Orders', description: 'Configure work order categories, types, and workflows', icon: Wrench, page: 'WorkOrderSettings' },
     { title: 'Assets', description: 'Manage asset categories and compliance settings', icon: Package, page: 'AssetSettings' },
-    { title: 'Residents', description: 'Configure resident management settings', icon: Users, page: 'ResidentSettings' },
-    { title: 'Contractors', description: 'Manage contractor settings and requirements', icon: HardHat, page: 'ContractorSettings' },
-    { title: 'Documents', description: 'Configure document categories and templates', icon: FileText, page: 'DocumentSettings' },
+    { title: 'Residents', description: 'Configure resident types and management settings', icon: Users, page: 'ResidentSettings' },
+    { title: 'Contractors', description: 'Manage contractor settings and compliance requirements', icon: HardHat, page: 'Contractors' },
+    { title: 'Documents', description: 'Configure document categories, library subcategories and templates', icon: FileText, page: 'DocumentSettings' },
+    { title: 'Inspection Checklists', description: 'Manage building and global inspection checklists', icon: Shield, page: 'Inspections' },
   ];
 
   const communicationSettings = [
