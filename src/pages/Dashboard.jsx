@@ -162,6 +162,7 @@ export default function Dashboard() {
   const filteredDocuments = selectedBuildingId ? documents.filter(d => d.building_id === selectedBuildingId) : documents;
   const filteredMaintenanceSchedules = selectedBuildingId ? maintenanceSchedules.filter(m => m.building_id === selectedBuildingId) : maintenanceSchedules;
   const filteredComplianceRecords = selectedBuildingId ? complianceRecords.filter(c => c.building_id === selectedBuildingId) : complianceRecords;
+  const filteredAmenityBookings = selectedBuildingId ? amenityBookings.filter(b => b.building_id === selectedBuildingId) : amenityBookings;
 
   const filteredActiveCases = filteredWorkOrders.filter(wo => wo.status !== 'completed' && wo.status !== 'cancelled').length;
 
