@@ -76,14 +76,16 @@ export default function SystemSettings() {
   ];
 
   const moduleSettings = [
-    { title: 'Voting & Polls', description: 'Configure voting and polling settings', icon: Vote, page: 'VotingSettings' },
-    { title: 'Marketplace', description: 'Manage marketplace settings and categories', icon: ShoppingBag, page: 'MarketplaceSettings' },
-    { title: 'Key Management', description: 'Configure key register settings', icon: Key, page: 'KeySettings' },
-    { title: 'Pet Registry', description: 'Manage pet registry settings', icon: Heart, page: 'PetSettings' },
-    { title: 'Move Coordinator', description: 'Configure move booking settings', icon: Truck, page: 'MoveSettings' },
-    { title: 'Service Directory', description: 'Manage service provider settings', icon: Briefcase, page: 'ServiceSettings' },
-    { title: 'Financial', description: 'Configure levy and financial settings', icon: DollarSign, page: 'FinancialSettings' },
-    { title: 'Capital Works', description: 'Manage capital works planning settings', icon: TrendingUp, page: 'CapitalWorksSettings' },
+    { title: 'Voting & Polls', description: 'Configure voting and polling settings', icon: Vote, page: 'VotingCenter' },
+    { title: 'Marketplace', description: 'Manage marketplace categories and moderation settings', icon: ShoppingBag, page: 'Marketplace' },
+    { title: 'Key Management', description: 'Configure key register settings', icon: Key, page: 'KeyManagement' },
+    { title: 'Pet Registry', description: 'Manage pet registry settings and requirements', icon: Heart, page: 'PetRegistry' },
+    { title: 'Move Coordinator', description: 'Configure move booking settings and rules', icon: Truck, page: 'MoveCoordinator' },
+    { title: 'Service Directory', description: 'Manage service provider settings and offers', icon: Briefcase, page: 'ServiceDirectory' },
+    { title: 'Amenity Bookings', description: 'Configure amenity booking rules and hours', icon: Calendar, page: 'Amenities' },
+    { title: 'Parking Management', description: 'Configure visitor and resident parking settings', icon: Car, page: 'VisitorParkingSetup' },
+    { title: 'Financial', description: 'Configure levy and financial settings', icon: DollarSign, page: 'FinancialManagement' },
+    { title: 'Capital Works', description: 'Manage capital works planning settings', icon: TrendingUp, page: 'CapitalWorksPlanning' },
   ];
 
   const advancedSettings = [
