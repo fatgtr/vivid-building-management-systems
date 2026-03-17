@@ -964,6 +964,47 @@ export default function WorkOrders() {
                   />
                 </div>
 
+                {/* Permission to Enter */}
+                <div className="pt-2 border-t border-slate-100">
+                  <Label className="text-sm font-semibold mb-3 block">Entry Access</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Permission to Enter Unit</Label>
+                      <div className="flex gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            checked={formData.permission_to_enter === true}
+                            onChange={() => setFormData({ ...formData, permission_to_enter: true })}
+                            className="accent-blue-600"
+                          />
+                          <span className="text-sm">Yes</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            checked={formData.permission_to_enter === false}
+                            onChange={() => setFormData({ ...formData, permission_to_enter: false })}
+                            className="accent-blue-600"
+                          />
+                          <span className="text-sm">No</span>
+                        </label>
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="entry_instructions" className="text-sm font-semibold">Entry Instructions</Label>
+                      <Textarea
+                        id="entry_instructions"
+                        value={formData.entry_instructions || ''}
+                        onChange={(e) => setFormData({ ...formData, entry_instructions: e.target.value })}
+                        rows={2}
+                        placeholder="e.g., Key under mat, call before entry..."
+                        className="mt-1.5"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 <div>
                   <Label htmlFor="notes" className="text-sm font-semibold">Additional Notes</Label>
                   <Textarea
