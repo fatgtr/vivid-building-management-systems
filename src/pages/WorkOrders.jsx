@@ -208,6 +208,8 @@ export default function WorkOrders() {
       is_recurring: order.is_recurring || false,
       recurrence_pattern: order.recurrence_pattern || 'monthly',
       recurrence_end_date: order.recurrence_end_date || '',
+      permission_to_enter: order.permission_to_enter ?? false,
+      entry_instructions: order.entry_instructions || '',
     });
     setSelectedPhotos([]);
     setSelectedVideos([]);
