@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import CalendarWidget from '@/components/dashboard/CalendarWidget';
 import CasesChart from '@/components/dashboard/CasesChart';
 import QueryNotesWidget from '@/components/dashboard/QueryNotesWidget';
+import ActionItemsWidget from '@/components/dashboard/ActionItemsWidget';
 import { 
   Building2, 
   Users, 
@@ -104,6 +105,11 @@ export default function Dashboard() {
   const { data: complianceRecords = [] } = useQuery({
     queryKey: ['complianceRecords'],
     queryFn: () => base44.entities.ComplianceRecord.list(),
+  });
+
+  const { data: amenityBookings = [] } = useQuery({
+    queryKey: ['amenityBookings'],
+    queryFn: () => base44.entities.AmenityBooking.list(),
   });
 
   const isLoading = loadingBuildings || loadingUnits || loadingResidents || loadingWorkOrders;
