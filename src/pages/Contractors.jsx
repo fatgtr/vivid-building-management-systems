@@ -16,6 +16,7 @@ import StatusBadge from '@/components/common/StatusBadge';
 import ContractorPerformanceMetrics from '@/components/contractor/ContractorPerformanceMetrics';
 import ContractorContractInfo from '@/components/contractor/ContractorContractInfo';
 import ContractorApplicationReviewQueue from '@/components/contractor/ContractorApplicationReviewQueue';
+import ContractorComplianceSummary from '@/components/contractors/ContractorComplianceSummary';
 import { HardHat, Search, MoreVertical, Pencil, Trash2, Phone, Mail, MapPin, Star, DollarSign, Shield, Upload, FileText, X, Send, Loader2, TrendingUp, Calendar, Sparkles, CheckCircle, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -409,6 +410,7 @@ export default function Contractors() {
         </TabsList>
 
         <TabsContent value="contractors" className="space-y-6">
+          <ContractorComplianceSummary contractors={contractors} />
           <div className="flex flex-wrap gap-4">
             <div className="relative flex-1 min-w-[200px] max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
