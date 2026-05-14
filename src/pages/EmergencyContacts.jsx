@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertCircle, Phone, Plus, Send } from 'lucide-react';
-import { useState } from 'react';
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';
