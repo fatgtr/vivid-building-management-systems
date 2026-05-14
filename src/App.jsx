@@ -9,6 +9,8 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import MaintenanceRequest from './pages/MaintenanceRequest';
+import MaintenanceRequestTracker from './pages/MaintenanceRequestTracker';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -60,6 +62,9 @@ const AuthenticatedApp = () => {
           }
         />
       ))}
+      {/* Public routes - no layout wrapper */}
+      <Route path="/MaintenanceRequest" element={<MaintenanceRequest />} />
+      <Route path="/MaintenanceRequestTracker" element={<MaintenanceRequestTracker />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

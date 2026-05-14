@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { Vote, Plus, CheckCircle } from 'lucide-react';
+import { useState } from 'react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { format, isPast, isFuture } from 'date-fns';
 import { toast } from 'sonner';
 import PageHeader from '@/components/common/PageHeader';

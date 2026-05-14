@@ -40,12 +40,6 @@ import { toast } from 'sonner';
 
 export default function Dashboard() {
   const { selectedBuildingId, user } = useBuildingContext();
-  
-  // Show partner dashboard if user has partner_id
-  if (user?.partner_id) {
-    return <PartnerDashboard />;
-  }
-  
   const queryClient = useQueryClient();
   const [showNoteDialog, setShowNoteDialog] = useState(false);
   const [showNumberDialog, setShowNumberDialog] = useState(false);
@@ -112,10 +106,6 @@ export default function Dashboard() {
     queryFn: () => base44.entities.AmenityBooking.list(),
   });
 
-  const isLoading = loadingBuildings || loadingUnits || loadingResidents || loadingWorkOrders;
-
-  const activeCases = workOrders.filter(wo => wo.status !== 'completed' && wo.status !== 'cancelled').length;
-
   const createNoteMutation = useMutation({
     mutationFn: (data) => base44.entities.Note.create({ ...data, building_id: selectedBuildingId || null }),
     onSuccess: () => {
@@ -135,6 +125,15 @@ export default function Dashboard() {
       setNumberForm({ name: '', phone_number: '', category: 'other' });
     },
   });
+
+  // Show partner dashboard if user has partner_id (after all hooks)
+  if (user?.partner_id) {
+    return <PartnerDashboard />;
+  }
+
+  const isLoading = loadingBuildings || loadingUnits || loadingResidents || loadingWorkOrders;
+
+  const activeCases = workOrders.filter(wo => wo.status !== 'completed' && wo.status !== 'cancelled').length;
 
   if (isLoading) {
     return (
