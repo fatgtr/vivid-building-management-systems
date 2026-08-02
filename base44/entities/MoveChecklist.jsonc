@@ -1,0 +1,125 @@
+{
+  "name": "MoveChecklist",
+  "type": "object",
+  "properties": {
+    "resident_id": {
+      "type": "string",
+      "description": "ID of the Resident associated with this checklist"
+    },
+    "resident_name": {
+      "type": "string",
+      "description": "Name of the resident"
+    },
+    "building_id": {
+      "type": "string",
+      "description": "ID of the Building"
+    },
+    "unit_id": {
+      "type": "string",
+      "description": "ID of the Unit"
+    },
+    "move_type": {
+      "type": "string",
+      "enum": [
+        "move_in",
+        "move_out"
+      ],
+      "description": "Type of move: move_in or move_out"
+    },
+    "checklist_date": {
+      "type": "string",
+      "format": "date",
+      "description": "The move-in or move-out date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "in_progress",
+        "completed",
+        "archived"
+      ],
+      "default": "pending",
+      "description": "Overall status of the checklist"
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "task_name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "assigned_to": {
+            "type": "string",
+            "enum": [
+              "tenant",
+              "managing_agent",
+              "building_manager"
+            ]
+          },
+          "is_completed": {
+            "type": "boolean",
+            "default": false
+          },
+          "completed_date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completed_by": {
+            "type": "string"
+          },
+          "linked_document_url": {
+            "type": "string"
+          },
+          "requires_upload": {
+            "type": "boolean",
+            "default": false
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "default": "medium"
+          }
+        }
+      }
+    },
+    "dilapidation_report_before": {
+      "type": "string",
+      "description": "URL to dilapidation report before move"
+    },
+    "dilapidation_report_after": {
+      "type": "string",
+      "description": "URL to dilapidation report after move"
+    },
+    "bond_amount": {
+      "type": "number",
+      "description": "Bond amount for this move"
+    },
+    "bond_allocation_fee": {
+      "type": "number",
+      "description": "Optional bond allocation fee charged"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes for the checklist"
+    }
+  },
+  "required": [
+    "resident_id",
+    "building_id",
+    "unit_id",
+    "move_type",
+    "checklist_date"
+  ]
+}

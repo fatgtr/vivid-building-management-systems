@@ -1,0 +1,139 @@
+{
+  "name": "DocumentTemplate",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Template name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Template description"
+    },
+    "template_type": {
+      "type": "string",
+      "enum": [
+        "lease_agreement",
+        "inspection_report",
+        "resident_notice",
+        "maintenance_notice",
+        "breach_notice",
+        "entry_notice",
+        "rent_increase_notice",
+        "lease_renewal",
+        "move_in_checklist",
+        "move_out_checklist",
+        "incident_report",
+        "compliance_report",
+        "custom"
+      ],
+      "description": "Type of document template"
+    },
+    "content": {
+      "type": "string",
+      "description": "Template content with placeholders like {{resident.first_name}}, {{building.name}}, etc."
+    },
+    "variables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Variable name (e.g., 'inspection_date')"
+          },
+          "label": {
+            "type": "string",
+            "description": "Display label"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "text",
+              "date",
+              "number",
+              "select"
+            ],
+            "description": "Input type for this variable"
+          },
+          "required": {
+            "type": "boolean",
+            "default": false
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Options for select type"
+          }
+        }
+      },
+      "default": [],
+      "description": "Custom variables that need to be filled when generating"
+    },
+    "data_sources": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "building",
+          "resident",
+          "unit",
+          "work_order",
+          "inspection",
+          "contractor",
+          "asset",
+          "lease_agreement",
+          "compliance_record"
+        ]
+      },
+      "default": [],
+      "description": "Which entities to pull data from"
+    },
+    "building_id": {
+      "type": "string",
+      "description": "Building this template is specific to (null for global)"
+    },
+    "partner_id": {
+      "type": "string",
+      "description": "Partner/organization this template belongs to (null for platform default)"
+    },
+    "is_default": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is a default platform template"
+    },
+    "output_format": {
+      "type": "string",
+      "enum": [
+        "pdf",
+        "html",
+        "docx"
+      ],
+      "default": "pdf",
+      "description": "Output format for generated document"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "draft",
+        "archived"
+      ],
+      "default": "active"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    }
+  },
+  "required": [
+    "name",
+    "template_type",
+    "content"
+  ]
+}

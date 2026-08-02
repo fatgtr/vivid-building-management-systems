@@ -1,0 +1,72 @@
+{
+  "name": "ServiceProvider",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Building (null for global directory)"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "plumber",
+        "electrician",
+        "locksmith",
+        "cleaner",
+        "handyman",
+        "pest_control",
+        "gardener",
+        "removalist",
+        "pet_care",
+        "childcare",
+        "other"
+      ],
+      "description": "Service category"
+    },
+    "business_name": {
+      "type": "string"
+    },
+    "contact_name": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "building_approved": {
+      "type": "boolean",
+      "default": false,
+      "description": "Approved by building management"
+    },
+    "resident_recommended": {
+      "type": "boolean",
+      "default": false
+    },
+    "rating": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 5
+    },
+    "reviews_count": {
+      "type": "number",
+      "default": 0
+    },
+    "verified": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "category",
+    "business_name",
+    "phone"
+  ]
+}

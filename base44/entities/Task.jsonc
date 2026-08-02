@@ -1,0 +1,141 @@
+{
+  "name": "Task",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Task title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed task description"
+    },
+    "building_id": {
+      "type": "string",
+      "description": "Reference to building"
+    },
+    "maintenance_schedule_id": {
+      "type": "string",
+      "description": "Reference to the MaintenanceSchedule that generated this task"
+    },
+    "asset_id": {
+      "type": "string",
+      "description": "Reference to Asset if task is asset-specific"
+    },
+    "assigned_to_contractor_id": {
+      "type": "string",
+      "description": "Assigned contractor ID"
+    },
+    "assigned_to_user_id": {
+      "type": "string",
+      "description": "Assigned user ID (staff member)"
+    },
+    "assigned_to_name": {
+      "type": "string",
+      "description": "Name of assigned person"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "in_progress",
+        "completed",
+        "cancelled",
+        "overdue"
+      ],
+      "default": "pending",
+      "description": "Current task status"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "urgent"
+      ],
+      "default": "medium",
+      "description": "Task priority level"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Task due date"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Task start date"
+    },
+    "completed_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date when task was completed"
+    },
+    "completion_feedback": {
+      "type": "string",
+      "description": "Feedback from contractor on task completion"
+    },
+    "rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Rating for the completed task"
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "author_email": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string"
+          }
+        }
+      },
+      "default": [],
+      "description": "Task notes and updates"
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "File URLs for attachments"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Task tags for categorization"
+    },
+    "estimated_hours": {
+      "type": "number",
+      "description": "Estimated hours to complete"
+    },
+    "actual_hours": {
+      "type": "number",
+      "description": "Actual hours spent"
+    },
+    "notification_sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether a notification has been sent for this task"
+    }
+  },
+  "required": [
+    "title",
+    "building_id"
+  ]
+}

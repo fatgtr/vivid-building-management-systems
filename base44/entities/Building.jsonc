@@ -1,0 +1,311 @@
+{
+  "name": "Building",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Building name"
+    },
+    "address": {
+      "type": "string",
+      "description": "Full address"
+    },
+    "city": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "postal_code": {
+      "type": "string"
+    },
+    "country": {
+      "type": "string"
+    },
+    "partner_id": {
+      "type": "string",
+      "description": "ID of the partner managing this building"
+    },
+    "total_units": {
+      "type": "number"
+    },
+    "floors": {
+      "type": "number"
+    },
+    "year_built": {
+      "type": "number"
+    },
+    "building_type": {
+      "type": "string",
+      "enum": [
+        "residential",
+        "commercial",
+        "mixed_use",
+        "hoa",
+        "condo",
+        "co_op"
+      ]
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "amenities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "manager_name": {
+      "type": "string"
+    },
+    "manager_email": {
+      "type": "string"
+    },
+    "manager_phone": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    },
+    "strata_plan_number": {
+      "type": "string",
+      "description": "Unique Strata Plan Number"
+    },
+    "strata_managing_agent_name": {
+      "type": "string",
+      "description": "Strata managing agent company name (or BMC main strata manager if is_bmc=true)"
+    },
+    "strata_managing_agent_license": {
+      "type": "string",
+      "description": "Agent license number"
+    },
+    "strata_managing_agent_email": {
+      "type": "string",
+      "description": "Email of the strata managing agent for automated requests"
+    },
+    "strata_managing_agent_phone": {
+      "type": "string",
+      "description": "Phone number of the strata managing agent"
+    },
+    "strata_managing_agent_invoicing_email": {
+      "type": "string",
+      "description": "Dedicated email for invoicing and payment processing"
+    },
+    "building_compliance_email": {
+      "type": "string",
+      "description": "Building-specific email address for compliance communications with Strata managers"
+    },
+    "strata_lots": {
+      "type": "number",
+      "description": "Number of lots in the strata scheme"
+    },
+    "strata_roll_request_frequency": {
+      "type": "string",
+      "enum": [
+        "never",
+        "quarterly",
+        "half-yearly",
+        "yearly"
+      ],
+      "default": "never",
+      "description": "Frequency for requesting updated strata roll"
+    },
+    "next_strata_roll_request_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Next date to request strata roll update"
+    },
+    "last_strata_roll_upload_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of last strata roll upload"
+    },
+    "compliance_reminder_intervals": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "default": [
+        90,
+        60,
+        30
+      ],
+      "description": "Days before expiry to send reminder emails (e.g., [90, 60, 30])"
+    },
+    "compliance_reminder_recipients": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Additional email addresses to receive compliance reminders"
+    },
+    "report_frequency": {
+      "type": "string",
+      "enum": [
+        "none",
+        "monthly",
+        "quarterly",
+        "semi_annually"
+      ],
+      "default": "none",
+      "description": "Frequency for automatic maintenance report generation"
+    },
+    "next_report_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Next scheduled date for automatic report generation"
+    },
+    "after_hours_lockbox_available": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is there an after-hour lockbox available?"
+    },
+    "after_hours_lockbox_code": {
+      "type": "string",
+      "description": "Code for the after-hours lockbox"
+    },
+    "after_hours_lockbox_location": {
+      "type": "string",
+      "description": "Location of the after-hours lockbox"
+    },
+    "after_hours_lockbox_keys": {
+      "type": "string",
+      "description": "What keys are available in the lockbox"
+    },
+    "emergency_plumber_name": {
+      "type": "string",
+      "description": "Emergency plumber contact name"
+    },
+    "emergency_plumber_phone": {
+      "type": "string",
+      "description": "Emergency plumber phone number"
+    },
+    "emergency_electrician_name": {
+      "type": "string",
+      "description": "Emergency electrician contact name"
+    },
+    "emergency_electrician_phone": {
+      "type": "string",
+      "description": "Emergency electrician phone number"
+    },
+    "emergency_fire_technician_name": {
+      "type": "string",
+      "description": "Emergency fire technician contact name"
+    },
+    "emergency_fire_technician_phone": {
+      "type": "string",
+      "description": "Emergency fire technician phone number"
+    },
+    "is_bmc": {
+      "type": "boolean",
+      "default": false,
+      "description": "Indicates if this is a BMC (Building Management Committee) master entity"
+    },
+    "parent_bmc_building_id": {
+      "type": "string",
+      "description": "Reference to parent BMC building if this is a strata plan under a BMC"
+    },
+    "bmc_strata_plan_type": {
+      "type": "string",
+      "enum": [
+        "residential",
+        "commercial",
+        "parking",
+        "retail",
+        "mixed_use",
+        "other"
+      ],
+      "description": "Type of strata plan if this building is part of a BMC"
+    },
+    "bmc_strata_plans": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "plan_number": {
+            "type": "string",
+            "description": "Strata plan number (e.g., SP60919)"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name/description of this strata plan (e.g., Residential Component, Commercial Plaza)"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "residential",
+              "commercial",
+              "parking",
+              "retail",
+              "mixed_use",
+              "other"
+            ],
+            "description": "Type of strata plan"
+          },
+          "strata_lots": {
+            "type": "number",
+            "description": "Number of lots in this strata plan"
+          },
+          "use_different_manager": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, this plan has a different strata manager than the BMC main manager"
+          },
+          "strata_managing_agent_name": {
+            "type": "string",
+            "description": "Strata managing agent company name for this specific plan (only if use_different_manager is true)"
+          },
+          "strata_managing_agent_email": {
+            "type": "string",
+            "description": "Email of the strata managing agent for this plan (only if use_different_manager is true)"
+          },
+          "strata_managing_agent_phone": {
+            "type": "string",
+            "description": "Phone number of the strata managing agent for this plan (only if use_different_manager is true)"
+          },
+          "strata_managing_agent_license": {
+            "type": "string",
+            "description": "Agent license number for this plan (only if use_different_manager is true)"
+          },
+          "buildings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Building name (e.g., Firenze, Napoli, Palermo)"
+                },
+                "address": {
+                  "type": "string",
+                  "description": "Building address"
+                },
+                "floors": {
+                  "type": "number",
+                  "description": "Number of floors"
+                },
+                "total_units": {
+                  "type": "number",
+                  "description": "Number of units in this building"
+                }
+              }
+            },
+            "default": [],
+            "description": "Multiple buildings within this strata plan"
+          }
+        }
+      },
+      "default": [],
+      "description": "Configuration data for BMC setup - actual strata plan buildings will be created as separate Building entities"
+    }
+  },
+  "required": [
+    "name",
+    "address"
+  ]
+}

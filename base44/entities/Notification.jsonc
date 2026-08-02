@@ -1,0 +1,76 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "recipient_email": {
+      "type": "string",
+      "description": "Email of the user receiving the notification"
+    },
+    "title": {
+      "type": "string",
+      "description": "Notification title"
+    },
+    "message": {
+      "type": "string",
+      "description": "Notification content"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "work_order",
+        "message",
+        "compliance",
+        "announcement",
+        "system"
+      ],
+      "description": "Type of notification"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "urgent"
+      ],
+      "default": "medium",
+      "description": "Notification priority"
+    },
+    "read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether notification has been read"
+    },
+    "read_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When notification was read"
+    },
+    "link_url": {
+      "type": "string",
+      "description": "Optional link to related page"
+    },
+    "link_text": {
+      "type": "string",
+      "description": "Text for the link"
+    },
+    "reference_id": {
+      "type": "string",
+      "description": "ID of related entity (work order, announcement, etc.)"
+    },
+    "reference_type": {
+      "type": "string",
+      "description": "Type of referenced entity"
+    },
+    "building_id": {
+      "type": "string",
+      "description": "Related building if applicable"
+    }
+  },
+  "required": [
+    "recipient_email",
+    "title",
+    "message",
+    "type"
+  ]
+}

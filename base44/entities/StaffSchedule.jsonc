@@ -1,0 +1,75 @@
+{
+  "name": "StaffSchedule",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string"
+    },
+    "staff_member_id": {
+      "type": "string",
+      "description": "Reference to User entity"
+    },
+    "staff_name": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "concierge",
+        "security",
+        "maintenance",
+        "cleaner",
+        "manager"
+      ],
+      "description": "Staff role"
+    },
+    "shift_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "shift_start": {
+      "type": "string",
+      "description": "Start time (HH:MM)"
+    },
+    "shift_end": {
+      "type": "string",
+      "description": "End time (HH:MM)"
+    },
+    "break_minutes": {
+      "type": "number",
+      "default": 30
+    },
+    "actual_start": {
+      "type": "string",
+      "description": "Actual clock-in time"
+    },
+    "actual_end": {
+      "type": "string",
+      "description": "Actual clock-out time"
+    },
+    "hours_worked": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "in_progress",
+        "completed",
+        "absent",
+        "cancelled"
+      ],
+      "default": "scheduled"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "building_id",
+    "staff_name",
+    "shift_date",
+    "shift_start",
+    "shift_end"
+  ]
+}

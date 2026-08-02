@@ -1,0 +1,55 @@
+{
+  "name": "ParkingSpot",
+  "type": "object",
+  "properties": {
+    "parking_zone_id": {
+      "type": "string",
+      "description": "Parking zone this spot belongs to"
+    },
+    "building_id": {
+      "type": "string",
+      "description": "Building reference"
+    },
+    "spot_number": {
+      "type": "string",
+      "description": "Spot identifier (e.g., A1, B12, V-01)"
+    },
+    "spot_type": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "compact",
+        "handicap",
+        "electric",
+        "motorcycle"
+      ],
+      "default": "standard",
+      "description": "Type of parking spot"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "available",
+        "occupied",
+        "reserved",
+        "maintenance",
+        "blocked"
+      ],
+      "default": "available",
+      "description": "Current status of the spot"
+    },
+    "current_booking_id": {
+      "type": "string",
+      "description": "Current active booking using this spot"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes about this spot"
+    }
+  },
+  "required": [
+    "parking_zone_id",
+    "building_id",
+    "spot_number"
+  ]
+}

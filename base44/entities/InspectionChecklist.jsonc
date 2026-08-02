@@ -1,0 +1,73 @@
+{
+  "name": "InspectionChecklist",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Building this checklist belongs to (null for global)"
+    },
+    "name": {
+      "type": "string",
+      "description": "Checklist name (e.g., Munrohouse General Inspection)"
+    },
+    "description": {
+      "type": "string"
+    },
+    "is_global": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, available as a template for all buildings"
+    },
+    "inspection_type": {
+      "type": "string",
+      "enum": [
+        "fire_safety",
+        "electrical",
+        "plumbing",
+        "structural",
+        "elevator",
+        "pool",
+        "general",
+        "move_in",
+        "move_out",
+        "annual"
+      ],
+      "default": "general"
+    },
+    "items": {
+      "type": "array",
+      "description": "List of checklist items",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "section": {
+            "type": "string",
+            "description": "Section/group this item belongs to"
+          },
+          "description": {
+            "type": "string",
+            "description": "What to inspect"
+          },
+          "required": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

@@ -1,0 +1,148 @@
+{
+  "name": "Part",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Reference to building"
+    },
+    "partner_id": {
+      "type": "string",
+      "description": "Reference to partner for multi-building inventory"
+    },
+    "name": {
+      "type": "string",
+      "description": "Part name"
+    },
+    "sku": {
+      "type": "string",
+      "description": "Stock Keeping Unit / Part Number"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of the part"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "electrical",
+        "plumbing",
+        "hvac",
+        "fire_safety",
+        "appliance",
+        "structural",
+        "cleaning",
+        "general_maintenance",
+        "tools",
+        "other"
+      ],
+      "description": "Part category"
+    },
+    "manufacturer": {
+      "type": "string",
+      "description": "Manufacturer name"
+    },
+    "model_number": {
+      "type": "string",
+      "description": "Manufacturer model number"
+    },
+    "supplier": {
+      "type": "string",
+      "description": "Primary supplier name"
+    },
+    "supplier_contact": {
+      "type": "string",
+      "description": "Supplier contact information"
+    },
+    "quantity_on_hand": {
+      "type": "number",
+      "default": 0,
+      "description": "Current stock quantity"
+    },
+    "unit_of_measure": {
+      "type": "string",
+      "enum": [
+        "each",
+        "box",
+        "case",
+        "pair",
+        "set",
+        "roll",
+        "meter",
+        "liter",
+        "kg"
+      ],
+      "default": "each",
+      "description": "Unit of measurement"
+    },
+    "reorder_point": {
+      "type": "number",
+      "description": "Minimum quantity before reorder alert"
+    },
+    "reorder_quantity": {
+      "type": "number",
+      "description": "Quantity to reorder when stock is low"
+    },
+    "location": {
+      "type": "string",
+      "description": "Storage location (e.g., Warehouse A, Shelf 5)"
+    },
+    "unit_cost": {
+      "type": "number",
+      "description": "Cost per unit"
+    },
+    "total_value": {
+      "type": "number",
+      "description": "Total inventory value (quantity \u00d7 unit_cost)"
+    },
+    "last_purchased_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of last purchase"
+    },
+    "last_used_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date part was last used"
+    },
+    "barcode": {
+      "type": "string",
+      "description": "Barcode for scanning"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Photo of the part"
+    },
+    "compatible_assets": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of asset IDs this part is compatible with"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "low_stock",
+        "out_of_stock",
+        "discontinued"
+      ],
+      "default": "active",
+      "description": "Current status"
+    },
+    "last_stock_alert_sent": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the last low stock alert was sent"
+    }
+  },
+  "required": [
+    "name",
+    "category"
+  ]
+}

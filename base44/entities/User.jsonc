@@ -1,0 +1,46 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "partner_id": {
+      "type": "string",
+      "description": "ID of the partner the user belongs to"
+    },
+    "partner_role": {
+      "type": "string",
+      "enum": [
+        "partner_admin",
+        "operations_manager",
+        "building_manager"
+      ],
+      "description": "Role within the partner organization"
+    },
+    "assigned_buildings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Building IDs this user can manage (for building managers)"
+    },
+    "managed_building_strata_plans": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Strata plan numbers this user can manage"
+    },
+    "contractor_id": {
+      "type": "string",
+      "description": "ID of contractor if user is a contractor"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number"
+    },
+    "job_title": {
+      "type": "string",
+      "description": "Job title"
+    }
+  },
+  "required": []
+}

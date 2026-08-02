@@ -1,0 +1,46 @@
+{
+  "name": "DemoRequest",
+  "type": "object",
+  "properties": {
+    "full_name": {
+      "type": "string",
+      "description": "Full name of the person requesting the demo"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email address"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number"
+    },
+    "company": {
+      "type": "string",
+      "description": "Company name"
+    },
+    "building_count": {
+      "type": "string",
+      "description": "Number of buildings managed"
+    },
+    "message": {
+      "type": "string",
+      "description": "Additional message or requirements"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "contacted",
+        "scheduled",
+        "completed"
+      ],
+      "default": "new",
+      "description": "Status of the demo request"
+    }
+  },
+  "required": [
+    "full_name",
+    "email",
+    "company"
+  ]
+}

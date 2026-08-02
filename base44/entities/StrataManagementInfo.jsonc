@@ -1,0 +1,96 @@
+{
+  "name": "StrataManagementInfo",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Reference to building"
+    },
+    "document_id": {
+      "type": "string",
+      "description": "Reference to source document"
+    },
+    "info_type": {
+      "type": "string",
+      "enum": [
+        "committee_structure",
+        "meeting_requirements",
+        "levy_structure",
+        "insurance",
+        "maintenance_responsibilities",
+        "service_contracts",
+        "financial_reporting",
+        "dispute_resolution",
+        "voting_procedures",
+        "proxy_rules",
+        "shared_facility_schedule",
+        "other"
+      ],
+      "description": "Type of management information"
+    },
+    "title": {
+      "type": "string",
+      "description": "Information title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description"
+    },
+    "item_number": {
+      "type": "string",
+      "description": "Item number from the schedule"
+    },
+    "shared_facility_name": {
+      "type": "string",
+      "description": "Name of the shared facility"
+    },
+    "shared_facility_description": {
+      "type": "string",
+      "description": "Description of the shared facility"
+    },
+    "member_benefit": {
+      "type": "string",
+      "description": "Benefit for members related to the facility"
+    },
+    "facility_location": {
+      "type": "string",
+      "description": "Physical location of the shared facility"
+    },
+    "requirements": {
+      "type": "string",
+      "description": "Specific requirements or obligations"
+    },
+    "frequency": {
+      "type": "string",
+      "description": "Frequency of requirement (e.g., annually, quarterly, monthly)"
+    },
+    "responsible_party": {
+      "type": "string",
+      "description": "Who is responsible for this requirement"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "effective_date": {
+      "type": "string",
+      "format": "date",
+      "description": "When this information became effective"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "superseded",
+        "archived"
+      ],
+      "default": "active",
+      "description": "Current status"
+    }
+  },
+  "required": [
+    "building_id",
+    "info_type",
+    "title"
+  ]
+}

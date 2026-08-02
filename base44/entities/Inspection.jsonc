@@ -1,0 +1,86 @@
+{
+  "name": "Inspection",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string"
+    },
+    "unit_id": {
+      "type": "string"
+    },
+    "location_id": {
+      "type": "string",
+      "description": "Reference to Location entity for area-based inspections"
+    },
+    "title": {
+      "type": "string"
+    },
+    "inspection_type": {
+      "type": "string",
+      "enum": [
+        "fire_safety",
+        "electrical",
+        "plumbing",
+        "structural",
+        "elevator",
+        "pool",
+        "general",
+        "move_in",
+        "move_out",
+        "annual",
+        "common_area"
+      ]
+    },
+    "scheduled_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "completed_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "inspector_name": {
+      "type": "string"
+    },
+    "inspector_company": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "in_progress",
+        "passed",
+        "failed",
+        "requires_followup",
+        "cancelled"
+      ],
+      "default": "scheduled"
+    },
+    "findings": {
+      "type": "string"
+    },
+    "recommendations": {
+      "type": "string"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "report_url": {
+      "type": "string"
+    },
+    "next_inspection_date": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "building_id",
+    "title",
+    "inspection_type",
+    "scheduled_date"
+  ]
+}

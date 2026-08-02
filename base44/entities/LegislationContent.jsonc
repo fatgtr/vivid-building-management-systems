@@ -1,0 +1,50 @@
+{
+  "name": "LegislationContent",
+  "type": "object",
+  "properties": {
+    "act_title": {
+      "type": "string",
+      "description": "Title of the Act (e.g., Strata Schemes Management Act 2015 No 50)"
+    },
+    "section_number": {
+      "type": "string",
+      "description": "Section number (e.g., 'Section 106', 'Part 2')"
+    },
+    "section_title": {
+      "type": "string",
+      "description": "Title or heading of the section"
+    },
+    "content": {
+      "type": "string",
+      "description": "The full text content of the legislative section"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "common_property",
+        "owners_corporation_duties",
+        "maintenance",
+        "insurance",
+        "by_laws",
+        "general"
+      ],
+      "description": "Category for easier filtering"
+    },
+    "source_url": {
+      "type": "string",
+      "description": "URL from which this legislation content was sourced"
+    },
+    "effective_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date from which this version is effective"
+    }
+  },
+  "required": [
+    "act_title",
+    "section_number",
+    "section_title",
+    "content",
+    "source_url"
+  ]
+}

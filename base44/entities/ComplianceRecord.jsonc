@@ -1,0 +1,135 @@
+{
+  "name": "ComplianceRecord",
+  "type": "object",
+  "properties": {
+    "asset_id": {
+      "type": "string",
+      "description": "Reference to Asset"
+    },
+    "building_id": {
+      "type": "string",
+      "description": "Reference to Building"
+    },
+    "compliance_type": {
+      "type": "string",
+      "enum": [
+        "annual_fire_safety_statement",
+        "pool_registration_certificate",
+        "lift_registration_certificate",
+        "emergency_evacuation_assistance_audit",
+        "cooling_tower_inspection_program",
+        "reduced_pressure_zone_rpz",
+        "roof_height_safety_systems",
+        "gym_equipment_safety_check",
+        "thermostatic_mixing_valves_tmv",
+        "thermal_scanning_switchboard",
+        "emergency_planning_evac",
+        "fire_storage_tank_drain_clean",
+        "electrical_testing",
+        "plumbing_check",
+        "emergency_lighting",
+        "exit_signage",
+        "fire_equipment",
+        "hvac_service",
+        "backflow_prevention",
+        "pool_safety",
+        "other"
+      ],
+      "description": "Type of compliance check"
+    },
+    "inspection_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of inspection/service"
+    },
+    "expiry_date": {
+      "type": "string",
+      "format": "date",
+      "description": "When compliance expires"
+    },
+    "next_due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Next scheduled compliance date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "compliant",
+        "non_compliant",
+        "passed",
+        "failed",
+        "requires_action",
+        "pending",
+        "overdue"
+      ],
+      "default": "pending",
+      "description": "Compliance status"
+    },
+    "inspector_name": {
+      "type": "string",
+      "description": "Name of inspector"
+    },
+    "inspector_company": {
+      "type": "string",
+      "description": "Inspector's company"
+    },
+    "contractor_id": {
+      "type": "string",
+      "description": "Reference to Contractor who performed inspection"
+    },
+    "certificate_number": {
+      "type": "string",
+      "description": "Certificate or reference number"
+    },
+    "certificate_url": {
+      "type": "string",
+      "description": "URL to certificate document"
+    },
+    "findings": {
+      "type": "string",
+      "description": "Inspection findings and notes"
+    },
+    "defects": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of defects found"
+    },
+    "recommendations": {
+      "type": "string",
+      "description": "Inspector recommendations"
+    },
+    "cost": {
+      "type": "number",
+      "description": "Cost of compliance service"
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Related document URLs"
+    },
+    "work_order_id": {
+      "type": "string",
+      "description": "Related work order if actions required"
+    },
+    "reminder_sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether reminder has been sent"
+    },
+    "reminder_sent_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When reminder was sent"
+    }
+  },
+  "required": [
+    "building_id",
+    "compliance_type",
+    "inspection_date"
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "name": "KeyRegister",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string"
+    },
+    "key_type": {
+      "type": "string",
+      "enum": [
+        "physical_key",
+        "fob",
+        "access_card",
+        "code"
+      ],
+      "description": "Type of access method"
+    },
+    "key_number": {
+      "type": "string",
+      "description": "Unique identifier/serial number"
+    },
+    "description": {
+      "type": "string",
+      "description": "What this key/card accesses"
+    },
+    "access_areas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of areas this grants access to"
+    },
+    "issued_to_type": {
+      "type": "string",
+      "enum": [
+        "resident",
+        "contractor",
+        "staff",
+        "visitor"
+      ],
+      "default": "resident"
+    },
+    "issued_to_id": {
+      "type": "string",
+      "description": "Reference to person it's issued to"
+    },
+    "issued_to_name": {
+      "type": "string"
+    },
+    "unit_number": {
+      "type": "string"
+    },
+    "issue_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "return_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "deposit_amount": {
+      "type": "number",
+      "description": "Deposit held for key/card"
+    },
+    "deposit_returned": {
+      "type": "boolean",
+      "default": false
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "returned",
+        "lost",
+        "deactivated"
+      ],
+      "default": "active"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "building_id",
+    "key_type",
+    "issued_to_name"
+  ]
+}

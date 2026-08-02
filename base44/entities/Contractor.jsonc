@@ -1,0 +1,177 @@
+{
+  "name": "Contractor",
+  "type": "object",
+  "properties": {
+    "partner_id": {
+      "type": "string",
+      "description": "Reference to Partner (building management company) - allows sharing preferred contractors across buildings"
+    },
+    "building_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of building IDs where this contractor is marked as preferred for that specific building"
+    },
+    "company_name": {
+      "type": "string"
+    },
+    "abn": {
+      "type": "string",
+      "description": "Australian Business Number"
+    },
+    "acn": {
+      "type": "string",
+      "description": "Australian Company Number"
+    },
+    "contact_name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "specialty": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "plumbing",
+          "electrical",
+          "hvac",
+          "appliance",
+          "structural",
+          "pest_control",
+          "cleaning",
+          "landscaping",
+          "security",
+          "general"
+        ]
+      }
+    },
+    "license_number": {
+      "type": "string"
+    },
+    "license_expiry_date": {
+      "type": "string",
+      "format": "date",
+      "description": "License expiry date"
+    },
+    "insurance_details": {
+      "type": "string",
+      "description": "General insurance policy details"
+    },
+    "insurance_expiry": {
+      "type": "string",
+      "format": "date",
+      "description": "General insurance expiry date"
+    },
+    "work_cover_details": {
+      "type": "string",
+      "description": "Work cover policy details"
+    },
+    "work_cover_expiry_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Work cover expiry date"
+    },
+    "public_liability_details": {
+      "type": "string",
+      "description": "Public liability insurance details"
+    },
+    "public_liability_expiry_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Public liability expiry date"
+    },
+    "last_compliance_email_sent": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last time compliance reminder was sent"
+    },
+    "last_compliance_check_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last time compliance status was checked"
+    },
+    "compliance_notification_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date when building manager was first notified about compliance issues"
+    },
+    "compliance_reminders_sent": {
+      "type": "object",
+      "description": "Tracks when reminders were sent for each document type and interval",
+      "additionalProperties": true
+    },
+    "contract_type": {
+      "type": "string",
+      "description": "Type of contract (e.g., Fixed-Term, Ongoing, Project-Based)"
+    },
+    "contract_start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Contract start date"
+    },
+    "contract_end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Contract end date"
+    },
+    "contract_document_url": {
+      "type": "string",
+      "description": "URL to the contract document"
+    },
+    "last_contract_reminder_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last time contract expiry reminder was sent"
+    },
+    "contract_expired_notification_sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether expired contract notification has been sent"
+    },
+    "hourly_rate": {
+      "type": "number"
+    },
+    "rating": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "pending_approval",
+        "pending_compliance_review"
+      ],
+      "default": "active"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "compliance_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Compliance score based on document status (0-100)"
+    }
+  },
+  "required": [
+    "company_name",
+    "contact_name",
+    "email"
+  ]
+}

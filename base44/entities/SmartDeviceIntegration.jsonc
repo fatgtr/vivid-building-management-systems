@@ -1,0 +1,73 @@
+{
+  "name": "SmartDeviceIntegration",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Reference to building"
+    },
+    "device_type": {
+      "type": "string",
+      "enum": [
+        "smoke_detector",
+        "thermostat",
+        "access_control",
+        "intercom",
+        "cctv"
+      ],
+      "description": "Type of smart device"
+    },
+    "device_name": {
+      "type": "string",
+      "description": "Device name/identifier"
+    },
+    "device_id": {
+      "type": "string",
+      "description": "Unique device ID from the system"
+    },
+    "location": {
+      "type": "string",
+      "description": "Device location in building"
+    },
+    "unit_id": {
+      "type": "string",
+      "description": "Associated unit if applicable"
+    },
+    "system_vendor": {
+      "type": "string",
+      "description": "Vendor/manufacturer (e.g., Inner Range, Nest, Ring)"
+    },
+    "auto_create_work_orders": {
+      "type": "boolean",
+      "default": true,
+      "description": "Automatically create work orders on alerts"
+    },
+    "alert_thresholds": {
+      "type": "object",
+      "description": "Alert configuration (JSON)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "error"
+      ],
+      "default": "active"
+    },
+    "last_event_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last event received"
+    },
+    "webhook_secret": {
+      "type": "string",
+      "description": "Webhook validation secret"
+    }
+  },
+  "required": [
+    "building_id",
+    "device_type",
+    "device_name"
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "name": "ParkingZone",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Primary building this parking zone belongs to"
+    },
+    "name": {
+      "type": "string",
+      "description": "Name of the parking zone (e.g., Visitor Parking A)"
+    },
+    "capacity": {
+      "type": "number",
+      "description": "Total number of parking spots in this zone"
+    },
+    "zone_type": {
+      "type": "string",
+      "enum": [
+        "visitor",
+        "loading_bay",
+        "temporary",
+        "reserved",
+        "handicap",
+        "other"
+      ],
+      "default": "visitor",
+      "description": "Type of parking zone"
+    },
+    "location_notes": {
+      "type": "string",
+      "description": "Descriptive location details (e.g., Level 2, Section A)"
+    },
+    "available_from": {
+      "type": "string",
+      "description": "Time when zone becomes available (HH:MM format)"
+    },
+    "available_to": {
+      "type": "string",
+      "description": "Time when zone closes (HH:MM format)"
+    },
+    "auto_approve_bookings": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether bookings for this zone are automatically approved"
+    },
+    "shared_with_building_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Building IDs that can book this parking zone"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "maintenance"
+      ],
+      "default": "active",
+      "description": "Current status of the parking zone"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes or instructions"
+    }
+  },
+  "required": [
+    "building_id",
+    "name",
+    "capacity"
+  ]
+}

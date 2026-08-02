@@ -1,0 +1,57 @@
+{
+  "name": "EmergencyContact",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string"
+    },
+    "contact_type": {
+      "type": "string",
+      "enum": [
+        "emergency_services",
+        "building_management",
+        "security",
+        "fire",
+        "police",
+        "ambulance",
+        "utility",
+        "other"
+      ],
+      "description": "Type of emergency contact"
+    },
+    "name": {
+      "type": "string",
+      "description": "Service or person name"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "phone_2": {
+      "type": "string",
+      "description": "Secondary phone"
+    },
+    "email": {
+      "type": "string"
+    },
+    "available_24_7": {
+      "type": "boolean",
+      "default": false
+    },
+    "available_hours": {
+      "type": "string",
+      "description": "Available hours if not 24/7"
+    },
+    "priority": {
+      "type": "number",
+      "description": "Display order (lower = higher priority)"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "building_id",
+    "name",
+    "phone"
+  ]
+}

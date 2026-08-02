@@ -1,0 +1,262 @@
+{
+  "name": "WorkOrder",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string"
+    },
+    "unit_id": {
+      "type": "string"
+    },
+    "asset_id": {
+      "type": "string"
+    },
+    "is_common_area": {
+      "type": "boolean",
+      "default": false
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "main_category": {
+      "type": "string",
+      "enum": [
+        "core_building_structure",
+        "mechanical_services",
+        "electrical_services",
+        "fire_life_safety",
+        "vertical_transportation",
+        "hydraulic_plumbing",
+        "security_access_control",
+        "communications_it",
+        "building_management_systems",
+        "external_grounds",
+        "common_area_fixtures_fittings",
+        "waste_management",
+        "parking_traffic",
+        "compliance_safety",
+        "commercial_specific",
+        "residential_specific",
+        "documentation_registers"
+      ]
+    },
+    "subcategory": {
+      "type": "string"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "urgent"
+      ],
+      "default": "medium"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "in_progress",
+        "on_hold",
+        "completed",
+        "cancelled",
+        "tenant_reported_awaiting_agent",
+        "owner_reported_bm_facilitated",
+        "owner_reported_self_manage",
+        "owner_choice_pending"
+      ],
+      "default": "open"
+    },
+    "permission_to_enter": {
+      "type": "boolean",
+      "default": false,
+      "description": "Has the resident given permission to enter the unit?"
+    },
+    "entry_instructions": {
+      "type": "string",
+      "description": "Special instructions for entry (e.g., key location, contact before entry)"
+    },
+    "reported_by": {
+      "type": "string"
+    },
+    "reported_by_name": {
+      "type": "string"
+    },
+    "assigned_to": {
+      "type": "string"
+    },
+    "assigned_contractor_id": {
+      "type": "string"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "completed_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "estimated_cost": {
+      "type": "number"
+    },
+    "actual_cost": {
+      "type": "number"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "videos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "quotes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "invoices": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "inventory_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "job_area": {
+      "type": "string"
+    },
+    "asset_info": {
+      "type": "string"
+    },
+    "company_name": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "comments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "resolution_notes": {
+      "type": "string"
+    },
+    "email_sent_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "email_recipient": {
+      "type": "string"
+    },
+    "is_recurring": {
+      "type": "boolean",
+      "default": false
+    },
+    "recurrence_pattern": {
+      "type": "string",
+      "enum": [
+        "daily",
+        "weekly",
+        "monthly",
+        "quarterly",
+        "yearly"
+      ]
+    },
+    "recurrence_end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "parent_work_order_id": {
+      "type": "string"
+    },
+    "rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "rating_comment": {
+      "type": "string"
+    },
+    "owner_billing_notes": {
+      "type": "string"
+    },
+    "escalation_count": {
+      "type": "number",
+      "default": 0
+    },
+    "last_escalation_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "auto_generated": {
+      "type": "boolean",
+      "default": false
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "prediction",
+        "resident_report",
+        "scheduled_maintenance"
+      ],
+      "default": "manual"
+    },
+    "prediction_confidence": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "building_id",
+    "title",
+    "main_category"
+  ]
+}

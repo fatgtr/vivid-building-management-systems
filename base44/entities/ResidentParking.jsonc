@@ -1,0 +1,85 @@
+{
+  "name": "ResidentParking",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Reference to building"
+    },
+    "unit_id": {
+      "type": "string",
+      "description": "Unit this parking space is allocated to"
+    },
+    "lot_number": {
+      "type": "string",
+      "description": "Strata lot number for the parking space"
+    },
+    "bay_number": {
+      "type": "string",
+      "description": "Parking bay identifier (e.g., Bay 12, P-045)"
+    },
+    "level": {
+      "type": "string",
+      "description": "Parking level/floor (e.g., B1, B2, Ground)"
+    },
+    "section": {
+      "type": "string",
+      "description": "Section or area (e.g., North Wing, Section A)"
+    },
+    "space_type": {
+      "type": "string",
+      "enum": [
+        "car",
+        "motorcycle",
+        "bicycle",
+        "storage"
+      ],
+      "default": "car",
+      "description": "Type of parking space"
+    },
+    "size": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "large",
+        "compact",
+        "tandem"
+      ],
+      "description": "Size of the parking space"
+    },
+    "on_title": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this space is on strata title"
+    },
+    "map_coordinates": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        }
+      },
+      "description": "Coordinates on parking plan map"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "allocated",
+        "vacant",
+        "disputed"
+      ],
+      "default": "allocated"
+    }
+  },
+  "required": [
+    "building_id",
+    "bay_number"
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "name": "PolicyTemplate",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Template name"
+    },
+    "policy_type": {
+      "type": "string",
+      "enum": [
+        "move_in_move_out",
+        "pet_policy",
+        "whs_safety",
+        "noise_disturbance",
+        "parking",
+        "common_area_usage",
+        "renovation_alterations",
+        "waste_management",
+        "smoking",
+        "short_term_rental",
+        "guest_policy",
+        "amenity_usage",
+        "general"
+      ],
+      "description": "Type of policy"
+    },
+    "description": {
+      "type": "string",
+      "description": "What this template is for"
+    },
+    "template_content": {
+      "type": "string",
+      "description": "Template content with placeholders like {building_name}, {strata_plan}, etc."
+    },
+    "template_key_points": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Default key points for this template"
+    },
+    "applies_to": {
+      "type": "string",
+      "enum": [
+        "all_residents",
+        "owners_only",
+        "tenants_only",
+        "contractors",
+        "visitors"
+      ],
+      "default": "all_residents"
+    },
+    "customization_hints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Hints for AI on what to look for in documents to customize this template"
+    },
+    "is_default": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this is a platform default template"
+    },
+    "building_id": {
+      "type": "string",
+      "description": "If this is a building-specific custom template"
+    }
+  },
+  "required": [
+    "name",
+    "policy_type",
+    "template_content"
+  ]
+}

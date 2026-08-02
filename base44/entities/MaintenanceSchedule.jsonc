@@ -1,0 +1,211 @@
+{
+  "name": "MaintenanceSchedule",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Reference to building"
+    },
+    "asset_id": {
+      "type": "string",
+      "description": "Reference to Asset"
+    },
+    "capital_works_plan_id": {
+      "type": "string",
+      "description": "Reference to CapitalWorksPlan if this schedule is part of a capital works plan"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "structural_components",
+        "exterior_materials_finishes",
+        "doors_windows",
+        "roofing",
+        "interior_materials_finishes",
+        "electrical_system",
+        "plumbing_system",
+        "hvac",
+        "fire_safety_systems",
+        "elevators_escalators_travelators",
+        "technology_communication",
+        "accessibility_infrastructure",
+        "landscaping_exterior",
+        "amenities_facilities",
+        "furnishings_fixtures",
+        "car_parking_area",
+        "waterproofing_systems"
+      ],
+      "description": "NSW standard maintenance category"
+    },
+    "item_name": {
+      "type": "string",
+      "description": "Name of the common property item (e.g., Fire extinguishers, HVAC units)"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Brief description of the scheduled maintenance"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of the maintenance required"
+    },
+    "maintenance_type": {
+      "type": "string",
+      "enum": [
+        "maintenance",
+        "inspection",
+        "both"
+      ],
+      "default": "both",
+      "description": "Whether maintenance or inspection or both is required"
+    },
+    "scheduled_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Initial scheduled date for the maintenance"
+    },
+    "recurrence": {
+      "type": "string",
+      "enum": [
+        "none",
+        "daily",
+        "weekly",
+        "monthly",
+        "quarterly",
+        "half_yearly",
+        "yearly",
+        "bi_yearly"
+      ],
+      "default": "none",
+      "description": "Recurrence pattern for the maintenance task"
+    },
+    "recurrence_end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date when the recurrence ends (optional)"
+    },
+    "estimated_cost": {
+      "type": "number",
+      "description": "Estimated cost per maintenance activity or inspection"
+    },
+    "manufacturer_name": {
+      "type": "string",
+      "description": "Manufacturer name"
+    },
+    "manufacturer_contact": {
+      "type": "string",
+      "description": "Manufacturer contact details"
+    },
+    "installer_name": {
+      "type": "string",
+      "description": "Installer name"
+    },
+    "installer_contact": {
+      "type": "string",
+      "description": "Installer contact details"
+    },
+    "manufacturer_manual_url": {
+      "type": "string",
+      "description": "URL to manufacturer manual or maintenance requirements document"
+    },
+    "manufacturer_warranty_url": {
+      "type": "string",
+      "description": "URL to manufacturer warranty document"
+    },
+    "warranty_expiry_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Warranty expiration date"
+    },
+    "assigned_contractor_id": {
+      "type": "string",
+      "description": "Specific contractor assigned (if any)"
+    },
+    "assigned_contractor_type": {
+      "type": "string",
+      "enum": [
+        "plumbing",
+        "electrical",
+        "hvac",
+        "appliance",
+        "structural",
+        "pest_control",
+        "cleaning",
+        "landscaping",
+        "security",
+        "general"
+      ],
+      "description": "Type of contractor required (if not specific)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "completed",
+        "pending_assignment"
+      ],
+      "default": "active",
+      "description": "Status of the maintenance schedule"
+    },
+    "next_due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Next date this maintenance is due"
+    },
+    "last_completed_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date last maintenance task was completed"
+    },
+    "notification_interval_days": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "default": [
+        7,
+        3
+      ],
+      "description": "Days before next_due_date to send notifications (e.g., [7, 3])"
+    },
+    "task_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "List of Task IDs generated from this schedule"
+    },
+    "work_order_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "List of Work Order IDs generated from this schedule"
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Relevant document URLs"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes about the schedule"
+    },
+    "from_nsw_initial_schedule": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this was imported from NSW Initial Maintenance Schedule form"
+    }
+  },
+  "required": [
+    "building_id",
+    "subject",
+    "scheduled_date"
+  ]
+}

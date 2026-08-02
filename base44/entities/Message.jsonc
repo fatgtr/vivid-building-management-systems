@@ -1,0 +1,117 @@
+{
+  "name": "Message",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Building the message relates to"
+    },
+    "sender_email": {
+      "type": "string",
+      "description": "Email of the message sender"
+    },
+    "sender_name": {
+      "type": "string",
+      "description": "Name of sender"
+    },
+    "sender_unit": {
+      "type": "string",
+      "description": "Unit number of sender if applicable"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Message subject"
+    },
+    "content": {
+      "type": "string",
+      "description": "Message content"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "maintenance",
+        "noise_complaint",
+        "parking",
+        "pets",
+        "amenity_booking",
+        "bylaw_question",
+        "general_inquiry",
+        "emergency",
+        "other"
+      ],
+      "description": "AI-determined message category"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "AI-generated tags for the message"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "urgent"
+      ],
+      "default": "medium",
+      "description": "AI-determined priority"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "unread",
+        "read",
+        "in_progress",
+        "resolved",
+        "archived"
+      ],
+      "default": "unread",
+      "description": "Message status"
+    },
+    "assigned_to": {
+      "type": "string",
+      "description": "Staff member email assigned to handle this"
+    },
+    "assigned_role": {
+      "type": "string",
+      "description": "Role assigned to handle (building_manager, maintenance, etc)"
+    },
+    "ai_summary": {
+      "type": "string",
+      "description": "AI-generated summary of the message"
+    },
+    "suggested_response": {
+      "type": "string",
+      "description": "AI-suggested template response"
+    },
+    "response": {
+      "type": "string",
+      "description": "Staff response to the message"
+    },
+    "response_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the response was sent"
+    },
+    "related_work_order_id": {
+      "type": "string",
+      "description": "Related work order if created"
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "File attachments"
+    }
+  },
+  "required": [
+    "building_id",
+    "sender_email",
+    "subject",
+    "content"
+  ]
+}

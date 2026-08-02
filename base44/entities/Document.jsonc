@@ -1,0 +1,212 @@
+{
+  "name": "Document",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "invoice",
+        "lease",
+        "bylaws",
+        "meeting_minutes",
+        "policy",
+        "manual",
+        "form",
+        "report",
+        "certificate",
+        "contract",
+        "financial",
+        "strata_roll",
+        "subdivision_plan",
+        "strata_management_statement",
+        "shared_facilities_register",
+        "afss_documentation",
+        "as_built_electrical",
+        "as_built_mechanical",
+        "as_built_plumbing",
+        "as_built_windows",
+        "lift_plant_registration",
+        "compliance",
+        "insurance",
+        "correspondence",
+        "other"
+      ]
+    },
+    "subcategory": {
+      "type": "string",
+      "description": "Optional subcategory for more specific classification"
+    },
+    "file_url": {
+      "type": "string"
+    },
+    "file_type": {
+      "type": "string"
+    },
+    "file_size": {
+      "type": "number"
+    },
+    "visibility": {
+      "type": "string",
+      "enum": [
+        "public",
+        "residents_only",
+        "owners_only",
+        "staff_only"
+      ],
+      "default": "residents_only"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "expiry_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "archived",
+        "superseded"
+      ],
+      "default": "active"
+    },
+    "is_bmc_document": {
+      "type": "boolean",
+      "default": false,
+      "description": "Indicates if this document applies to the BMC as a whole"
+    },
+    "applies_to_strata_plan": {
+      "type": "string",
+      "description": "Building ID of specific strata plan this document applies to"
+    },
+    "strata_plan_number": {
+      "type": "string",
+      "description": "Strata plan number this document relates to"
+    },
+    "ocr_content": {
+      "type": "string",
+      "description": "Extracted text content from OCR processing"
+    },
+    "ocr_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "processing",
+        "completed",
+        "failed"
+      ],
+      "default": "pending",
+      "description": "OCR processing status"
+    },
+    "ocr_processed_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When OCR processing completed"
+    },
+    "ai_summary": {
+      "type": "string",
+      "description": "AI-generated document summary with key points"
+    },
+    "ai_summary_generated_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When AI summary was generated"
+    },
+    "version": {
+      "type": "number",
+      "default": 1,
+      "description": "Current version number"
+    },
+    "parent_document_id": {
+      "type": "string",
+      "description": "ID of the original document if this is a version"
+    },
+    "version_notes": {
+      "type": "string",
+      "description": "Notes about this version"
+    },
+    "is_current_version": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this is the currently active version"
+    },
+    "superseded_by": {
+      "type": "string",
+      "description": "ID of the document version that replaced this one"
+    },
+    "superseded_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this version was superseded"
+    },
+    "extracted_invoice_data": {
+      "type": "object",
+      "description": "AI-extracted financial data from invoices"
+    },
+    "bylaw_analysis": {
+      "type": "object",
+      "description": "AI analysis of potential bylaw violations"
+    },
+    "compliance_status": {
+      "type": "string",
+      "enum": [
+        "compliant",
+        "minor_issues",
+        "major_issues",
+        "critical_violations",
+        "pending_review"
+      ],
+      "description": "Document compliance status"
+    },
+    "ai_processed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether AI analysis has been performed"
+    },
+    "ai_processed_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When AI processing completed"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional searchable metadata extracted from the document"
+    },
+    "related_entities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "entity_type": {
+            "type": "string"
+          },
+          "entity_id": {
+            "type": "string"
+          },
+          "relationship": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Links to related entities (residents, assets, work orders, etc.)"
+    }
+  },
+  "required": [
+    "building_id",
+    "title",
+    "category"
+  ]
+}

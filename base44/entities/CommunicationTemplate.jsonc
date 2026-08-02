@@ -1,0 +1,86 @@
+{
+  "name": "CommunicationTemplate",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Specific building or null for global"
+    },
+    "name": {
+      "type": "string",
+      "description": "Template name"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "announcement",
+        "notice",
+        "reminder",
+        "invitation",
+        "alert"
+      ],
+      "description": "Communication type"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "general",
+        "maintenance",
+        "emergency",
+        "event",
+        "policy",
+        "bylaw_reminder"
+      ],
+      "description": "Template category"
+    },
+    "title_template": {
+      "type": "string",
+      "description": "Title with placeholders"
+    },
+    "content_template": {
+      "type": "string",
+      "description": "Content with placeholders"
+    },
+    "placeholders": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Available placeholders"
+    },
+    "default_priority": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "important",
+        "urgent"
+      ],
+      "default": "normal"
+    },
+    "default_target_audience": {
+      "type": "string",
+      "enum": [
+        "all",
+        "owners",
+        "tenants",
+        "staff"
+      ],
+      "default": "all"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    }
+  },
+  "required": [
+    "name",
+    "type",
+    "category",
+    "title_template",
+    "content_template"
+  ]
+}

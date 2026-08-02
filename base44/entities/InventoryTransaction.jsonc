@@ -1,0 +1,83 @@
+{
+  "name": "InventoryTransaction",
+  "type": "object",
+  "properties": {
+    "part_id": {
+      "type": "string",
+      "description": "Reference to Part"
+    },
+    "building_id": {
+      "type": "string",
+      "description": "Reference to building"
+    },
+    "transaction_type": {
+      "type": "string",
+      "enum": [
+        "purchase",
+        "usage",
+        "adjustment",
+        "transfer",
+        "return",
+        "waste"
+      ],
+      "description": "Type of transaction"
+    },
+    "quantity": {
+      "type": "number",
+      "description": "Quantity (positive for additions, negative for removals)"
+    },
+    "unit_cost": {
+      "type": "number",
+      "description": "Cost per unit at time of transaction"
+    },
+    "total_cost": {
+      "type": "number",
+      "description": "Total transaction cost"
+    },
+    "work_order_id": {
+      "type": "string",
+      "description": "Related work order if used for maintenance"
+    },
+    "asset_id": {
+      "type": "string",
+      "description": "Related asset if used for specific equipment"
+    },
+    "performed_by": {
+      "type": "string",
+      "description": "User who performed the transaction"
+    },
+    "performed_by_name": {
+      "type": "string",
+      "description": "Name of user who performed transaction"
+    },
+    "supplier": {
+      "type": "string",
+      "description": "Supplier for purchase transactions"
+    },
+    "purchase_order_number": {
+      "type": "string",
+      "description": "PO number for purchases"
+    },
+    "invoice_number": {
+      "type": "string",
+      "description": "Invoice number"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Transaction notes"
+    },
+    "previous_quantity": {
+      "type": "number",
+      "description": "Quantity before transaction"
+    },
+    "new_quantity": {
+      "type": "number",
+      "description": "Quantity after transaction"
+    }
+  },
+  "required": [
+    "part_id",
+    "transaction_type",
+    "quantity"
+  ]
+}

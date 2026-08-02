@@ -1,0 +1,134 @@
+{
+  "name": "Resident",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string"
+    },
+    "unit_id": {
+      "type": "string"
+    },
+    "strata_plan_number": {
+      "type": "string",
+      "description": "Strata plan number this resident belongs to (for BMC buildings)"
+    },
+    "first_name": {
+      "type": "string"
+    },
+    "last_name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "resident_type": {
+      "type": "string",
+      "enum": [
+        "owner",
+        "tenant",
+        "family_member"
+      ],
+      "default": "tenant"
+    },
+    "move_in_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "move_out_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "emergency_contact_name": {
+      "type": "string"
+    },
+    "emergency_contact_phone": {
+      "type": "string"
+    },
+    "vehicle_info": {
+      "type": "string"
+    },
+    "parking_spot": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "pending"
+      ],
+      "default": "active"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "avatar_url": {
+      "type": "string"
+    },
+    "investor_name": {
+      "type": "string"
+    },
+    "investor_home_phone": {
+      "type": "string"
+    },
+    "investor_mobile": {
+      "type": "string"
+    },
+    "investor_second_phone": {
+      "type": "string"
+    },
+    "investor_email": {
+      "type": "string"
+    },
+    "investor_strata_committee_member": {
+      "type": "boolean",
+      "default": false
+    },
+    "investor_address": {
+      "type": "string"
+    },
+    "managing_agent_company": {
+      "type": "string"
+    },
+    "managing_agent_contact_name": {
+      "type": "string"
+    },
+    "managing_agent_phone": {
+      "type": "string"
+    },
+    "managing_agent_email": {
+      "type": "string"
+    },
+    "managing_agent_address": {
+      "type": "string"
+    },
+    "has_pet": {
+      "type": "boolean",
+      "default": false
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "hot_water_meter_number": {
+      "type": "string"
+    },
+    "electrical_meter_number": {
+      "type": "string"
+    },
+    "gas_meter_number": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "building_id",
+    "unit_id",
+    "first_name",
+    "last_name"
+  ]
+}

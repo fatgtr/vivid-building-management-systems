@@ -1,0 +1,57 @@
+{
+  "name": "MaintenancePrediction",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Reference to building (null for multi-building analysis)"
+    },
+    "prediction_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this prediction was generated"
+    },
+    "predictions": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Array of individual predictions",
+      "default": []
+    },
+    "total_predictions": {
+      "type": "number",
+      "default": 0
+    },
+    "critical_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of critical risk predictions"
+    },
+    "high_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of high risk predictions"
+    },
+    "assets_analyzed": {
+      "type": "number",
+      "description": "Number of assets analyzed"
+    },
+    "work_orders_analyzed": {
+      "type": "number",
+      "description": "Number of historical work orders analyzed"
+    },
+    "weather_data_included": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether weather data was included in analysis"
+    },
+    "accuracy_score": {
+      "type": "number",
+      "description": "Accuracy score if validated against actual failures"
+    }
+  },
+  "required": [
+    "prediction_date"
+  ]
+}

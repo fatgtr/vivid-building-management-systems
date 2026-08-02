@@ -1,0 +1,57 @@
+{
+  "name": "MessageTemplate",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Building this template is for (null for global)"
+    },
+    "name": {
+      "type": "string",
+      "description": "Template name"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "maintenance",
+        "noise_complaint",
+        "parking",
+        "pets",
+        "amenity_booking",
+        "bylaw_question",
+        "general_inquiry",
+        "emergency",
+        "other"
+      ],
+      "description": "Message category this template applies to"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Response subject template"
+    },
+    "content": {
+      "type": "string",
+      "description": "Response content template with placeholders"
+    },
+    "placeholders": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Available placeholders like {resident_name}, {building_name}"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    }
+  },
+  "required": [
+    "name",
+    "category",
+    "content"
+  ]
+}

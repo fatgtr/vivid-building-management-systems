@@ -1,0 +1,219 @@
+{
+  "name": "CapitalWorksPlan",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Reference to building"
+    },
+    "strata_plan_number": {
+      "type": "string",
+      "description": "Strata plan number"
+    },
+    "registration_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Registration date of strata plan"
+    },
+    "number_of_unit_entitlements": {
+      "type": "number",
+      "description": "Total number of unit entitlements"
+    },
+    "number_of_lots": {
+      "type": "number",
+      "description": "Number of lots in the scheme"
+    },
+    "opening_balance": {
+      "type": "number",
+      "description": "Opening capital works fund balance"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Start date of capital works fund plan"
+    },
+    "gst_status": {
+      "type": "string",
+      "enum": [
+        "registered",
+        "unregistered"
+      ],
+      "description": "GST status of the owners corporation"
+    },
+    "current_levy_per_unit_entitlement": {
+      "type": "number",
+      "description": "Current capital works fund levy per unit entitlement, including GST"
+    },
+    "inflation_rate": {
+      "type": "number",
+      "description": "Assumed rate of inflation for each year of the plan (percentage)"
+    },
+    "expenditure_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": [
+              "structural_components",
+              "exterior_materials_finishes",
+              "doors_windows",
+              "roofing",
+              "electrical_system",
+              "plumbing_system",
+              "hvac",
+              "fire_safety_systems",
+              "elevators_escalators_travelators",
+              "technology_communication",
+              "security_alarms",
+              "accessibility_infrastructure",
+              "landscaping_exterior",
+              "amenities_facilities",
+              "furnishings_fixtures",
+              "car_parking_area",
+              "waterproofing_systems",
+              "other"
+            ]
+          },
+          "item_name": {
+            "type": "string",
+            "description": "Name of the capital works item"
+          },
+          "proposed_work": {
+            "type": "string",
+            "description": "Details of proposed work"
+          },
+          "current_cost": {
+            "type": "number",
+            "description": "Current cost in today's dollars"
+          },
+          "asset_id": {
+            "type": "string",
+            "description": "Reference to Asset entity"
+          },
+          "maintenance_schedule_id": {
+            "type": "string",
+            "description": "Reference to MaintenanceSchedule entity"
+          },
+          "year_1_cost": {
+            "type": "number"
+          },
+          "year_2_cost": {
+            "type": "number"
+          },
+          "year_3_cost": {
+            "type": "number"
+          },
+          "year_4_cost": {
+            "type": "number"
+          },
+          "year_5_cost": {
+            "type": "number"
+          },
+          "year_6_cost": {
+            "type": "number"
+          },
+          "year_7_cost": {
+            "type": "number"
+          },
+          "year_8_cost": {
+            "type": "number"
+          },
+          "year_9_cost": {
+            "type": "number"
+          },
+          "year_10_cost": {
+            "type": "number"
+          }
+        }
+      },
+      "default": []
+    },
+    "funding_source": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "year": {
+            "type": "number"
+          },
+          "year_end_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "opening_balance": {
+            "type": "number"
+          },
+          "total_levy_contributions": {
+            "type": "number"
+          },
+          "interest_earned": {
+            "type": "number"
+          },
+          "anticipated_expenses": {
+            "type": "number"
+          },
+          "closing_balance": {
+            "type": "number"
+          }
+        }
+      },
+      "default": []
+    },
+    "contingency_allowance_percentage": {
+      "type": "number",
+      "default": 10,
+      "description": "Contingency allowance as percentage"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "approved",
+        "archived"
+      ],
+      "default": "draft"
+    },
+    "approved_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date approved at annual general meeting"
+    },
+    "review_due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Next review date (every 5 years)"
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Array of document IDs linked to this plan"
+    },
+    "related_asset_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Array of asset IDs covered by this plan"
+    },
+    "initial_maintenance_schedule_id": {
+      "type": "string",
+      "description": "Reference to initial maintenance schedule used as basis"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "building_id",
+    "start_date",
+    "inflation_rate",
+    "opening_balance"
+  ]
+}

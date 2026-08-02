@@ -1,0 +1,32 @@
+{
+  "name": "PollVote",
+  "type": "object",
+  "properties": {
+    "poll_id": {
+      "type": "string"
+    },
+    "voter_id": {
+      "type": "string",
+      "description": "Resident ID"
+    },
+    "voter_email": {
+      "type": "string"
+    },
+    "selected_options": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of option texts voted for"
+    },
+    "voted_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "poll_id",
+    "voter_id",
+    "selected_options"
+  ]
+}

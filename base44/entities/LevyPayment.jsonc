@@ -1,0 +1,99 @@
+{
+  "name": "LevyPayment",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Reference to building"
+    },
+    "unit_id": {
+      "type": "string",
+      "description": "Reference to unit"
+    },
+    "resident_id": {
+      "type": "string",
+      "description": "Reference to resident"
+    },
+    "period": {
+      "type": "string",
+      "description": "Payment period (e.g., Q1 2024)"
+    },
+    "quarter": {
+      "type": "string",
+      "enum": [
+        "Q1",
+        "Q2",
+        "Q3",
+        "Q4"
+      ]
+    },
+    "year": {
+      "type": "number"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Levy amount in dollars"
+    },
+    "admin_fund": {
+      "type": "number",
+      "description": "Admin fund contribution"
+    },
+    "sinking_fund": {
+      "type": "number",
+      "description": "Sinking/capital works fund"
+    },
+    "special_levy": {
+      "type": "number",
+      "description": "Special levy amount"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "paid_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "stripe",
+        "bank_transfer",
+        "cheque",
+        "cash",
+        "other"
+      ]
+    },
+    "stripe_payment_intent_id": {
+      "type": "string",
+      "description": "Stripe payment intent ID"
+    },
+    "stripe_invoice_id": {
+      "type": "string",
+      "description": "Stripe invoice ID"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "paid",
+        "overdue",
+        "partial",
+        "waived"
+      ],
+      "default": "pending"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "invoice_url": {
+      "type": "string",
+      "description": "URL to generated invoice PDF"
+    }
+  },
+  "required": [
+    "building_id",
+    "amount",
+    "due_date"
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "name": "NotificationPreference",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "User's email address"
+    },
+    "email_work_orders": {
+      "type": "boolean",
+      "default": true,
+      "description": "Email notifications for work order updates"
+    },
+    "email_messages": {
+      "type": "boolean",
+      "default": true,
+      "description": "Email notifications for new messages"
+    },
+    "email_compliance": {
+      "type": "boolean",
+      "default": true,
+      "description": "Email notifications for compliance deadlines"
+    },
+    "email_announcements": {
+      "type": "boolean",
+      "default": true,
+      "description": "Email notifications for announcements"
+    },
+    "in_app_work_orders": {
+      "type": "boolean",
+      "default": true,
+      "description": "In-app notifications for work orders"
+    },
+    "in_app_messages": {
+      "type": "boolean",
+      "default": true,
+      "description": "In-app notifications for messages"
+    },
+    "in_app_compliance": {
+      "type": "boolean",
+      "default": true,
+      "description": "In-app notifications for compliance"
+    },
+    "in_app_announcements": {
+      "type": "boolean",
+      "default": true,
+      "description": "In-app notifications for announcements"
+    }
+  },
+  "required": [
+    "user_email"
+  ]
+}

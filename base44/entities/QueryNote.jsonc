@@ -1,0 +1,84 @@
+{
+  "name": "QueryNote",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Building where the query occurred"
+    },
+    "unit_id": {
+      "type": "string",
+      "description": "Unit associated with the query"
+    },
+    "resident_email": {
+      "type": "string",
+      "description": "Email of the resident who made the query"
+    },
+    "resident_name": {
+      "type": "string",
+      "description": "Name of the resident"
+    },
+    "issue_type": {
+      "type": "string",
+      "description": "Type of issue identified (e.g., Balcony, Electrical)"
+    },
+    "issue_item": {
+      "type": "string",
+      "description": "Specific item (e.g., Awning, Light fixture)"
+    },
+    "standard_responsibility": {
+      "type": "string",
+      "description": "Who is responsible according to standard guide"
+    },
+    "bylaw_responsibility": {
+      "type": "string",
+      "description": "Responsibility determined by AI bylaw analysis"
+    },
+    "bylaw_found": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether a specific bylaw was found for this lot"
+    },
+    "lot_number": {
+      "type": "string",
+      "description": "Lot number associated with the unit"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "non_critical",
+        "critical",
+        "defect"
+      ],
+      "default": "non_critical",
+      "description": "Severity level of the abandoned query"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "contacted",
+        "resolved",
+        "dismissed"
+      ],
+      "default": "pending",
+      "description": "Follow-up status"
+    },
+    "manager_notes": {
+      "type": "string",
+      "description": "Notes added by building manager"
+    },
+    "contacted_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the resident was contacted"
+    }
+  },
+  "required": [
+    "building_id",
+    "unit_id",
+    "resident_email",
+    "issue_type",
+    "issue_item"
+  ]
+}

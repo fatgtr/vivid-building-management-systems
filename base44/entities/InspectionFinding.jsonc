@@ -1,0 +1,94 @@
+{
+  "name": "InspectionFinding",
+  "type": "object",
+  "properties": {
+    "inspection_id": {
+      "type": "string",
+      "description": "Reference to parent Inspection"
+    },
+    "building_id": {
+      "type": "string",
+      "description": "Reference to Building"
+    },
+    "asset_id": {
+      "type": "string",
+      "description": "Reference to Asset if finding relates to specific asset"
+    },
+    "location_name": {
+      "type": "string",
+      "description": "Location/area name (e.g., Entry Area, Bin Rooms)"
+    },
+    "floor": {
+      "type": "string",
+      "description": "Floor or level (e.g., B1, B2, Ground Floor)"
+    },
+    "item_name": {
+      "type": "string",
+      "description": "Name of the item being inspected"
+    },
+    "category": {
+      "type": "string",
+      "description": "Asset category"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of the finding (can be voice-to-text)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "needs_attention",
+        "not_working",
+        "urgent"
+      ],
+      "default": "ok",
+      "description": "Status of the inspected item"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Array of photo URLs"
+    },
+    "videos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Array of video URLs"
+    },
+    "work_order_id": {
+      "type": "string",
+      "description": "Reference to auto-created WorkOrder if item not working"
+    },
+    "work_order_created": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether work order was auto-created"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "minor",
+        "moderate",
+        "major",
+        "critical"
+      ],
+      "description": "Severity of the issue"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "inspection_id",
+    "building_id",
+    "location_name",
+    "status"
+  ]
+}

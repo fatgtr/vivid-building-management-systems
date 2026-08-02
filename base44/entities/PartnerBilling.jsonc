@@ -1,0 +1,48 @@
+{
+  "name": "PartnerBilling",
+  "type": "object",
+  "properties": {
+    "partner_id": {
+      "type": "string",
+      "description": "Partner this billing belongs to"
+    },
+    "billing_cycle": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "quarterly",
+        "yearly"
+      ],
+      "default": "monthly",
+      "description": "How often to bill the partner"
+    },
+    "rate_per_lot_monthly": {
+      "type": "number",
+      "default": 2.25,
+      "description": "Rate per lot per month (default $2.25)"
+    },
+    "next_billing_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Next scheduled billing date"
+    },
+    "auto_billing_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to automatically generate bills"
+    },
+    "billing_email": {
+      "type": "string",
+      "description": "Email to send invoices to"
+    },
+    "payment_terms_days": {
+      "type": "number",
+      "default": 30,
+      "description": "Payment terms in days (e.g., Net 30)"
+    }
+  },
+  "required": [
+    "partner_id",
+    "billing_cycle"
+  ]
+}

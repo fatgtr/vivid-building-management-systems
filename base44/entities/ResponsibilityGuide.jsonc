@@ -1,0 +1,32 @@
+{
+  "name": "ResponsibilityGuide",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "description": "Category type (e.g., Balcony, Bathroom, Electrical)"
+    },
+    "item": {
+      "type": "string",
+      "description": "Specific item within the category"
+    },
+    "responsible": {
+      "type": "string",
+      "enum": [
+        "Owner",
+        "Owners Corporation",
+        "Owner/Owners Corporation"
+      ],
+      "description": "Who is responsible for maintenance"
+    },
+    "additional_info": {
+      "type": "string",
+      "description": "Additional information or appendix reference"
+    }
+  },
+  "required": [
+    "type",
+    "item",
+    "responsible"
+  ]
+}

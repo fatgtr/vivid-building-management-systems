@@ -1,0 +1,38 @@
+{
+  "name": "ParkingPlanMap",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Reference to building"
+    },
+    "level": {
+      "type": "string",
+      "description": "Parking level/floor this map represents"
+    },
+    "section": {
+      "type": "string",
+      "description": "Section or area name"
+    },
+    "map_image_url": {
+      "type": "string",
+      "description": "URL to parking plan/map image"
+    },
+    "title": {
+      "type": "string",
+      "description": "Map title (e.g., Basement 1 - North Section)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Map description"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "building_id",
+    "title"
+  ]
+}

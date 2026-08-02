@@ -1,0 +1,81 @@
+{
+  "name": "AmenityBooking",
+  "type": "object",
+  "properties": {
+    "amenity_id": {
+      "type": "string"
+    },
+    "building_id": {
+      "type": "string"
+    },
+    "resident_id": {
+      "type": "string"
+    },
+    "resident_name": {
+      "type": "string"
+    },
+    "resident_email": {
+      "type": "string",
+      "description": "Email address of the resident who made the booking"
+    },
+    "unit_number": {
+      "type": "string"
+    },
+    "booking_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "start_time": {
+      "type": "string"
+    },
+    "end_time": {
+      "type": "string"
+    },
+    "guests": {
+      "type": "number"
+    },
+    "purpose": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "cancelled",
+        "completed"
+      ],
+      "default": "pending"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "fee_paid": {
+      "type": "boolean",
+      "default": false
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "paid",
+        "unpaid",
+        "refunded",
+        "pending"
+      ],
+      "default": "unpaid"
+    },
+    "calendar_event_id": {
+      "type": "string",
+      "description": "Google Calendar event ID"
+    }
+  },
+  "required": [
+    "amenity_id",
+    "building_id",
+    "resident_id",
+    "booking_date",
+    "start_time",
+    "end_time"
+  ]
+}

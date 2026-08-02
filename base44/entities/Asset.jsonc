@@ -1,0 +1,376 @@
+{
+  "name": "Asset",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Reference to building"
+    },
+    "location_id": {
+      "type": "string",
+      "description": "Reference to Location entity for precise spatial tracking"
+    },
+    "parent_asset_id": {
+      "type": "string",
+      "description": "Reference to parent asset for hierarchy (e.g., chiller system > condenser)"
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of document IDs (AFSS, as-built plans, manuals, certificates, etc.)"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of photo URLs for visual asset tracking"
+    },
+    "asset_main_category": {
+      "type": "string",
+      "enum": [
+        "core_building_structure",
+        "mechanical_services",
+        "electrical_services",
+        "fire_life_safety",
+        "vertical_transportation",
+        "hydraulic_plumbing",
+        "security_access_control",
+        "communications_it",
+        "building_management_systems",
+        "external_grounds",
+        "common_area_fixtures_fittings",
+        "waste_management",
+        "parking_traffic",
+        "compliance_safety",
+        "commercial_specific",
+        "residential_specific",
+        "documentation_registers"
+      ],
+      "description": "Main asset category"
+    },
+    "asset_subcategory": {
+      "type": "string",
+      "description": "Sub-category under the main category (e.g., foundations_and_slabs, air_conditioning_plant)"
+    },
+    "asset_type": {
+      "type": "string",
+      "description": "Specific type (e.g., fire_extinguisher, smoke_detector, electrical_panel)"
+    },
+    "name": {
+      "type": "string",
+      "description": "Asset name/description"
+    },
+    "identifier": {
+      "type": "string",
+      "description": "Serial number, model number, or unique ID"
+    },
+    "barcode": {
+      "type": "string",
+      "description": "Barcode or QR code for mobile scanning"
+    },
+    "location": {
+      "type": "string",
+      "description": "Physical location in building (free text)"
+    },
+    "floor": {
+      "type": "string",
+      "description": "Floor or level"
+    },
+    "manufacturer": {
+      "type": "string",
+      "description": "Manufacturer name"
+    },
+    "model": {
+      "type": "string",
+      "description": "Model number"
+    },
+    "installation_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date installed"
+    },
+    "warranty_expiry_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Warranty expiration date"
+    },
+    "last_service_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Last maintenance/inspection date"
+    },
+    "next_service_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Next scheduled service date"
+    },
+    "service_frequency": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "bi_monthly",
+        "quarterly",
+        "half_yearly",
+        "yearly",
+        "bi_yearly",
+        "custom"
+      ],
+      "description": "Required service frequency"
+    },
+    "compliance_status": {
+      "type": "string",
+      "enum": [
+        "compliant",
+        "due_soon",
+        "overdue",
+        "requires_attention",
+        "unknown"
+      ],
+      "default": "unknown",
+      "description": "Current compliance status (summary field, detailed records in ComplianceRecord entity)"
+    },
+    "criticality": {
+      "type": "string",
+      "enum": [
+        "critical",
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "medium",
+      "description": "Asset criticality for maintenance prioritization"
+    },
+    "operational_status": {
+      "type": "string",
+      "enum": [
+        "operational",
+        "degraded",
+        "down",
+        "maintenance",
+        "decommissioned"
+      ],
+      "default": "operational",
+      "description": "Current operational status"
+    },
+    "health_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Asset health score (0-100) based on age, service history, and performance"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes or details"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "decommissioned"
+      ],
+      "default": "active"
+    },
+    "is_bmc_shared_asset": {
+      "type": "boolean",
+      "default": false,
+      "description": "Indicates if this asset is a shared facility under BMC (as per Strata Management Statement)"
+    },
+    "bmc_building_id": {
+      "type": "string",
+      "description": "Reference to the BMC master building if this is a shared asset"
+    },
+    "shared_with_strata_plans": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of strata plan building IDs that share this asset"
+    },
+    "strata_plan_specific": {
+      "type": "boolean",
+      "default": false,
+      "description": "Indicates if this asset belongs exclusively to one strata plan"
+    },
+    "ownership_notes": {
+      "type": "string",
+      "description": "Notes about asset ownership, cost sharing, or cross-over arrangements between strata plans"
+    },
+    "lift_type": {
+      "type": "string",
+      "description": "Type of lift (Goods/Passenger, Passenger only, etc.)"
+    },
+    "control_type": {
+      "type": "string",
+      "description": "Control type (Automatic, Manual, etc.)"
+    },
+    "drive_suspension_type": {
+      "type": "string",
+      "description": "Drive and suspension type (Electric/Traction, Hydraulic, etc.)"
+    },
+    "carriage_type": {
+      "type": "string",
+      "description": "Carriage type"
+    },
+    "rated_load_kg": {
+      "type": "number",
+      "description": "Rated load in kilograms"
+    },
+    "max_passengers": {
+      "type": "number",
+      "description": "Maximum number of passengers"
+    },
+    "travel_m": {
+      "type": "number",
+      "description": "Travel distance in meters"
+    },
+    "designer_rated_speed": {
+      "type": "number",
+      "description": "Designer's rated speed in m/s"
+    },
+    "plant_location": {
+      "type": "string",
+      "description": "Fixed plant location address"
+    },
+    "serial_number": {
+      "type": "string",
+      "description": "Serial number"
+    },
+    "design_registration_number": {
+      "type": "string",
+      "description": "Design registration number"
+    },
+    "year_of_manufacture": {
+      "type": "number",
+      "description": "Year of manufacture"
+    },
+    "registration_number": {
+      "type": "string",
+      "description": "Item registration number"
+    },
+    "lifecycle_years": {
+      "type": "number",
+      "description": "Expected lifecycle in years (e.g., 20 for lifts, 10-15 for hot water)",
+      "default": 20
+    },
+    "purchase_value": {
+      "type": "number",
+      "description": "Original purchase or installation value"
+    },
+    "replacement_cost": {
+      "type": "number",
+      "description": "Estimated replacement cost"
+    },
+    "replacement_year": {
+      "type": "number",
+      "description": "Estimated year for replacement"
+    },
+    "annual_sinking_fund": {
+      "type": "number",
+      "description": "Annual amount to save for replacement"
+    },
+    "risk_rating": {
+      "type": "string",
+      "enum": [
+        "critical",
+        "high",
+        "medium",
+        "low"
+      ],
+      "description": "Risk rating based on failure impact and remaining life"
+    },
+    "total_maintenance_cost": {
+      "type": "number",
+      "default": 0,
+      "description": "Cumulative maintenance costs over asset lifetime"
+    },
+    "total_downtime_hours": {
+      "type": "number",
+      "default": 0,
+      "description": "Total downtime hours tracked"
+    },
+    "operating_hours": {
+      "type": "number",
+      "default": 0,
+      "description": "Total operating hours (for usage-based maintenance)"
+    },
+    "last_operating_hours_update": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When operating hours were last updated"
+    },
+    "meter_reading": {
+      "type": "number",
+      "description": "Current meter reading (for condition-based maintenance)"
+    },
+    "meter_reading_unit": {
+      "type": "string",
+      "description": "Unit of meter reading (e.g., hours, cycles, km)"
+    },
+    "next_meter_trigger": {
+      "type": "number",
+      "description": "Meter reading that triggers next maintenance"
+    },
+    "mtbf": {
+      "type": "number",
+      "description": "Mean Time Between Failures (hours)"
+    },
+    "mttr": {
+      "type": "number",
+      "description": "Mean Time To Repair (hours)"
+    },
+    "failure_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of failures tracked"
+    },
+    "last_failure_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of last failure"
+    },
+    "fmea_severity": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 10,
+      "description": "FMEA Severity rating (1-10)"
+    },
+    "fmea_occurrence": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 10,
+      "description": "FMEA Occurrence rating (1-10)"
+    },
+    "fmea_detection": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 10,
+      "description": "FMEA Detection rating (1-10)"
+    },
+    "fmea_rpn": {
+      "type": "number",
+      "description": "Risk Priority Number (Severity \u00d7 Occurrence \u00d7 Detection)"
+    },
+    "capital_works_plan_id": {
+      "type": "string",
+      "description": "Reference to current CapitalWorksPlan that includes this asset"
+    },
+    "maintenance_schedule_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Array of MaintenanceSchedule IDs for this asset"
+    }
+  },
+  "required": [
+    "building_id",
+    "asset_main_category",
+    "asset_type",
+    "name"
+  ]
+}

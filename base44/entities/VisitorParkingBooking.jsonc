@@ -1,0 +1,102 @@
+{
+  "name": "VisitorParkingBooking",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Building where parking is requested"
+    },
+    "parking_zone_id": {
+      "type": "string",
+      "description": "Parking zone being booked"
+    },
+    "resident_id": {
+      "type": "string",
+      "description": "Resident who made the booking"
+    },
+    "resident_name": {
+      "type": "string",
+      "description": "Name of the resident"
+    },
+    "resident_email": {
+      "type": "string",
+      "description": "Email of the resident"
+    },
+    "unit_number": {
+      "type": "string",
+      "description": "Unit number of the resident"
+    },
+    "visitor_name": {
+      "type": "string",
+      "description": "Name of the visitor"
+    },
+    "visitor_phone": {
+      "type": "string",
+      "description": "Phone number of the visitor"
+    },
+    "vehicle_registration": {
+      "type": "string",
+      "description": "Vehicle registration number"
+    },
+    "vehicle_make_model": {
+      "type": "string",
+      "description": "Vehicle make and model"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Start date of parking"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "End date of parking"
+    },
+    "start_time": {
+      "type": "string",
+      "description": "Start time (HH:MM format)"
+    },
+    "end_time": {
+      "type": "string",
+      "description": "End time (HH:MM format)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "cancelled",
+        "completed",
+        "no_show"
+      ],
+      "default": "pending",
+      "description": "Booking status"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes or special requests"
+    },
+    "rejection_reason": {
+      "type": "string",
+      "description": "Reason for rejection if status is rejected"
+    },
+    "approved_by": {
+      "type": "string",
+      "description": "Email of the person who approved the booking"
+    },
+    "approved_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date and time when booking was approved"
+    }
+  },
+  "required": [
+    "building_id",
+    "parking_zone_id",
+    "visitor_name",
+    "vehicle_registration",
+    "start_date",
+    "end_date"
+  ]
+}

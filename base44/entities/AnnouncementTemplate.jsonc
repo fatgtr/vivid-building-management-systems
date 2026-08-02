@@ -1,0 +1,86 @@
+{
+  "name": "AnnouncementTemplate",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Template name for internal use"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "lift_maintenance",
+        "lift_outage",
+        "fire_safety_testing",
+        "pool_maintenance",
+        "bylaw_reminder_pets",
+        "bylaw_reminder_noise",
+        "bylaw_reminder_parking",
+        "general_maintenance",
+        "utility_disruption",
+        "other"
+      ],
+      "description": "Template category"
+    },
+    "title_template": {
+      "type": "string",
+      "description": "Title with placeholders like {asset_name}, {date}"
+    },
+    "content_template": {
+      "type": "string",
+      "description": "Content with placeholders for dynamic values"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "general",
+        "maintenance",
+        "emergency",
+        "event",
+        "policy"
+      ],
+      "default": "maintenance",
+      "description": "Announcement type"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "important",
+        "urgent"
+      ],
+      "default": "normal",
+      "description": "Default priority level"
+    },
+    "target_audience": {
+      "type": "string",
+      "enum": [
+        "all",
+        "owners",
+        "tenants",
+        "staff"
+      ],
+      "default": "all",
+      "description": "Default target audience"
+    },
+    "auto_publish": {
+      "type": "boolean",
+      "default": true,
+      "description": "Automatically publish when triggered"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    }
+  },
+  "required": [
+    "name",
+    "category",
+    "title_template",
+    "content_template"
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "name": "Poll",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "poll_type": {
+      "type": "string",
+      "enum": [
+        "simple",
+        "agm_motion",
+        "committee_decision",
+        "building_improvement"
+      ],
+      "default": "simple"
+    },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "votes": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      }
+    },
+    "eligible_voters": {
+      "type": "string",
+      "enum": [
+        "all_residents",
+        "owners_only",
+        "committee_only"
+      ],
+      "default": "all_residents"
+    },
+    "allow_multiple": {
+      "type": "boolean",
+      "default": false
+    },
+    "anonymous": {
+      "type": "boolean",
+      "default": true
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "closed",
+        "cancelled"
+      ],
+      "default": "draft"
+    },
+    "total_votes": {
+      "type": "number",
+      "default": 0
+    },
+    "results_visible": {
+      "type": "boolean",
+      "default": false,
+      "description": "Show results before poll closes"
+    }
+  },
+  "required": [
+    "building_id",
+    "title",
+    "options"
+  ]
+}

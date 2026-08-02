@@ -1,0 +1,65 @@
+{
+  "name": "VisitorLog",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string"
+    },
+    "unit_id": {
+      "type": "string"
+    },
+    "unit_number": {
+      "type": "string"
+    },
+    "visitor_name": {
+      "type": "string"
+    },
+    "visitor_phone": {
+      "type": "string"
+    },
+    "visitor_type": {
+      "type": "string",
+      "enum": [
+        "guest",
+        "delivery",
+        "contractor",
+        "service",
+        "other"
+      ],
+      "default": "guest"
+    },
+    "purpose": {
+      "type": "string"
+    },
+    "check_in_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "check_out_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "vehicle_plate": {
+      "type": "string"
+    },
+    "host_name": {
+      "type": "string"
+    },
+    "pre_authorized": {
+      "type": "boolean",
+      "default": false
+    },
+    "id_verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "building_id",
+    "visitor_name",
+    "visitor_type"
+  ]
+}

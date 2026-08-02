@@ -1,0 +1,30 @@
+{
+  "name": "ImportantNumber",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "phone_number": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "emergency",
+        "management",
+        "committee",
+        "contractor",
+        "other"
+      ],
+      "default": "other"
+    },
+    "building_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "phone_number"
+  ]
+}

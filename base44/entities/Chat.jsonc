@@ -1,0 +1,63 @@
+{
+  "name": "Chat",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Reference to building"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Chat subject/title"
+    },
+    "participants": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of participant email addresses"
+    },
+    "chat_type": {
+      "type": "string",
+      "enum": [
+        "resident_management",
+        "resident_resident",
+        "group"
+      ],
+      "default": "resident_management",
+      "description": "Type of conversation"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "archived",
+        "resolved"
+      ],
+      "default": "active"
+    },
+    "last_message": {
+      "type": "string",
+      "description": "Preview of last message"
+    },
+    "last_message_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "unread_count": {
+      "type": "number",
+      "default": 0
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    }
+  },
+  "required": [
+    "building_id",
+    "participants"
+  ]
+}

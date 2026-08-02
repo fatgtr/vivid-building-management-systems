@@ -1,0 +1,52 @@
+{
+  "name": "SavedResponse",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who saved the response"
+    },
+    "building_id": {
+      "type": "string",
+      "description": "Building this response is related to"
+    },
+    "question": {
+      "type": "string",
+      "description": "The original question asked"
+    },
+    "answer": {
+      "type": "string",
+      "description": "The AI's response"
+    },
+    "document_references": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "document_id": {
+            "type": "string"
+          },
+          "document_title": {
+            "type": "string"
+          },
+          "section": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Referenced documents and sections"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags for categorization (e.g., pets, noise, renovations)"
+    }
+  },
+  "required": [
+    "user_email",
+    "question",
+    "answer"
+  ]
+}

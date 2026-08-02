@@ -1,0 +1,117 @@
+{
+  "name": "MarketplaceItem",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Building where item is listed"
+    },
+    "seller_id": {
+      "type": "string",
+      "description": "Resident who is selling"
+    },
+    "seller_name": {
+      "type": "string"
+    },
+    "seller_unit": {
+      "type": "string"
+    },
+    "seller_email": {
+      "type": "string"
+    },
+    "seller_phone": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string",
+      "description": "Item title"
+    },
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "furniture",
+        "electronics",
+        "appliances",
+        "books",
+        "clothing",
+        "sports",
+        "kids",
+        "services",
+        "other"
+      ],
+      "default": "other"
+    },
+    "price": {
+      "type": "number",
+      "description": "Price in dollars"
+    },
+    "negotiable": {
+      "type": "boolean",
+      "default": true
+    },
+    "condition": {
+      "type": "string",
+      "enum": [
+        "new",
+        "like_new",
+        "good",
+        "fair",
+        "for_parts"
+      ],
+      "default": "good"
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Array of image URLs"
+    },
+    "listing_type": {
+      "type": "string",
+      "enum": [
+        "for_sale",
+        "free",
+        "wanted",
+        "service_offered",
+        "service_wanted"
+      ],
+      "default": "for_sale"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "sold",
+        "expired",
+        "removed"
+      ],
+      "default": "active"
+    },
+    "views": {
+      "type": "number",
+      "default": 0
+    },
+    "interested_users": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "expires_date": {
+      "type": "string",
+      "format": "date",
+      "description": "When listing expires (default 30 days)"
+    }
+  },
+  "required": [
+    "building_id",
+    "title",
+    "seller_name"
+  ]
+}

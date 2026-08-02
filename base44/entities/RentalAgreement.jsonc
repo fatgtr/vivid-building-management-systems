@@ -1,0 +1,253 @@
+{
+  "name": "RentalAgreement",
+  "type": "object",
+  "properties": {
+    "resident_id": {
+      "type": "string",
+      "description": "Reference to resident"
+    },
+    "building_id": {
+      "type": "string",
+      "description": "Reference to building"
+    },
+    "unit_id": {
+      "type": "string",
+      "description": "Reference to unit"
+    },
+    "document_id": {
+      "type": "string",
+      "description": "Reference to uploaded lease document"
+    },
+    "agreement_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date agreement was signed"
+    },
+    "property_address": {
+      "type": "string",
+      "description": "Full address of rental property"
+    },
+    "landlord_name": {
+      "type": "string",
+      "description": "Name of landlord or company"
+    },
+    "landlord_address": {
+      "type": "string",
+      "description": "Landlord's address"
+    },
+    "landlord_agent_name": {
+      "type": "string",
+      "description": "Property management company name"
+    },
+    "landlord_agent_address": {
+      "type": "string",
+      "description": "Agent's business address"
+    },
+    "landlord_agent_phone": {
+      "type": "string",
+      "description": "Agent's phone number"
+    },
+    "landlord_agent_email": {
+      "type": "string",
+      "description": "Agent's email address"
+    },
+    "tenant_names": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Names of all tenants on the agreement"
+    },
+    "tenant_emails": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Email addresses of tenants"
+    },
+    "tenant_phones": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Phone numbers of tenants"
+    },
+    "lease_term_type": {
+      "type": "string",
+      "enum": [
+        "6_months",
+        "12_months",
+        "2_years",
+        "3_years",
+        "5_years",
+        "periodic",
+        "other"
+      ],
+      "description": "Type of lease term"
+    },
+    "lease_term_description": {
+      "type": "string",
+      "description": "Specific lease term if 'other' (e.g., '27 weeks')"
+    },
+    "lease_start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Lease commencement date"
+    },
+    "lease_end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Lease termination date"
+    },
+    "rent_amount": {
+      "type": "number",
+      "description": "Rent amount"
+    },
+    "rent_frequency": {
+      "type": "string",
+      "enum": [
+        "week",
+        "fortnight",
+        "month",
+        "other"
+      ],
+      "description": "How often rent is paid"
+    },
+    "rent_due_day": {
+      "type": "string",
+      "description": "Day of week/month rent is due"
+    },
+    "first_rent_payment_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date first rent payment is due"
+    },
+    "rent_payment_method": {
+      "type": "string",
+      "description": "How rent should be paid (e.g., EFT, Centrepay)"
+    },
+    "rent_payment_details": {
+      "type": "object",
+      "properties": {
+        "bsb": {
+          "type": "string"
+        },
+        "account_number": {
+          "type": "string"
+        },
+        "account_name": {
+          "type": "string"
+        },
+        "bank_name": {
+          "type": "string"
+        },
+        "payment_reference": {
+          "type": "string"
+        }
+      },
+      "description": "Bank account details for rent payment"
+    },
+    "bond_amount": {
+      "type": "number",
+      "description": "Security deposit amount"
+    },
+    "bond_lodged_with": {
+      "type": "string",
+      "description": "Where bond was lodged (e.g., 'NSW Fair Trading')"
+    },
+    "max_occupants": {
+      "type": "number",
+      "description": "Maximum number of people allowed to live in the property"
+    },
+    "inclusions": {
+      "type": "string",
+      "description": "Items included with property (parking, furniture, etc.)"
+    },
+    "parking_included": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether parking is included"
+    },
+    "parking_details": {
+      "type": "string",
+      "description": "Parking spot details"
+    },
+    "utilities_electricity_embedded": {
+      "type": "boolean",
+      "description": "Is electricity from embedded network"
+    },
+    "utilities_gas_embedded": {
+      "type": "boolean",
+      "description": "Is gas from embedded network"
+    },
+    "water_usage_payable": {
+      "type": "boolean",
+      "description": "Must tenant pay water usage"
+    },
+    "urgent_repairs_contact": {
+      "type": "string",
+      "description": "Contact for urgent repairs"
+    },
+    "urgent_repairs_phone": {
+      "type": "string",
+      "description": "Phone for urgent repairs"
+    },
+    "smoke_alarm_type": {
+      "type": "string",
+      "enum": [
+        "hardwired",
+        "battery_operated"
+      ],
+      "description": "Type of smoke alarms installed"
+    },
+    "smoke_alarm_battery_type": {
+      "type": "string",
+      "description": "Battery type if replaceable by tenant"
+    },
+    "strata_bylaws_applicable": {
+      "type": "boolean",
+      "description": "Are there strata by-laws"
+    },
+    "pet_policy": {
+      "type": "string",
+      "description": "Pet policy details"
+    },
+    "pets_allowed": {
+      "type": "boolean",
+      "description": "Whether pets are allowed"
+    },
+    "special_conditions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Special conditions and additional terms"
+    },
+    "electronic_service_consent": {
+      "type": "boolean",
+      "description": "Tenant consented to electronic notices"
+    },
+    "electronic_service_email": {
+      "type": "string",
+      "description": "Email for electronic service of notices"
+    },
+    "full_extraction": {
+      "type": "string",
+      "description": "Complete AI extraction details"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "expired",
+        "terminated"
+      ],
+      "default": "active",
+      "description": "Current status of the agreement"
+    }
+  },
+  "required": [
+    "property_address",
+    "lease_start_date"
+  ]
+}

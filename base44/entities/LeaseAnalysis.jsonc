@@ -1,0 +1,81 @@
+{
+  "name": "LeaseAnalysis",
+  "type": "object",
+  "properties": {
+    "resident_email": {
+      "type": "string",
+      "description": "Email of the resident"
+    },
+    "document_id": {
+      "type": "string",
+      "description": "Reference to the lease document"
+    },
+    "lease_start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Lease start date"
+    },
+    "lease_end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Lease end date"
+    },
+    "monthly_rent": {
+      "type": "number",
+      "description": "Monthly rent amount"
+    },
+    "security_deposit": {
+      "type": "number",
+      "description": "Security deposit amount"
+    },
+    "pet_policy": {
+      "type": "string",
+      "description": "Pet policy details"
+    },
+    "parking_included": {
+      "type": "boolean",
+      "description": "Whether parking is included"
+    },
+    "parking_details": {
+      "type": "string",
+      "description": "Parking spot details"
+    },
+    "special_clauses": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Special clauses or conditions"
+    },
+    "renewal_terms": {
+      "type": "string",
+      "description": "Lease renewal terms"
+    },
+    "full_analysis": {
+      "type": "string",
+      "description": "Complete AI analysis of the lease"
+    },
+    "move_in_lift_booking_id": {
+      "type": "string",
+      "description": "Amenity booking ID for move-in lift"
+    },
+    "move_out_lift_booking_id": {
+      "type": "string",
+      "description": "Amenity booking ID for move-out lift"
+    },
+    "move_in_document_sent": {
+      "type": "boolean",
+      "description": "Whether move-in bylaws have been sent to resident",
+      "default": false
+    },
+    "move_out_document_sent": {
+      "type": "boolean",
+      "description": "Whether move-out bylaws have been sent to resident",
+      "default": false
+    }
+  },
+  "required": [
+    "resident_email",
+    "document_id"
+  ]
+}

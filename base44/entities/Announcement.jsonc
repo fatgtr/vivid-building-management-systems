@@ -1,0 +1,192 @@
+{
+  "name": "Announcement",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Reference to building"
+    },
+    "title": {
+      "type": "string",
+      "description": "Announcement title"
+    },
+    "content": {
+      "type": "string",
+      "description": "Announcement content (supports markdown)"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "general",
+        "emergency",
+        "maintenance",
+        "event",
+        "policy",
+        "reminder"
+      ],
+      "default": "general"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "normal",
+        "high",
+        "urgent"
+      ],
+      "default": "normal"
+    },
+    "author_name": {
+      "type": "string"
+    },
+    "author_email": {
+      "type": "string"
+    },
+    "target_audience": {
+      "type": "string",
+      "enum": [
+        "all_residents",
+        "owners_only",
+        "tenants_only",
+        "specific_units"
+      ],
+      "default": "all_residents"
+    },
+    "specific_units": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "pinned": {
+      "type": "boolean",
+      "default": false
+    },
+    "allow_comments": {
+      "type": "boolean",
+      "default": true
+    },
+    "comments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "author": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string"
+          }
+        }
+      },
+      "default": []
+    },
+    "read_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Array of resident IDs who have read this"
+    },
+    "notification_sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether notifications have been sent"
+    },
+    "notification_sent_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When notifications were sent"
+    },
+    "expires_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "published",
+        "archived"
+      ],
+      "default": "published"
+    },
+    "is_event": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this announcement is an event requiring RSVP"
+    },
+    "event_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Event date and time"
+    },
+    "event_location": {
+      "type": "string",
+      "description": "Event location"
+    },
+    "rsvp_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether RSVPs are enabled for this event"
+    },
+    "rsvp_deadline": {
+      "type": "string",
+      "format": "date",
+      "description": "RSVP deadline date"
+    },
+    "max_attendees": {
+      "type": "number",
+      "description": "Maximum number of attendees (null for unlimited)"
+    },
+    "rsvp_responses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "resident_email": {
+            "type": "string"
+          },
+          "resident_name": {
+            "type": "string"
+          },
+          "response": {
+            "type": "string",
+            "enum": [
+              "attending",
+              "not_attending",
+              "maybe"
+            ]
+          },
+          "guests_count": {
+            "type": "number",
+            "default": 0
+          },
+          "responded_date": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "default": [],
+      "description": "RSVP responses from residents"
+    }
+  },
+  "required": [
+    "building_id",
+    "title",
+    "content"
+  ]
+}

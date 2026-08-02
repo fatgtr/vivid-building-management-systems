@@ -1,0 +1,101 @@
+{
+  "name": "PartnerBranding",
+  "type": "object",
+  "properties": {
+    "partner_id": {
+      "type": "string",
+      "description": "Reference to partner"
+    },
+    "dashboard_logo_url": {
+      "type": "string",
+      "description": "Logo for dashboard (240px x 240px recommended)"
+    },
+    "work_order_logo_url": {
+      "type": "string",
+      "description": "Logo for work orders and inspections (240px x 125px recommended)"
+    },
+    "management_report_logo_url": {
+      "type": "string",
+      "description": "Logo for management reports"
+    },
+    "building_image_url": {
+      "type": "string",
+      "description": "Building image for dashboard (250px x 125px recommended)"
+    },
+    "favicon_url": {
+      "type": "string",
+      "description": "Custom favicon URL"
+    },
+    "primary_color": {
+      "type": "string",
+      "description": "Primary brand color (hex code)",
+      "default": "#3b82f6"
+    },
+    "secondary_color": {
+      "type": "string",
+      "description": "Secondary brand color (hex code)",
+      "default": "#6366f1"
+    },
+    "display_name": {
+      "type": "string",
+      "description": "Application display name for this partner"
+    },
+    "branding_mode": {
+      "type": "string",
+      "enum": [
+        "white_label",
+        "co_branded"
+      ],
+      "default": "co_branded",
+      "description": "Branding display mode"
+    },
+    "email_sender_name": {
+      "type": "string",
+      "description": "Sender name for system emails"
+    },
+    "email_reply_to": {
+      "type": "string",
+      "description": "Reply-to email address for system emails"
+    },
+    "work_order_terms": {
+      "type": "string",
+      "description": "Default work order terms and conditions"
+    },
+    "show_work_order_terms": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show terms on work orders"
+    },
+    "company_name": {
+      "type": "string",
+      "description": "Company name for work orders"
+    },
+    "building_name": {
+      "type": "string",
+      "description": "Default building name for work orders"
+    },
+    "company_address": {
+      "type": "string",
+      "description": "Company address"
+    },
+    "company_state": {
+      "type": "string",
+      "description": "Company state"
+    },
+    "company_suburb": {
+      "type": "string",
+      "description": "Company suburb"
+    },
+    "company_postcode": {
+      "type": "string",
+      "description": "Company postcode"
+    },
+    "strata_plan": {
+      "type": "string",
+      "description": "Strata plan number"
+    }
+  },
+  "required": [
+    "partner_id"
+  ]
+}

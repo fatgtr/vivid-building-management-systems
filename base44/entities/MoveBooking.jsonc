@@ -1,0 +1,102 @@
+{
+  "name": "MoveBooking",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string"
+    },
+    "unit_id": {
+      "type": "string"
+    },
+    "resident_name": {
+      "type": "string"
+    },
+    "resident_phone": {
+      "type": "string"
+    },
+    "resident_email": {
+      "type": "string"
+    },
+    "move_type": {
+      "type": "string",
+      "enum": [
+        "move_in",
+        "move_out"
+      ],
+      "description": "Type of move"
+    },
+    "move_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "start_time": {
+      "type": "string",
+      "description": "Start time (HH:MM)"
+    },
+    "end_time": {
+      "type": "string",
+      "description": "End time (HH:MM)"
+    },
+    "lift_reserved": {
+      "type": "boolean",
+      "default": false
+    },
+    "loading_dock_reserved": {
+      "type": "boolean",
+      "default": false
+    },
+    "parking_spots_needed": {
+      "type": "number",
+      "default": 0
+    },
+    "removalist_company": {
+      "type": "string"
+    },
+    "removalist_contact": {
+      "type": "string"
+    },
+    "deposit_amount": {
+      "type": "number",
+      "description": "Bond/deposit amount"
+    },
+    "deposit_paid": {
+      "type": "boolean",
+      "default": false
+    },
+    "deposit_returned": {
+      "type": "boolean",
+      "default": false
+    },
+    "insurance_certificate": {
+      "type": "string",
+      "description": "Insurance certificate URL"
+    },
+    "special_requirements": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending_approval",
+        "approved",
+        "completed",
+        "cancelled"
+      ],
+      "default": "pending_approval"
+    },
+    "checklist_completed": {
+      "type": "boolean",
+      "default": false
+    },
+    "inspection_required": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "building_id",
+    "resident_name",
+    "move_type",
+    "move_date"
+  ]
+}

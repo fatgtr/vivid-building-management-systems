@@ -1,0 +1,99 @@
+{
+  "name": "EnergyUsage",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Reference to building"
+    },
+    "unit_id": {
+      "type": "string",
+      "description": "Reference to unit (null for common areas)"
+    },
+    "reading_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the reading was taken"
+    },
+    "energy_type": {
+      "type": "string",
+      "enum": [
+        "electricity",
+        "gas",
+        "water",
+        "solar_generated",
+        "total"
+      ],
+      "description": "Type of energy/utility"
+    },
+    "consumption_kwh": {
+      "type": "number",
+      "description": "Energy consumption in kWh (or equivalent units)"
+    },
+    "consumption_units": {
+      "type": "number",
+      "description": "Raw meter reading in utility units"
+    },
+    "cost": {
+      "type": "number",
+      "description": "Cost for this reading period"
+    },
+    "meter_number": {
+      "type": "string",
+      "description": "Meter identifier"
+    },
+    "is_estimated": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is an estimated reading"
+    },
+    "temperature_avg": {
+      "type": "number",
+      "description": "Average temperature during reading period (Celsius)"
+    },
+    "occupancy_rate": {
+      "type": "number",
+      "description": "Occupancy percentage during period"
+    },
+    "reading_source": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "smart_meter",
+        "utility_bill",
+        "iot_sensor",
+        "estimated"
+      ],
+      "default": "manual"
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date"
+    },
+    "peak_consumption": {
+      "type": "number",
+      "description": "Peak consumption during period"
+    },
+    "off_peak_consumption": {
+      "type": "number",
+      "description": "Off-peak consumption during period"
+    },
+    "carbon_emissions_kg": {
+      "type": "number",
+      "description": "Estimated carbon emissions in kg"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "building_id",
+    "reading_date",
+    "energy_type",
+    "consumption_kwh"
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "name": "WorkOrderTemplate",
+  "type": "object",
+  "properties": {
+    "partner_id": {
+      "type": "string",
+      "description": "Partner this template belongs to (null for global)"
+    },
+    "name": {
+      "type": "string",
+      "description": "Template name"
+    },
+    "template_type": {
+      "type": "string",
+      "enum": [
+        "terms_conditions",
+        "invoice_template",
+        "quote_template",
+        "completion_form"
+      ],
+      "description": "Type of template"
+    },
+    "content": {
+      "type": "string",
+      "description": "Template content (supports placeholders)"
+    },
+    "placeholders": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Available placeholders like {work_order_id}, {building_name}, etc."
+    },
+    "is_default": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is the default template for this type"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    }
+  },
+  "required": [
+    "name",
+    "template_type",
+    "content"
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "name": "Invoice",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string"
+    },
+    "invoice_number": {
+      "type": "string",
+      "description": "Unique invoice number"
+    },
+    "invoice_type": {
+      "type": "string",
+      "enum": [
+        "levy",
+        "work_order",
+        "amenity_booking",
+        "other"
+      ],
+      "default": "other"
+    },
+    "recipient_email": {
+      "type": "string"
+    },
+    "recipient_name": {
+      "type": "string"
+    },
+    "line_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unit_price": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          }
+        }
+      },
+      "default": []
+    },
+    "subtotal": {
+      "type": "number"
+    },
+    "tax": {
+      "type": "number",
+      "default": 0
+    },
+    "total": {
+      "type": "number"
+    },
+    "issue_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "paid_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "sent",
+        "paid",
+        "overdue",
+        "cancelled"
+      ],
+      "default": "draft"
+    },
+    "payment_link": {
+      "type": "string",
+      "description": "Stripe payment link"
+    },
+    "stripe_invoice_id": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "reference_id": {
+      "type": "string",
+      "description": "Reference to levy payment, work order, etc."
+    }
+  },
+  "required": [
+    "invoice_number",
+    "recipient_email",
+    "total",
+    "issue_date",
+    "due_date"
+  ]
+}

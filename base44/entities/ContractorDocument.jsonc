@@ -1,0 +1,78 @@
+{
+  "name": "ContractorDocument",
+  "type": "object",
+  "properties": {
+    "contractor_id": {
+      "type": "string",
+      "description": "ID of the contractor this document belongs to"
+    },
+    "title": {
+      "type": "string",
+      "description": "Display name of the document"
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional description of the document"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "trade_license",
+        "workers_comp",
+        "public_liability",
+        "general_insurance",
+        "contract",
+        "certificate",
+        "other"
+      ],
+      "description": "Category of the document"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL to the actual document file"
+    },
+    "file_type": {
+      "type": "string",
+      "description": "MIME type of the uploaded file"
+    },
+    "file_size": {
+      "type": "number",
+      "description": "Size of the file in bytes"
+    },
+    "expiry_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Expiry date of the document (if applicable)"
+    },
+    "issue_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Issue date of the document"
+    },
+    "policy_number": {
+      "type": "string",
+      "description": "Policy or certificate number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "expired",
+        "pending",
+        "needs_review"
+      ],
+      "default": "active",
+      "description": "Current status of the document"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes or comments"
+    }
+  },
+  "required": [
+    "contractor_id",
+    "title",
+    "category",
+    "file_url"
+  ]
+}

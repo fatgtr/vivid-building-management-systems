@@ -1,0 +1,69 @@
+{
+  "name": "BroadcastMessage",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Building to broadcast to"
+    },
+    "sender_email": {
+      "type": "string",
+      "description": "Email of sender"
+    },
+    "sender_name": {
+      "type": "string",
+      "description": "Name of sender"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Message subject"
+    },
+    "message": {
+      "type": "string",
+      "description": "Message content"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "urgent",
+        "emergency"
+      ],
+      "default": "normal"
+    },
+    "target_audience": {
+      "type": "string",
+      "enum": [
+        "all",
+        "owners",
+        "tenants",
+        "residents"
+      ],
+      "default": "all"
+    },
+    "send_email": {
+      "type": "boolean",
+      "default": false,
+      "description": "Also send via email"
+    },
+    "send_sms": {
+      "type": "boolean",
+      "default": false,
+      "description": "Also send via SMS"
+    },
+    "recipients_count": {
+      "type": "number",
+      "description": "Number of recipients"
+    },
+    "sent_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "building_id",
+    "sender_email",
+    "subject",
+    "message"
+  ]
+}

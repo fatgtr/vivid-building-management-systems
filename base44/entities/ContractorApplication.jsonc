@@ -1,0 +1,105 @@
+{
+  "name": "ContractorApplication",
+  "type": "object",
+  "properties": {
+    "company_name": {
+      "type": "string"
+    },
+    "abn": {
+      "type": "string"
+    },
+    "acn": {
+      "type": "string"
+    },
+    "contact_name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "specialty": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "license_number": {
+      "type": "string"
+    },
+    "hourly_rate": {
+      "type": "number"
+    },
+    "experience_years": {
+      "type": "number"
+    },
+    "services_description": {
+      "type": "string"
+    },
+    "uploaded_documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "file_url": {
+            "type": "string"
+          },
+          "expiry_date": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending_verification",
+        "pending_review",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending_verification"
+    },
+    "verification_token": {
+      "type": "string"
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reviewed_by": {
+      "type": "string"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "rejection_reason": {
+      "type": "string"
+    },
+    "contractor_id": {
+      "type": "string",
+      "description": "ID of created contractor after approval"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_name",
+    "contact_name",
+    "email",
+    "phone"
+  ]
+}

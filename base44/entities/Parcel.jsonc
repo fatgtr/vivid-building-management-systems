@@ -1,0 +1,125 @@
+{
+  "name": "Parcel",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Reference to building"
+    },
+    "unit_id": {
+      "type": "string",
+      "description": "Reference to unit"
+    },
+    "resident_id": {
+      "type": "string",
+      "description": "Reference to resident"
+    },
+    "tracking_number": {
+      "type": "string",
+      "description": "Carrier tracking number"
+    },
+    "carrier": {
+      "type": "string",
+      "enum": [
+        "auspost",
+        "fedex",
+        "dhl",
+        "ups",
+        "amazon",
+        "toll",
+        "startrack",
+        "courier",
+        "other"
+      ],
+      "description": "Delivery carrier"
+    },
+    "recipient_name": {
+      "type": "string",
+      "description": "Name on the package"
+    },
+    "recipient_unit": {
+      "type": "string",
+      "description": "Unit number"
+    },
+    "package_type": {
+      "type": "string",
+      "enum": [
+        "envelope",
+        "small_box",
+        "medium_box",
+        "large_box",
+        "oversized",
+        "other"
+      ],
+      "default": "small_box"
+    },
+    "received_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When package was received by building"
+    },
+    "received_by": {
+      "type": "string",
+      "description": "Staff member who received package"
+    },
+    "storage_location": {
+      "type": "string",
+      "description": "Where package is stored (e.g., Shelf A3, Locker 12)"
+    },
+    "notification_sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether resident was notified"
+    },
+    "notification_sent_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "collected": {
+      "type": "boolean",
+      "default": false
+    },
+    "collected_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "collected_by": {
+      "type": "string",
+      "description": "Name of person who collected"
+    },
+    "signature": {
+      "type": "string",
+      "description": "Digital signature or confirmation"
+    },
+    "photo_url": {
+      "type": "string",
+      "description": "Photo of package"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "requires_refrigeration": {
+      "type": "boolean",
+      "default": false
+    },
+    "perishable": {
+      "type": "boolean",
+      "default": false
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending_collection",
+        "collected",
+        "returned_to_sender",
+        "damaged"
+      ],
+      "default": "pending_collection"
+    }
+  },
+  "required": [
+    "building_id",
+    "recipient_name",
+    "received_date"
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "name": "Location",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Building this location belongs to"
+    },
+    "strata_plan_number": {
+      "type": "string",
+      "description": "Strata plan number this location belongs to (for BMC buildings)"
+    },
+    "name": {
+      "type": "string",
+      "description": "Location name (e.g., Hotel Cage 1, B5 Mechanical Room)"
+    },
+    "floor_level": {
+      "type": "string",
+      "description": "Floor or level (e.g., B5, Ground, Level 3)"
+    },
+    "area_type": {
+      "type": "string",
+      "enum": [
+        "storage_cage",
+        "mechanical_room",
+        "electrical_room",
+        "common_area",
+        "lift_lobby",
+        "car_park",
+        "roof_access",
+        "plant_room",
+        "fire_stair",
+        "bin_room",
+        "other"
+      ],
+      "description": "Type of area"
+    },
+    "responsibility": {
+      "type": "string",
+      "enum": [
+        "bmc",
+        "residential_strata",
+        "owner",
+        "pending_review"
+      ],
+      "default": "pending_review",
+      "description": "Who is responsible for this area"
+    },
+    "common_property": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is common property"
+    },
+    "sfs_schedule_reference": {
+      "type": "string",
+      "description": "Reference to SFS Schedule A or B"
+    },
+    "description": {
+      "type": "string",
+      "description": "Additional details about the location"
+    },
+    "coordinates": {
+      "type": "string",
+      "description": "Coordinates or boundaries from plan (if available)"
+    },
+    "inspection_required": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether regular inspections are required"
+    },
+    "inspection_frequency": {
+      "type": "string",
+      "enum": [
+        "weekly",
+        "monthly",
+        "quarterly",
+        "semi_annually",
+        "annually",
+        "as_needed"
+      ],
+      "description": "How often to inspect"
+    },
+    "last_inspection_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of last inspection"
+    },
+    "next_inspection_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of next scheduled inspection"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "under_review"
+      ],
+      "default": "active",
+      "description": "Location status"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "building_id",
+    "name"
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "name": "Amenity",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "capacity": {
+      "type": "number"
+    },
+    "amenity_type": {
+      "type": "string",
+      "enum": [
+        "gym",
+        "pool",
+        "meeting_room",
+        "party_room",
+        "rooftop",
+        "bbq_area",
+        "tennis_court",
+        "parking",
+        "storage",
+        "move_in_lift",
+        "move_out_lift",
+        "loading_dock",
+        "other"
+      ]
+    },
+    "requires_booking": {
+      "type": "boolean",
+      "default": true
+    },
+    "booking_fee": {
+      "type": "number"
+    },
+    "max_booking_hours": {
+      "type": "number"
+    },
+    "available_from": {
+      "type": "string"
+    },
+    "available_to": {
+      "type": "string"
+    },
+    "rules": {
+      "type": "string"
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "available",
+        "maintenance",
+        "closed"
+      ],
+      "default": "available"
+    }
+  },
+  "required": [
+    "building_id",
+    "name",
+    "amenity_type"
+  ]
+}
