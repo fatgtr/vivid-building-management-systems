@@ -11,8 +11,9 @@ import ComplianceReminders from '@/components/contractor/ComplianceReminders';
 import ContractorTaskCard from '@/components/contractor/ContractorTaskCard';
 import BidProposalGenerator from '@/components/contractor/BidProposalGenerator';
 import BiddingSystem from '@/components/contractor/BiddingSystem';
+import ContractorRepairsView from '@/components/contractor/ContractorRepairsView';
 import { toast } from 'sonner';
-import { Wrench, FileText, Clock, CheckCircle, Shield, ListTodo } from 'lucide-react';
+import { Wrench, FileText, Clock, CheckCircle, Shield, ListTodo, Hammer } from 'lucide-react';
 
 export default function ContractorPortal() {
   const [user, setUser] = useState(null);
@@ -160,8 +161,12 @@ export default function ContractorPortal() {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="active" className="space-y-6">
+      <Tabs defaultValue="repairs" className="space-y-6">
         <TabsList>
+          <TabsTrigger value="repairs">
+            <Hammer className="h-4 w-4 mr-1" />
+            Repairs ({myWorkOrders.length})
+          </TabsTrigger>
           <TabsTrigger value="active">Work Orders ({openOrders.length})</TabsTrigger>
           <TabsTrigger value="tasks">Tasks ({openTasks.length})</TabsTrigger>
           <TabsTrigger value="completed">Completed ({completedOrders.length + completedTasks.length})</TabsTrigger>
@@ -171,6 +176,10 @@ export default function ContractorPortal() {
           </TabsTrigger>
           <TabsTrigger value="documents">My Documents</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="repairs" className="space-y-4">
+          <ContractorRepairsView workOrders={myWorkOrders} />
+        </TabsContent>
 
         <TabsContent value="active" className="space-y-4">
           {openOrders.length === 0 ? (
