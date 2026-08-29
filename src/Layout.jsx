@@ -166,8 +166,10 @@ function LayoutInner({ children, currentPageName }) {
         return;
       }
       
-      // Check if this is a new building manager (has role but no buildings)
-      if (!isContractor && (isAdmin || isPermissionAdmin() || can('buildings', 'create'))) {
+      // First-time non-admin building managers with no buildings get sent to setup.
+      // Admins / permission-admins skip this so they (and the automated Testing Agent,
+      // which authenticates as an admin) can reach any app page directly.
+      if (!isContractor && !isAdmin && !isPermissionAdmin() && can('buildings', 'create')) {
         const buildings = await base44.entities.Building.list();
         if (buildings.length === 0 && currentPageName !== 'SetupCenter' && currentPageName !== 'Settings') {
           // First time user - redirect to setup
