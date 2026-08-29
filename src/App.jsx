@@ -11,6 +11,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import MaintenanceRequest from './pages/MaintenanceRequest';
 import MaintenanceRequestTracker from './pages/MaintenanceRequestTracker';
+import BuildingManagerReport from './pages/BuildingManagerReport';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -62,6 +63,12 @@ const AuthenticatedApp = () => {
           }
         />
       ))}
+      {/* Building Manager Report - layout-wrapped app page */}
+      <Route path="/BuildingManagerReport" element={
+        <LayoutWrapper currentPageName="BuildingManagerReport">
+          <BuildingManagerReport />
+        </LayoutWrapper>
+      } />
       {/* Public routes - no layout wrapper */}
       <Route path="/MaintenanceRequest" element={<MaintenanceRequest />} />
       <Route path="/MaintenanceRequestTracker" element={<MaintenanceRequestTracker />} />

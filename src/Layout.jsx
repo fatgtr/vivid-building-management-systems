@@ -79,6 +79,7 @@ const navGroups = [
       { name: 'Parts Inventory', icon: Package, page: 'PartsInventory', requirePermission: { resource: 'buildings', action: 'view' } },
       { name: 'Keys & Access', icon: Key, page: 'KeyManagement', requirePermission: { resource: 'buildings', action: 'view' } },
       { name: 'Smart Devices', icon: Settings, page: 'SmartDevices', requirePermission: { resource: 'buildings', action: 'view' } },
+      { name: 'BM Report', icon: FileText, page: 'BuildingManagerReport', requirePermission: { resource: 'buildings', action: 'view' } },
     ]
   },
   {
