@@ -14,7 +14,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ChevronLeft, ChevronRight, Clock, Calendar as CalendarIcon, UserPlus, UserMinus, Plus, Filter, Star } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, startOfWeek, endOfWeek, isSameDay } from 'date-fns';
 import StatusBadge from '@/components/common/StatusBadge';
+import { parseDateLocal, isOccurrenceOnDate } from '@/lib/dates';
 import { toast } from 'sonner';
+
+const prettyCategory = (value) => {
+  if (!value) return null;
+  return String(value).replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+};
 
 export default function CalendarWidget({ workOrders = [], maintenanceSchedules = [], residents = [] }) {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -83,23 +89,20 @@ export default function CalendarWidget({ workOrders = [], maintenanceSchedules =
     return workOrders.filter(wo => {
       try {
         if (wo.created_date) {
-          const createdDate = new Date(wo.created_date);
-          if (isSameDay(createdDate, date)) return true;
+          const createdDate = parseDateLocal(wo.created_date);
+          if (createdDate && isSameDay(createdDate, date)) return true;
         }
-        
         if (wo.start_date) {
-          const startDate = new Date(wo.start_date);
-          if (isSameDay(startDate, date)) return true;
+          const startDate = parseDateLocal(wo.start_date);
+          if (startDate && isSameDay(startDate, date)) return true;
         }
-        
         if (wo.due_date) {
-          const dueDate = new Date(wo.due_date);
-          if (isSameDay(dueDate, date)) return true;
+          const dueDate = parseDateLocal(wo.due_date);
+          if (dueDate && isSameDay(dueDate, date)) return true;
         }
       } catch (e) {
         // Invalid date format
       }
-      
       return false;
     });
   };
@@ -107,58 +110,18 @@ export default function CalendarWidget({ workOrders = [], maintenanceSchedules =
   const getMaintenanceForDate = (date) => {
     return maintenanceSchedules.filter(ms => {
       try {
-        if (!ms.event_start) return false;
-        
-        const startDate = new Date(ms.event_start);
-        const endDate = ms.event_end ? new Date(ms.event_end) : null;
-        
-        // Check if date is before start date
-        if (date < startDate) return false;
-        
-        // Check if date is after end date (if exists and not never_expire)
-        if (!ms.never_expire && endDate && date > endDate) return false;
-        
-        // Check if exact match with start or end date
-        if (isSameDay(startDate, date)) return true;
-        if (endDate && isSameDay(endDate, date)) return true;
-        
-        // Handle recurring events
-        if (ms.recurrence === 'one_time') return false;
-        
-        const dayOfMonth = startDate.getDate();
-        const currentDay = date.getDate();
-        
-        // Monthly - same day every month
-        if (ms.recurrence === 'monthly') {
-          return currentDay === dayOfMonth;
-        }
-        
-        // Bi-Monthly - every 2 months
-        if (ms.recurrence === 'bi_monthly') {
-          const monthsDiff = (date.getFullYear() - startDate.getFullYear()) * 12 + (date.getMonth() - startDate.getMonth());
-          return currentDay === dayOfMonth && monthsDiff % 2 === 0;
-        }
-        
-        // Quarterly - every 3 months
-        if (ms.recurrence === 'quarterly') {
-          const monthsDiff = (date.getFullYear() - startDate.getFullYear()) * 12 + (date.getMonth() - startDate.getMonth());
-          return currentDay === dayOfMonth && monthsDiff % 3 === 0;
-        }
-        
-        // Half Yearly - every 6 months
-        if (ms.recurrence === 'half_yearly') {
-          const monthsDiff = (date.getFullYear() - startDate.getFullYear()) * 12 + (date.getMonth() - startDate.getMonth());
-          return currentDay === dayOfMonth && monthsDiff % 6 === 0;
-        }
-        
-        // Yearly - same date every year
-        if (ms.recurrence === 'yearly') {
-          return currentDay === dayOfMonth && date.getMonth() === startDate.getMonth();
-        }
+        const anchor = ms.next_due_date || ms.scheduled_date;
+        if (!anchor) return false;
+        const recurrence = ms.recurrence || 'none';
+        return isOccurrenceOnDate({
+          startDate: anchor,
+          recurrence,
+          endDateOrNever: ms.recurrence_end_date || null,
+          date,
+        });
       } catch (e) {
         // Invalid date format
       }
-      
       return false;
     });
   };
@@ -416,11 +379,11 @@ export default function CalendarWidget({ workOrders = [], maintenanceSchedules =
                                 {wo.priority && (
                                   <span className="capitalize">{wo.priority} priority</span>
                                 )}
-                                {wo.category && (
-                                  <span className="capitalize">{wo.category.replace(/_/g, ' ')}</span>
+                                {prettyCategory(wo.main_category) && (
+                                  <span>{prettyCategory(wo.main_category)}</span>
                                 )}
                               </div>
-                              {wo.due_date && isSameDay(new Date(wo.due_date), day) && (
+                              {wo.due_date && isSameDay(parseDateLocal(wo.due_date), day) && (
                                 <div className="flex items-center gap-1 mt-1 text-xs text-orange-600">
                                   <Clock className="h-3 w-3" />
                                   <span>Due today</span>
@@ -447,8 +410,8 @@ export default function CalendarWidget({ workOrders = [], maintenanceSchedules =
                                 {ms.recurrence && (
                                   <span className="capitalize">{ms.recurrence.replace(/_/g, ' ')}</span>
                                 )}
-                                {ms.asset && (
-                                  <span>{ms.asset}</span>
+                                {prettyCategory(ms.category) && (
+                                  <span>{prettyCategory(ms.category)}</span>
                                 )}
                               </div>
                             </div>

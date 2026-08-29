@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { format } from 'date-fns';
 import { useBuildingContext } from '@/components/BuildingContext';
+import { parseDateLocal, computeNextOccurrences } from '@/lib/dates';
 import { toast } from 'sonner';
 
 const initialFormState = {
@@ -46,7 +47,8 @@ const initialFormState = {
   assigned_contractor_type: '',
   asset_id: '',
   status: 'active',
-  notes: ''
+  notes: '',
+  neverExpires: false
 };
 
 export default function MaintenanceSchedule() {
@@ -156,6 +158,7 @@ export default function MaintenanceSchedule() {
       asset_id: schedule.asset_id || '',
       status: schedule.status || 'active',
       notes: schedule.notes || '',
+      neverExpires: schedule.recurrence && schedule.recurrence !== 'none' && !schedule.recurrence_end_date,
     });
     setSelectedDocuments([]);
     setShowDialog(true);
@@ -179,7 +182,9 @@ export default function MaintenanceSchedule() {
         ...formData,
         documents: documentUrls.length > 0 ? documentUrls : (editingSchedule?.documents || []),
         next_due_date: formData.scheduled_date,
+        recurrence_end_date: formData.neverExpires ? null : (formData.recurrence_end_date || null),
       };
+      delete data.neverExpires;
 
       if (editingSchedule) {
         await updateMutation.mutateAsync({ id: editingSchedule.id, data });
@@ -309,14 +314,17 @@ export default function MaintenanceSchedule() {
             </span>
           </div>
           
-          {schedule.next_due_date && (
-            <div className="flex items-center gap-2 text-xs bg-orange-50 px-3 py-2 rounded-lg">
-              <Calendar className="h-3.5 w-3.5 text-orange-600 flex-shrink-0" />
-              <span className="text-orange-700 font-medium">
-                Next Due {format(new Date(schedule.next_due_date), 'MMM d, yyyy')}
-              </span>
-            </div>
-          )}
+          {schedule.next_due_date && (() => {
+            const due = parseDateLocal(schedule.next_due_date);
+            return due && (
+              <div className="flex items-center gap-2 text-xs bg-orange-50 px-3 py-2 rounded-lg">
+                <Calendar className="h-3.5 w-3.5 text-orange-600 flex-shrink-0" />
+                <span className="text-orange-700 font-medium">
+                  Next Due {format(due, 'MMM d, yyyy')}
+                </span>
+              </div>
+            );
+          })()}
 
           <div className="flex items-center gap-2 text-xs bg-indigo-50 px-3 py-2 rounded-lg">
             <HardHat className="h-3.5 w-3.5 text-indigo-600 flex-shrink-0" />
@@ -326,10 +334,37 @@ export default function MaintenanceSchedule() {
           </div>
         </div>
 
+        {schedule.recurrence && schedule.recurrence !== 'none' && (() => {
+          const anchor = schedule.next_due_date || schedule.scheduled_date;
+          const occurrences = computeNextOccurrences({
+            startDate: anchor,
+            recurrence: schedule.recurrence,
+            endDateOrNever: schedule.recurrence_end_date || null,
+            count: 6,
+          });
+          if (occurrences.length === 0) return null;
+          return (
+            <details className="mt-3 group">
+              <summary className="cursor-pointer text-xs font-medium text-blue-700 hover:text-blue-800 flex items-center gap-1 select-none list-none">
+                <Repeat className="h-3.5 w-3.5" />
+                Upcoming occurrences ({occurrences.length})
+              </summary>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {occurrences.map((d, i) => (
+                  <span key={i} className="inline-flex items-center gap-1 text-[11px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md border border-blue-100">
+                    <Calendar className="h-3 w-3" />
+                    {format(d, 'EEE, MMM d, yyyy')}
+                  </span>
+                ))}
+              </div>
+            </details>
+          );
+        })()}
+
         <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-1.5 text-xs text-slate-500">
             <Clock className="h-3 w-3" />
-            <span>{schedule.created_date && format(new Date(schedule.created_date), 'MMM d, yyyy')}</span>
+            <span>{schedule.created_date && format(parseDateLocal(schedule.created_date), 'MMM d, yyyy')}</span>
           </div>
           {schedule.task_ids?.length > 0 && (
             <div className="flex items-center gap-1.5 text-xs text-slate-500">
@@ -588,14 +623,25 @@ export default function MaintenanceSchedule() {
               </div>
 
               {formData.recurrence !== 'none' && (
-                <div className="md:col-span-2">
+                <div className="md:col-span-2 space-y-2">
                   <Label htmlFor="recurrence_end_date">Recurrence End Date (Optional)</Label>
                   <Input
                     id="recurrence_end_date"
                     type="date"
                     value={formData.recurrence_end_date}
-                    onChange={(e) => setFormData({ ...formData, recurrence_end_date: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, recurrence_end_date: e.target.value, neverExpires: false })}
+                    disabled={formData.neverExpires}
                   />
+                  <label htmlFor="neverExpires" className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                    <input
+                      id="neverExpires"
+                      type="checkbox"
+                      checked={!!formData.neverExpires}
+                      onChange={(e) => setFormData({ ...formData, neverExpires: e.target.checked, recurrence_end_date: e.target.checked ? '' : (formData.recurrence_end_date || '') })}
+                      className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    Never expires
+                  </label>
                 </div>
               )}
 

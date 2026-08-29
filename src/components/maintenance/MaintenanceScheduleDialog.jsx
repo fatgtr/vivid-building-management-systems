@@ -8,8 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Loader2 } from 'lucide-react';
+import { Calendar, Loader2, Repeat } from 'lucide-react';
 import { toast } from 'sonner';
+import { computeNextOccurrences } from '@/lib/dates';
+import { format } from 'date-fns';
 
 const recurrenceOptions = [
   { value: 'none', label: 'One-time' },
@@ -36,18 +38,24 @@ const contractorTypes = [
 
 export default function MaintenanceScheduleDialog({ open, onClose, schedule, buildingId }) {
   const queryClient = useQueryClient();
-  const [formData, setFormData] = useState(schedule || {
-    building_id: buildingId,
-    subject: '',
-    description: '',
-    scheduled_date: '',
-    recurrence: 'none',
-    recurrence_end_date: '',
-    assigned_contractor_id: '',
-    assigned_contractor_type: '',
-    notification_interval_days: [7, 3],
-    status: 'active',
-    notes: ''
+  const [formData, setFormData] = useState(() => {
+    const base = schedule || {
+      building_id: buildingId,
+      subject: '',
+      description: '',
+      scheduled_date: '',
+      recurrence: 'none',
+      recurrence_end_date: '',
+      assigned_contractor_id: '',
+      assigned_contractor_type: '',
+      notification_interval_days: [7, 3],
+      status: 'active',
+      notes: ''
+    };
+    return {
+      ...base,
+      neverExpires: schedule?.recurrence && schedule.recurrence !== 'none' && !schedule.recurrence_end_date ? true : false,
+    };
   });
 
   const { data: contractors = [] } = useQuery({
@@ -62,9 +70,11 @@ export default function MaintenanceScheduleDialog({ open, onClose, schedule, bui
 
   const saveMutation = useMutation({
     mutationFn: (data) => {
+      const { neverExpires, ...rest } = data;
       const payload = {
-        ...data,
-        next_due_date: data.next_due_date || data.scheduled_date
+        ...rest,
+        next_due_date: rest.next_due_date || rest.scheduled_date,
+        recurrence_end_date: neverExpires ? null : (rest.recurrence_end_date || null),
       };
       return schedule 
         ? base44.entities.MaintenanceSchedule.update(schedule.id, payload)
@@ -143,15 +153,51 @@ export default function MaintenanceScheduleDialog({ open, onClose, schedule, bui
           </div>
 
           {formData.recurrence !== 'none' && (
-            <div>
+            <div className="space-y-2">
               <Label>Recurrence End Date (Optional)</Label>
               <Input
                 type="date"
                 value={formData.recurrence_end_date}
-                onChange={(e) => setFormData({ ...formData, recurrence_end_date: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, recurrence_end_date: e.target.value, neverExpires: false })}
+                disabled={!!formData.neverExpires}
               />
+              <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={!!formData.neverExpires}
+                  onChange={(e) => setFormData({ ...formData, neverExpires: e.target.checked, recurrence_end_date: e.target.checked ? '' : (formData.recurrence_end_date || '') })}
+                  className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                />
+                Never expires
+              </label>
             </div>
           )}
+
+          {formData.recurrence !== 'none' && formData.scheduled_date && (() => {
+            const occurrences = computeNextOccurrences({
+              startDate: formData.scheduled_date,
+              recurrence: formData.recurrence,
+              endDateOrNever: formData.neverExpires ? null : (formData.recurrence_end_date || null),
+              count: 6,
+            });
+            if (occurrences.length === 0) return null;
+            return (
+              <div className="rounded-lg border border-blue-100 bg-blue-50/50 p-3">
+                <div className="flex items-center gap-1.5 text-sm font-medium text-blue-900 mb-2">
+                  <Repeat className="h-4 w-4" />
+                  Upcoming occurrences
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {occurrences.map((d, i) => (
+                    <span key={i} className="inline-flex items-center gap-1 text-[11px] bg-white text-blue-700 px-2 py-0.5 rounded-md border border-blue-200">
+                      <Calendar className="h-3 w-3" />
+                      {format(d, 'EEE, MMM d, yyyy')}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
 
           <div>
             <Label>Asset (Optional)</Label>
