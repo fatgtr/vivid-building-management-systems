@@ -79,6 +79,7 @@ export const PermissionsProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [permissions, setPermissions] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [overrideActive, setOverrideActive] = useState(false);
 
   useEffect(() => {
     loadUserPermissions();
@@ -88,6 +89,23 @@ export const PermissionsProvider = ({ children }) => {
     try {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
+
+      // Check whether the admin-enabled test-access override is active.
+      let overrideOn = false;
+      try {
+        const records = await base44.entities.SystemSetting.filter({ setting_key: 'test_access_override' });
+        overrideOn = records.length > 0 && records[0].setting_value === 'true';
+      } catch (e) {
+        overrideOn = false;
+      }
+      setOverrideActive(overrideOn);
+
+      // When the override is enabled (admin turned it on for Testing Agent runs),
+      // elevate this non-admin session to full admin permissions in-memory only.
+      if (overrideOn) {
+        setPermissions(DEFAULT_PERMISSIONS.admin);
+        return;
+      }
 
       // Get user's role (fallback to 'user' for backwards compatibility)
       const userRole = currentUser.user_role || (currentUser.role === 'admin' ? 'admin' : 'resident');
@@ -123,10 +141,11 @@ export const PermissionsProvider = ({ children }) => {
   };
 
   const isAdmin = () => {
-    return user?.role === 'admin' || user?.user_role === 'admin';
+    return overrideActive || user?.role === 'admin' || user?.user_role === 'admin';
   };
 
   const hasRole = (role) => {
+    if (overrideActive && role === 'admin') return true;
     return user?.user_role === role || (role === 'admin' && user?.role === 'admin');
   };
 
@@ -138,6 +157,7 @@ export const PermissionsProvider = ({ children }) => {
       isAdmin,
       hasRole,
       loading,
+      overrideActive,
       refresh: loadUserPermissions
     }}>
       {children}

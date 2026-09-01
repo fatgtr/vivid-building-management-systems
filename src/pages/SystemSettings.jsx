@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { usePermissions } from '@/components/permissions/PermissionsContext';
+import TestingAccessOverride from '@/components/settings/TestingAccessOverride';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -220,6 +221,8 @@ export default function SystemSettings() {
               </div>
             </CardContent>
           </Card>
+
+          <TestingAccessOverride />
         </TabsContent>
       </Tabs>
     </div>

@@ -1,0 +1,22 @@
+{
+  "name": "SystemSetting",
+  "type": "object",
+  "properties": {
+    "setting_key": {
+      "type": "string",
+      "description": "Unique key identifying the setting (e.g. test_access_override)"
+    },
+    "setting_value": {
+      "type": "string",
+      "description": "Value stored as a string (e.g. 'true', 'false')"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of the setting"
+    }
+  },
+  "required": [
+    "setting_key",
+    "setting_value"
+  ]
+}
