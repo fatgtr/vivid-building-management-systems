@@ -12,6 +12,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import MaintenanceRequest from './pages/MaintenanceRequest';
 import MaintenanceRequestTracker from './pages/MaintenanceRequestTracker';
 import BuildingManagerReport from './pages/BuildingManagerReport';
+import BrandingSettings from './pages/BrandingSettings';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -67,6 +68,12 @@ const AuthenticatedApp = () => {
       <Route path="/BuildingManagerReport" element={
         <LayoutWrapper currentPageName="BuildingManagerReport">
           <BuildingManagerReport />
+        </LayoutWrapper>
+      } />
+      {/* Branding settings - layout-wrapped app page */}
+      <Route path="/BrandingSettings" element={
+        <LayoutWrapper currentPageName="BrandingSettings">
+          <BrandingSettings />
         </LayoutWrapper>
       } />
       {/* Public routes - no layout wrapper */}
