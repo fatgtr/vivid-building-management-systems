@@ -13,6 +13,7 @@ import MaintenanceRequest from './pages/MaintenanceRequest';
 import MaintenanceRequestTracker from './pages/MaintenanceRequestTracker';
 import BuildingManagerReport from './pages/BuildingManagerReport';
 import BrandingSettings from './pages/BrandingSettings';
+import WorkOrderSettings from './pages/WorkOrderSettings';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -68,6 +69,12 @@ const AuthenticatedApp = () => {
       <Route path="/BuildingManagerReport" element={
         <LayoutWrapper currentPageName="BuildingManagerReport">
           <BuildingManagerReport />
+        </LayoutWrapper>
+      } />
+      {/* Work order settings - layout-wrapped app page */}
+      <Route path="/WorkOrderSettings" element={
+        <LayoutWrapper currentPageName="WorkOrderSettings">
+          <WorkOrderSettings />
         </LayoutWrapper>
       } />
       {/* Branding settings - layout-wrapped app page */}
