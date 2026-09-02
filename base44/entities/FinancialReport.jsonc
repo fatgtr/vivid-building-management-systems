@@ -1,0 +1,144 @@
+{
+  "name": "FinancialReport",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Building this report belongs to"
+    },
+    "strata_plan_number": {
+      "type": "string",
+      "description": "Strata plan number extracted from the report (e.g. 99831)"
+    },
+    "address": {
+      "type": "string",
+      "description": "Property address on the report"
+    },
+    "strata_manager_name": {
+      "type": "string",
+      "description": "Strata managing agent name/company"
+    },
+    "report_period_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "report_period_end": {
+      "type": "string",
+      "format": "date"
+    },
+    "as_at_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Balance sheet 'as at' date"
+    },
+    "admin_fund_income_actual": {
+      "type": "number"
+    },
+    "admin_fund_income_budget": {
+      "type": "number"
+    },
+    "admin_fund_income_prior_year": {
+      "type": "number"
+    },
+    "admin_fund_expenditure_actual": {
+      "type": "number"
+    },
+    "admin_fund_expenditure_budget": {
+      "type": "number"
+    },
+    "admin_fund_expenditure_prior_year": {
+      "type": "number"
+    },
+    "admin_fund_opening_balance": {
+      "type": "number"
+    },
+    "admin_fund_closing_balance": {
+      "type": "number"
+    },
+    "admin_fund_surplus_deficit": {
+      "type": "number"
+    },
+    "capital_works_fund_income_actual": {
+      "type": "number"
+    },
+    "capital_works_fund_income_budget": {
+      "type": "number"
+    },
+    "capital_works_fund_income_prior_year": {
+      "type": "number"
+    },
+    "capital_works_fund_expenditure_actual": {
+      "type": "number"
+    },
+    "capital_works_fund_expenditure_budget": {
+      "type": "number"
+    },
+    "capital_works_fund_expenditure_prior_year": {
+      "type": "number"
+    },
+    "capital_works_fund_opening_balance": {
+      "type": "number"
+    },
+    "capital_works_fund_closing_balance": {
+      "type": "number"
+    },
+    "capital_works_fund_surplus_deficit": {
+      "type": "number"
+    },
+    "bank_admin_balance": {
+      "type": "number"
+    },
+    "bank_capital_works_balance": {
+      "type": "number"
+    },
+    "bank_total_balance": {
+      "type": "number"
+    },
+    "creditors_total": {
+      "type": "number"
+    },
+    "levies_in_arrears": {
+      "type": "number"
+    },
+    "levies_in_advance": {
+      "type": "number"
+    },
+    "total_assets": {
+      "type": "number"
+    },
+    "total_liabilities": {
+      "type": "number"
+    },
+    "owners_funds_total": {
+      "type": "number"
+    },
+    "source_file_url": {
+      "type": "string",
+      "description": "URL of the uploaded source PDF"
+    },
+    "extraction_method": {
+      "type": "string",
+      "enum": [
+        "ai_extracted",
+        "manual"
+      ],
+      "default": "ai_extracted"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "confirmed",
+        "archived"
+      ],
+      "default": "confirmed"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "strata_plan_number",
+    "report_period_end"
+  ]
+}

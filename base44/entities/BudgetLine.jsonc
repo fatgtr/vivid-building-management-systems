@@ -1,0 +1,75 @@
+{
+  "name": "BudgetLine",
+  "type": "object",
+  "properties": {
+    "report_id": {
+      "type": "string",
+      "description": "Reference to FinancialReport this line belongs to"
+    },
+    "building_id": {
+      "type": "string",
+      "description": "Building this line item relates to (denormalised for filtering)"
+    },
+    "fund_type": {
+      "type": "string",
+      "enum": [
+        "admin_fund",
+        "capital_works_fund"
+      ],
+      "description": "Which fund this line item belongs to"
+    },
+    "line_type": {
+      "type": "string",
+      "enum": [
+        "income",
+        "expenditure",
+        "creditor"
+      ],
+      "description": "Whether this is an income line, expenditure line, or creditor balance"
+    },
+    "category": {
+      "type": "string",
+      "description": "Category/line name (e.g. Insurance Premiums, Fire Alarm Monitoring)"
+    },
+    "payee": {
+      "type": "string",
+      "description": "Payee/creditor name where applicable"
+    },
+    "description": {
+      "type": "string",
+      "description": "Additional description of the line item"
+    },
+    "budget_amount": {
+      "type": "number",
+      "description": "Budgeted amount for the period (annual budget)"
+    },
+    "actual_amount": {
+      "type": "number",
+      "description": "Actual amount for the reporting period"
+    },
+    "prior_year_amount": {
+      "type": "number",
+      "description": "Prior year comparative amount"
+    },
+    "linked_contractor_id": {
+      "type": "string",
+      "description": "Reference to Contractor record if payee matched to a known contractor"
+    },
+    "over_budget": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether actual exceeds budget for this line"
+    },
+    "sort_order": {
+      "type": "number",
+      "default": 0,
+      "description": "Display order within the report"
+    }
+  },
+  "required": [
+    "report_id",
+    "fund_type",
+    "line_type",
+    "category"
+  ]
+}
