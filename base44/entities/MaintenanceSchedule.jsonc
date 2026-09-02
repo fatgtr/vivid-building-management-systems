@@ -79,6 +79,10 @@
       "default": "none",
       "description": "Recurrence pattern for the maintenance task"
     },
+    "frequency_label": {
+      "type": "string",
+      "description": "Original free-text frequency label from imported source (e.g. Mybos '4 Years', 'Fortnightly'); kept verbatim so imports round-trip cleanly"
+    },
     "recurrence_end_date": {
       "type": "string",
       "format": "date",
