@@ -35,6 +35,7 @@ import { format } from 'date-fns';
 import { useBuildingContext } from '@/components/BuildingContext';
 import { parseDateLocal, computeNextOccurrences } from '@/lib/dates';
 import { toast } from 'sonner';
+import ImportExportToolbar from '@/components/import-export/ImportExportToolbar';
 
 const initialFormState = {
   building_id: '',
@@ -394,6 +395,7 @@ export default function MaintenanceSchedule() {
         actionLabel="Create Schedule"
         actionIcon={Calendar}
       >
+        <ImportExportToolbar dataset="maintenance" buildingId={selectedBuildingId} />
         <Button 
           onClick={generateAISchedules} 
           variant="outline"

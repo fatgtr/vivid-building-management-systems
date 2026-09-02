@@ -43,6 +43,7 @@ import {
 import { format } from 'date-fns';
 
 import { ASSET_CATEGORIES, formatSubcategoryLabel, getSubcategories } from '@/components/categories/assetCategories';
+import ImportExportToolbar from '@/components/import-export/ImportExportToolbar';
 
 const initialFormState = {
 building_id: '',
@@ -510,6 +511,7 @@ export default function WorkOrders() {
         actionLabel="Create Work Order"
       >
         <div className="flex items-center gap-2">
+          <ImportExportToolbar dataset="cases" />
           <ResponsibilityLookup />
           <div className="flex items-center gap-2 bg-slate-100 rounded-lg p-1">
             <Button

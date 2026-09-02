@@ -36,6 +36,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { format } from 'date-fns';
+import ImportExportToolbar from '@/components/import-export/ImportExportToolbar';
 
 const initialFormState = {
   building_id: '',
@@ -500,6 +501,7 @@ export default function Residents() {
         title="Residents & Units" 
         subtitle={`${residents.filter(r => r.status === 'active').length} active residents • ${units.length} units`}
       >
+        <ImportExportToolbar dataset="residents" />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button className="bg-blue-600 hover:bg-blue-700">
