@@ -1,4 +1,5 @@
 import { base44 } from '@/api/base44Client';
+import { ASSET_CATEGORIES, formatSubcategoryLabel } from '@/components/categories/assetCategories';
 
 // ─── shared helpers ───────────────────────────────────────────────────────
 const norm = (s) => (s == null ? '' : String(s)).trim();
@@ -603,4 +604,178 @@ const residents = {
   },
 };
 
-export const DATASETS = { maintenance, cases, residents };
+// ─── 4. Assets (full main + sub-category breakdown) ─────────────────────
+const MAIN_LABEL_TO_KEY = {};
+Object.entries(ASSET_CATEGORIES).forEach(([key, cat]) => {
+  MAIN_LABEL_TO_KEY[cat.label.toLowerCase()] = key;
+});
+// flat subcategory label → key (labels are unique enough across categories)
+const SUB_LABEL_TO_KEY = {};
+const SUB_KEY_BY_MAIN = {};
+Object.entries(ASSET_CATEGORIES).forEach(([mainKey, cat]) => {
+  SUB_KEY_BY_MAIN[mainKey] = {};
+  (cat.subcategories || []).forEach((sub) => {
+    SUB_LABEL_TO_KEY[formatSubcategoryLabel(sub).toLowerCase()] = sub;
+    SUB_KEY_BY_MAIN[mainKey][formatSubcategoryLabel(sub).toLowerCase()] = sub;
+  });
+});
+
+function resolveMainCategory(value) {
+  const v = norm(value);
+  if (!v) return null;
+  if (ASSET_CATEGORIES[v]) return v;
+  const lv = v.toLowerCase();
+  return MAIN_LABEL_TO_KEY[lv] || null;
+}
+
+function resolveSubcategory(mainKey, value) {
+  const v = norm(value);
+  if (!v) return '';
+  if (mainKey && (SUB_KEY_BY_MAIN[mainKey] || {})[v]) return v; // already a key
+  const lv = v.toLowerCase();
+  if (mainKey && SUB_KEY_BY_MAIN[mainKey]?.[lv]) return SUB_KEY_BY_MAIN[mainKey][lv];
+  if (SUB_LABEL_TO_KEY[lv] && (!mainKey || ASSET_CATEGORIES[mainKey]?.subcategories?.includes(SUB_LABEL_TO_KEY[lv]))) return SUB_LABEL_TO_KEY[lv];
+  return v; // free-text fallback (asset_subcategory is a plain string)
+}
+
+const assetColumns = [
+  { header: 'Asset Name', required: true },
+  { header: 'Main Category', required: true },
+  { header: 'Sub-Category' },
+  { header: 'Asset Type', required: true },
+  { header: 'Identifier' },
+  { header: 'Barcode' },
+  { header: 'Location' },
+  { header: 'Floor' },
+  { header: 'Manufacturer' },
+  { header: 'Model' },
+  { header: 'Installation Date' },
+  { header: 'Last Service Date' },
+  { header: 'Next Service Date' },
+  { header: 'Service Frequency' },
+  { header: 'Compliance Status' },
+  { header: 'Criticality' },
+  { header: 'Operational Status' },
+  { header: 'Health Score' },
+  { header: 'Status' },
+  { header: 'Notes' },
+];
+
+const assets = {
+  key: 'assets',
+  label: 'Asset Register',
+  fileName: 'asset_register',
+  sheetName: 'Assets',
+  entityName: 'Asset',
+  columns: assetColumns,
+  instructions: [
+    ['Please note the following'],
+    ['Asset Name, Main Category and Asset Type are mandatory'],
+    ['Main Category can be the label (e.g. "Mechanical Services") or the system key'],
+    ['Sub-Category is exported as its readable label and imported back as the system key where it matches a known sub-category; otherwise the value is kept as written'],
+    ['Dates should be DD/MM/YYYY'],
+    ['All 17 main categories and their sub-categories are supported on export'],
+  ],
+  fieldMap: {
+    name: ['Asset Name', 'name', 'asset_name'],
+    main_category: ['Main Category', 'main_category', 'asset_main_category'],
+    subcategory: ['Sub-Category', 'Sub Category', 'subcategory', 'asset_subcategory'],
+    asset_type: ['Asset Type', 'asset_type', 'type'],
+    identifier: ['Identifier', 'identifier', 'serial_number'],
+    barcode: ['Barcode', 'barcode'],
+    location: ['Location', 'location'],
+    floor: ['Floor', 'floor', 'level'],
+    manufacturer: ['Manufacturer', 'manufacturer'],
+    model: ['Model', 'model'],
+    installation_date: ['Installation Date', 'installation_date', 'install_date'],
+    last_service_date: ['Last Service Date', 'last_service_date'],
+    next_service_date: ['Next Service Date', 'next_service_date'],
+    service_frequency: ['Service Frequency', 'service_frequency', 'frequency'],
+    compliance_status: ['Compliance Status', 'compliance_status'],
+    criticality: ['Criticality', 'criticality'],
+    operational_status: ['Operational Status', 'operational_status'],
+    health_score: ['Health Score', 'health_score'],
+    status: ['Status', 'status'],
+    notes: ['Notes', 'notes'],
+  },
+  fetchLookups: async (buildingId) => ({ assets: [] }), // no reference resolution needed
+  fetchForExport: (buildingId) => buildingId
+    ? base44.entities.Asset.filter({ building_id: buildingId }, 'asset_main_category')
+    : base44.entities.Asset.list(),
+  validateRow(r) {
+    if (!norm(r.name)) return { ok: false, error: 'Asset Name is required' };
+    const mainKey = resolveMainCategory(r.main_category);
+    if (!mainKey) return { ok: false, error: `Main Category "${r.main_category}" not recognised` };
+    if (!norm(r.asset_type)) return { ok: false, error: 'Asset Type is required' };
+    const sub = resolveSubcategory(mainKey, r.subcategory);
+    return {
+      ok: true,
+      resolved: { main_category: mainKey, subcategory: sub },
+      extra: {
+        installIso: parseDdMmYyyy(r.installation_date),
+        lastIso: parseDdMmYyyy(r.last_service_date),
+        nextIso: parseDdMmYyyy(r.next_service_date),
+      },
+    };
+  },
+  async createRecords(pending, lookups, buildingId) {
+    const records = pending.map((p) => {
+      const r = p.row;
+      return {
+        building_id: buildingId,
+        name: r.name,
+        asset_main_category: p.resolved.main_category,
+        asset_subcategory: p.resolved.subcategory || '',
+        asset_type: r.asset_type,
+        identifier: r.identifier || '',
+        barcode: r.barcode || '',
+        location: r.location || '',
+        floor: r.floor || '',
+        manufacturer: r.manufacturer || '',
+        model: r.model || '',
+        installation_date: p.extra.installIso || null,
+        last_service_date: p.extra.lastIso || null,
+        next_service_date: p.extra.nextIso || null,
+        service_frequency: r.service_frequency || '',
+        compliance_status: r.compliance_status || 'unknown',
+        criticality: r.criticality || 'medium',
+        operational_status: r.operational_status || 'operational',
+        health_score: r.health_score ? Number(r.health_score) : undefined,
+        status: r.status || 'active',
+        notes: r.notes || null,
+      };
+    });
+    let created = 0;
+    if (records.length) {
+      await base44.entities.Asset.bulkCreate(records);
+      created = records.length;
+    }
+    return { created, extras: '', failed: 0, errors: [] };
+  },
+  mapEntityToRow(e) {
+    return {
+      'Asset Name': e.name || '',
+      'Main Category': ASSET_CATEGORIES[e.asset_main_category]?.label || e.asset_main_category || '',
+      'Sub-Category': e.asset_subcategory ? formatSubcategoryLabel(e.asset_subcategory) : '',
+      'Asset Type': e.asset_type || '',
+      'Identifier': e.identifier || '',
+      'Barcode': e.barcode || '',
+      'Location': e.location || '',
+      'Floor': e.floor || '',
+      'Manufacturer': e.manufacturer || '',
+      'Model': e.model || '',
+      'Installation Date': toDdMmYyyy(e.installation_date),
+      'Last Service Date': toDdMmYyyy(e.last_service_date),
+      'Next Service Date': toDdMmYyyy(e.next_service_date),
+      'Service Frequency': e.service_frequency || '',
+      'Compliance Status': e.compliance_status || '',
+      'Criticality': e.criticality || '',
+      'Operational Status': e.operational_status || '',
+      'Health Score': e.health_score != null ? String(e.health_score) : '',
+      'Status': e.status || '',
+      'Notes': e.notes || '',
+    };
+  },
+};
+
+export const DATASETS = { maintenance, cases, residents, assets };

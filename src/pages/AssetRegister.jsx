@@ -18,6 +18,7 @@ import StrataManagerView from '@/components/assets/StrataManagerView';
 import ContractorView from '@/components/assets/ContractorView';
 import CommitteeView from '@/components/assets/CommitteeView';
 import QRScanner from '@/components/qr/QRScanner';
+import ImportExportToolbar from '@/components/import-export/ImportExportToolbar';
 import { 
   Search, 
   Package, 
@@ -191,7 +192,8 @@ export default function AssetRegister() {
         title="Asset Register" 
         subtitle={`${filteredAssets.length} assets tracked across ${selectedBuildingId ? 'this building' : 'all buildings'}`}
       >
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <ImportExportToolbar dataset="assets" buildingId={selectedBuildingId} />
           <QRScanner
             onScan={(code) => {
               const asset = assets.find(a => a.id === code || a.barcode === code || a.identifier === code);
