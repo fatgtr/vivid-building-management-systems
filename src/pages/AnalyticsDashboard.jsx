@@ -9,6 +9,9 @@ import { TrendingUp, Wrench, AlertTriangle, Activity, Zap } from 'lucide-react';
 import { differenceInDays, format, startOfMonth, endOfMonth, eachMonthOfInterval, subMonths, isPast } from 'date-fns';
 import ComprehensiveAnalytics from '@/components/analytics/ComprehensiveAnalytics';
 import EnergyAnalyticsDashboard from '@/components/energy/EnergyAnalyticsDashboard';
+import AnalyticsFinancialSync from '@/components/financial/AnalyticsFinancialSync';
+import CrossLinkPanel from '@/components/financial/CrossLinkPanel';
+import { useFinancialSyncData } from '@/hooks/useFinancialSyncData';
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
 
@@ -98,7 +101,14 @@ export default function AnalyticsDashboard() {
         </TabsList>
 
         <TabsContent value="overview">
-          <ComprehensiveAnalytics buildingId={selectedBuildingId} />
+          <div className="space-y-4">
+            <AnalyticsFinancialSync buildingId={selectedBuildingId} />
+            <CrossLinkPanel
+              currentPage="AnalyticsDashboard"
+              stats={{ financial: 'Budget vs actual', capital: 'Capital forecast', predictive: 'Predictions' }}
+            />
+            <ComprehensiveAnalytics buildingId={selectedBuildingId} />
+          </div>
         </TabsContent>
 
         <TabsContent value="workorders" className="space-y-6">

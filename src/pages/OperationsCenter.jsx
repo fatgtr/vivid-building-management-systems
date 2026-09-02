@@ -2,20 +2,25 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useBuildingContext } from '@/components/BuildingContext';
+import { useFinancialSyncData } from '@/hooks/useFinancialSyncData';
+import { createPageUrl } from '@/utils';
+import { Link } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Wrench, 
-  Package, 
-  Calendar, 
-  ClipboardCheck, 
+import OperationsFinancialSummary from '@/components/financial/OperationsFinancialSummary';
+import {
+  Wrench,
+  Package,
+  Calendar,
+  ClipboardCheck,
   HardHat,
   AlertTriangle,
   CheckCircle2,
   Clock,
   TrendingUp,
-  BarChart3
+  BarChart3,
+  DollarSign
 } from 'lucide-react';
 
 // Import existing page components
@@ -31,6 +36,7 @@ import MaintenanceScheduleGenerator from '@/components/maintenance/MaintenanceSc
 export default function OperationsCenter() {
   const { selectedBuildingId } = useBuildingContext();
   const [activeTab, setActiveTab] = useState('overview');
+  const { gaps, onTrackPct, overBudget, capitalForecastTotal } = useFinancialSyncData(selectedBuildingId);
 
   // Fetch data for overview dashboard
   const { data: workOrders = [] } = useQuery({
@@ -80,7 +86,7 @@ export default function OperationsCenter() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-9">
+        <TabsList className="grid w-full grid-cols-10">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
             Overview
@@ -122,6 +128,10 @@ export default function OperationsCenter() {
           <TabsTrigger value="reports" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Reports
+          </TabsTrigger>
+          <TabsTrigger value="financial" className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4" />
+            Financial
           </TabsTrigger>
         </TabsList>
 
@@ -279,6 +289,77 @@ export default function OperationsCenter() {
             </Card>
           </div>
 
+          {/* Financial Planning summary cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card
+              className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-emerald-500"
+              onClick={() => setActiveTab('financial')}
+            >
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-slate-500 mb-1">Budget On-Track</p>
+                    <p className="text-3xl font-bold text-emerald-600">{onTrackPct}%</p>
+                  </div>
+                  <div className="h-12 w-12 rounded-full bg-emerald-100 flex items-center justify-center">
+                    <TrendingUp className="h-6 w-6 text-emerald-600" />
+                  </div>
+                </div>
+                <div className="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-600">
+                  Across strata reports
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card
+              className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-red-500"
+              onClick={() => setActiveTab('financial')}
+            >
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-slate-500 mb-1">Over-Budget Categories</p>
+                    <p className="text-3xl font-bold text-red-600">{overBudget.length}</p>
+                    {gaps.filter((g) => g.type === 'over_budget_unscheduled').length > 0 && (
+                      <p className="text-xs text-amber-600 font-medium mt-2 flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        {gaps.filter((g) => g.type === 'over_budget_unscheduled').length} unscheduled
+                      </p>
+                    )}
+                  </div>
+                  <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
+                    <AlertTriangle className="h-6 w-6 text-red-600" />
+                  </div>
+                </div>
+                <div className="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-600">
+                  Need attention
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card
+              className="cursor-pointer hover:shadow-md transition-shadow border-l-4 border-l-blue-500"
+              onClick={() => setActiveTab('financial')}
+            >
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-slate-500 mb-1">Capital Forecast</p>
+                    <p className="text-3xl font-bold text-blue-600">
+                      ${(capitalForecastTotal / 1000).toFixed(0)}k
+                    </p>
+                  </div>
+                  <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+                    <DollarSign className="h-6 w-6 text-blue-600" />
+                  </div>
+                </div>
+                <div className="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-600">
+                  Replacement total
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Quick Actions Info */}
           <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
             <CardContent className="pt-6">
@@ -331,6 +412,14 @@ export default function OperationsCenter() {
 
         <TabsContent value="reports" className="mt-6">
           <Reports />
+        </TabsContent>
+
+        <TabsContent value="financial" className="space-y-6 mt-6">
+          <div>
+            <h2 className="text-xl font-bold text-slate-900 mb-1">Financial Planning Sync</h2>
+            <p className="text-sm text-slate-500 mb-4">Budget tracking, capital works, analytics and predictive AI — all linked from one hub. <Link to={createPageUrl('FinancialManagement')} className="text-blue-600 hover:underline font-medium">Open full Financial Management →</Link></p>
+            <OperationsFinancialSummary buildingId={selectedBuildingId} gaps={gaps} />
+          </div>
         </TabsContent>
       </Tabs>
     </div>

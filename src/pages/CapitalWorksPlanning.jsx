@@ -11,9 +11,12 @@ import PageHeader from '@/components/common/PageHeader';
 import { useBuildingContext } from '@/components/BuildingContext';
 import { ASSET_CATEGORIES } from '@/components/categories/assetCategories';
 import CapitalWorksPlanForm from '@/components/capital/CapitalWorksPlanForm';
-import { 
-  TrendingUp, 
-  AlertTriangle, 
+import CapitalWorksSync from '@/components/financial/CapitalWorksSync';
+import { useFinancialSyncData } from '@/hooks/useFinancialSyncData';
+import CrossLinkPanel from '@/components/financial/CrossLinkPanel';
+import {
+  TrendingUp,
+  AlertTriangle,
   Calendar,
   DollarSign,
   FileText,
@@ -25,8 +28,11 @@ import {
 } from 'lucide-react';
 import { format, differenceInYears, addYears } from 'date-fns';
 
+const fmt0 = (n) => (n || 0).toLocaleString('en-AU', { style: 'currency', currency: 'AUD', minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
 export default function CapitalWorksPlanning() {
   const { selectedBuildingId, managedBuildings } = useBuildingContext();
+  const { totalActual } = useFinancialSyncData(selectedBuildingId);
   const [forecastYears, setForecastYears] = useState(10);
   const [showPlanDialog, setShowPlanDialog] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
@@ -211,6 +217,15 @@ export default function CapitalWorksPlanning() {
           </Button>
         </div>
       </PageHeader>
+
+      {/* Actual spend vs forecast sync */}
+      <CapitalWorksSync buildingId={selectedBuildingId} />
+
+      {/* Linked Planning cross-links */}
+      <CrossLinkPanel
+        currentPage="CapitalWorksPlanning"
+        stats={{ financial: `Total actual ${fmt0(totalActual)}`, analytics: 'See analytics', predictive: 'Predictions' }}
+      />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
