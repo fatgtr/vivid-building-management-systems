@@ -72,6 +72,11 @@
       "type": "boolean",
       "description": "Whether move-out bylaws have been sent to resident",
       "default": false
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional free-text description (up to 1000 characters)"
     }
   },
   "required": [

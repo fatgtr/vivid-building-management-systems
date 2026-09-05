@@ -72,6 +72,11 @@
     "owner_address": {
       "type": "string",
       "description": "Owner's address for service of notices"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional free-text description (up to 1000 characters)"
     }
   },
   "required": [

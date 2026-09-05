@@ -302,6 +302,11 @@
       },
       "default": [],
       "description": "Configuration data for BMC setup - actual strata plan buildings will be created as separate Building entities"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional free-text description (up to 1000 characters)"
     }
   },
   "required": [

@@ -42,6 +42,11 @@
         "type": "string"
       },
       "description": "Tags for categorization (e.g., pets, noise, renovations)"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional free-text description (up to 1000 characters)"
     }
   },
   "required": [

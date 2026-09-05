@@ -45,6 +45,11 @@
       "type": "boolean",
       "default": true,
       "description": "In-app notifications for announcements"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional free-text description (up to 1000 characters)"
     }
   },
   "required": [
