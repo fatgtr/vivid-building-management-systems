@@ -11,6 +11,8 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import MaintenanceRequest from './pages/MaintenanceRequest';
 import MaintenanceRequestTracker from './pages/MaintenanceRequestTracker';
+import About from './pages/About';
+import Contact from './pages/Contact';
 import BuildingManagerReport from './pages/BuildingManagerReport';
 import BrandingSettings from './pages/BrandingSettings';
 import WorkOrderSettings from './pages/WorkOrderSettings';
@@ -84,6 +86,8 @@ const AuthenticatedApp = () => {
         </LayoutWrapper>
       } />
       {/* Public routes - no layout wrapper */}
+      <Route path="/About" element={<About />} />
+      <Route path="/Contact" element={<Contact />} />
       <Route path="/MaintenanceRequest" element={<MaintenanceRequest />} />
       <Route path="/MaintenanceRequestTracker" element={<MaintenanceRequestTracker />} />
       <Route path="*" element={<PageNotFound />} />

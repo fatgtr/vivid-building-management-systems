@@ -845,10 +845,10 @@ export default function Home() {
             <div>
               <h4 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Company</h4>
               <ul className="space-y-3 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
+                <li><Link to="/About" className="hover:text-white transition-colors">About Us</Link></li>
                 <li><a href="#" className="hover:text-white transition-colors">Partnerships</a></li>
                 <li><a href="mailto:careers@vividbms.com" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="mailto:contact@vividbms.com" className="hover:text-white transition-colors">Contact</a></li>
+                <li><Link to="/Contact" className="hover:text-white transition-colors">Contact</Link></li>
               </ul>
             </div>
 
