@@ -90,6 +90,34 @@ Be thorough and extract all assets mentioned in the document.`;
       return null;
     };
 
+    // Normalise the LLM's free-text values into the Asset entity's valid enum values.
+    // Without this, a value like "Pass" or "6 monthly" fails schema validation and the
+    // whole bulkCreate/bulkUpdate is rejected — assets never persist.
+    const VALID_COMPLIANCE = ['compliant', 'due_soon', 'overdue', 'requires_attention', 'unknown'];
+    const normCompliance = (raw: any): string => {
+      const s = String(raw || '').toLowerCase().trim();
+      if (!s) return 'unknown';
+      if (s.includes('overdue') || s.includes('late') || s.includes('expired')) return 'overdue';
+      if (s.includes('due soon') || s.includes('due') || s.includes('expir')) return 'due_soon';
+      if (s.includes('requires') || s.includes('attention') || s.includes('action') || s.includes('defect') || s.includes('fail') || s.includes('non') || s.includes('not compl')) return 'requires_attention';
+      if (s.includes('compliant') || s.includes('pass') || s.includes('ok') || s.includes('good') || s.includes('serviceable')) return 'compliant';
+      if (VALID_COMPLIANCE.includes(s)) return s;
+      return 'unknown';
+    };
+
+    const normFrequency = (raw: any): string => {
+      const s = String(raw || '').toLowerCase().trim();
+      if (!s) return 'yearly';
+      if (s.includes('6 month') || s.includes('half') || s.includes('semi')) return 'half_yearly';
+      if (s.includes('2 year') || s.includes('biennial') || s.includes('two year')) return 'bi_yearly';
+      if (s.includes('2 month') || s.includes('bi-month') || s.includes('bimonthly') || s.includes('every 2')) return 'bi_monthly';
+      if (s.includes('month')) return 'monthly';
+      if (s.includes('quarter') || s.includes('3 month') || s.includes('every 3')) return 'quarterly';
+      if (s.includes('year') || s.includes('annual') || s.includes('12 month')) return 'yearly';
+      if (s.includes('custom') || s.includes('as required') || s.includes('adhoc')) return 'custom';
+      return 'yearly';
+    };
+
     const assetFields = rawAssets.map((a: any) => ({
       building_id: buildingId,
       asset_main_category: 'fire_life_safety',
@@ -103,8 +131,8 @@ Be thorough and extract all assets mentioned in the document.`;
       model: a.model || null,
       last_service_date: a.last_service_date || null,
       next_service_date: a.next_service_date || null,
-      service_frequency: a.service_frequency || 'yearly',
-      compliance_status: a.compliance_status || 'unknown',
+      service_frequency: normFrequency(a.service_frequency),
+      compliance_status: normCompliance(a.compliance_status),
       notes: a.notes || null,
       status: 'active'
     }));
