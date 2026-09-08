@@ -323,6 +323,8 @@ export default function EmergencyLightingImporter({ selectedBuildingId, stats, o
       toast.success(`Imported ${totals.totalFittings} fittings across ${totalPages} pages · ${totals.workOrdersCreated} work order(s) created`);
       queryClient.invalidateQueries({ queryKey: ['emergencyLighting'] });
       queryClient.invalidateQueries({ queryKey: ['emergencyLighting', 'assets'] });
+      queryClient.invalidateQueries({ queryKey: ['assets', selectedBuildingId] });
+      queryClient.invalidateQueries({ queryKey: ['assets'] });
       onComplete?.();
     } catch (e) {
       setStage(null);

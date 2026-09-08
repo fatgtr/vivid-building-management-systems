@@ -154,8 +154,9 @@ export default function AssetRegister() {
 
   const getSubcategoryCounts = (mainCategory) => {
     const counts = {};
+    const subSet = new Set(ASSET_CATEGORIES[mainCategory]?.subcategories || []);
     assets.forEach(asset => {
-      if (asset.asset_main_category === mainCategory && asset.asset_subcategory) {
+      if (asset.asset_subcategory && subSet.has(asset.asset_subcategory)) {
         counts[asset.asset_subcategory] = (counts[asset.asset_subcategory] || 0) + 1;
       }
     });
