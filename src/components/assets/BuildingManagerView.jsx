@@ -274,7 +274,10 @@ export default function BuildingManagerView({ assets, getBuildingName, getLocati
             </TabsContent>
 
             <TabsContent value="warranty">
-              <AssetCostWarrantyEditor asset={selectedAsset} />
+              <AssetCostWarrantyEditor
+                asset={selectedAsset}
+                onSaved={(updated) => setSelectedAsset(updated)}
+              />
             </TabsContent>
 
             <TabsContent value="documents">
