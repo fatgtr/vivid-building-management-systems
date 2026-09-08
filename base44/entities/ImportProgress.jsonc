@@ -1,0 +1,53 @@
+{
+  "name": "ImportProgress",
+  "type": "object",
+  "properties": {
+    "building_id": {
+      "type": "string",
+      "description": "Building the import belongs to"
+    },
+    "import_type": {
+      "type": "string",
+      "enum": [
+        "emergency_lighting"
+      ],
+      "description": "Type of bulk import this progress tracks"
+    },
+    "file_hash": {
+      "type": "string",
+      "description": "SHA-256 hash of the source file content, used to match re-uploads of the same register"
+    },
+    "file_name": {
+      "type": "string",
+      "description": "Original uploaded file name"
+    },
+    "total_pages": {
+      "type": "number",
+      "default": 0,
+      "description": "Total pages in the source PDF (filled after the first batch)"
+    },
+    "imported_pages": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "default": [],
+      "description": "Page indices (0-based) that have been fully extracted and persisted"
+    },
+    "total_fittings": {
+      "type": "number",
+      "default": 0,
+      "description": "Cumulative fittings extracted across all processed batches"
+    },
+    "completed": {
+      "type": "boolean",
+      "default": false,
+      "description": "True once every page has been extracted and persisted"
+    }
+  },
+  "required": [
+    "building_id",
+    "import_type",
+    "file_hash"
+  ]
+}

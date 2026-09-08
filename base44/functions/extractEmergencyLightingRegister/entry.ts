@@ -1,28 +1,41 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 
+const DEFAULT_BATCH_SIZE = 5;
+
 export default async function(req: Request): Promise<Response> {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { file_url } = await req.json();
+    const body = await req.json();
+    const file_url = body.file_url;
+    const start_page = Math.max(0, Number(body.start_page || 0));
+    const batch_size = Math.max(1, Number(body.batch_size || DEFAULT_BATCH_SIZE));
+
     if (!file_url) {
       return Response.json({ success: false, error: 'Missing required parameter: file_url' }, { status: 400 });
     }
 
-    // 1. Fetch the PDF and extract its text (fast, non-LLM)
+    // 1. Fetch the PDF and extract per-page text (fast, non-LLM)
     const pdfResp = await fetch(file_url);
     if (!pdfResp.ok) {
       return Response.json({ success: false, error: 'Failed to download PDF' }, { status: 502 });
     }
     const buf = new Uint8Array(await pdfResp.arrayBuffer());
 
-    let text = '';
+    let pages: string[] = [];
+    let totalPages = 0;
     try {
       const mod: any = await import('npm:unpdf@0.11.0');
-      const result = await mod.extractText(buf, { mergePages: true });
-      text = result.text || '';
+      const result = await mod.extractText(buf, { mergePages: false });
+      if (Array.isArray(result.text)) {
+        pages = result.text.map((p: any) => (p == null ? '' : String(p)));
+      } else if (typeof result.text === 'string') {
+        // Fallback: unpdf did not split — treat the whole blob as a single page
+        pages = [result.text];
+      }
+      totalPages = result.totalPages || pages.length;
     } catch (e) {
       console.error('unpdf extractText failed:', e);
       return Response.json({
@@ -31,14 +44,27 @@ export default async function(req: Request): Promise<Response> {
       }, { status: 422 });
     }
 
-    if (!text.trim()) {
+    if (!totalPages) totalPages = pages.length;
+    if (!pages.length || !pages.some((p) => p && p.trim())) {
       return Response.json({
         success: false,
         error: 'No extractable text found in the PDF. It may be a scanned image.'
       }, { status: 422 });
     }
 
-    // 2. Fast text-only LLM extraction
+    const batchEnd = Math.min(start_page + batch_size, totalPages);
+    const batchText = pages.slice(start_page, batchEnd).join('\n\n');
+
+    // Empty batch (e.g. a blank cover page) — nothing to extract, but still counts as processed
+    if (!batchText.trim()) {
+      return Response.json({
+        success: true,
+        data: { fittings: [], contractor: null, inspection_date: null, building_name: null, building_address: null },
+        totalPages, batchStart: start_page, batchEnd, done: batchEnd >= totalPages
+      });
+    }
+
+    // 2. Per-batch LLM extraction (small, complete JSON per call — no truncation)
     const extractionSchema = {
       type: 'object',
       properties: {
@@ -57,7 +83,7 @@ export default async function(req: Request): Promise<Response> {
         building_address: { type: 'string' },
         fittings: {
           type: 'array',
-          description: 'Every emergency/exit lighting fitting row in the register',
+          description: 'Every emergency/exit lighting fitting row present in this batch of pages',
           items: {
             type: 'object',
             properties: {
@@ -86,7 +112,11 @@ export default async function(req: Request): Promise<Response> {
       required: ['fittings']
     };
 
+    const isFirstBatch = start_page === 0;
+
     const prompt = `You are analyzing the extracted text of an AS 2293.1 Emergency and Exit Lighting asset register (typically produced by a fire protection contractor such as AFT Fire Protection).
+
+The register is paginated. You are being shown ONLY pages ${start_page + 1} through ${batchEnd} of ${totalPages}. Extract every fitting row that appears in THIS batch of pages only.
 
 The text contains one or more tables titled "Asset Register - Emergency and Exit Lighting - AS2293.1" with columns:
 - Asset ID (a number, e.g. 170882)
@@ -99,27 +129,40 @@ The text contains one or more tables titled "Asset Register - Emergency and Exit
 - Pass / Fail
 - Failure Points (a sub-line under failed fittings with the recommendation, e.g. "EXIT LIGHT – failed the 90-minute discharge test or defective/damaged Recommendation: * Quick fit exit light - replace")
 
-Extract EVERY fitting row as one entry in the fittings array. For each fitting:
+Extract EVERY fitting row fully contained in this batch as one entry in the fittings array. For each fitting:
 - Set asset_id, fitting_number, building_and_level, building_part (building name before the hyphen), level (level text after the hyphen), location, fitting_type (raw text).
 - Map fitting_type to fitting_type_code: "Emergency Spitfire (Recessed)" -> emergency_spitfire_recessed; "Emergency Spitfire (Surface)" -> emergency_spitfire_surface; "Emergency 4 foot (weatherproof)" -> emergency_4ft_weatherproof; "Emergency 2 foot (weatherproof)" -> emergency_2ft_weatherproof; "Exit Quickfit" -> exit_quickfit; "Exit weatherproof" -> exit_weatherproof; anything else -> other.
 - Set is_exit_sign true for exit signs (Exit Quickfit, Exit weatherproof), false for emergency lights.
 - Set result to "Pass" or "Fail" exactly as shown.
 - For failed rows, set failure_points to the full Failure Points / Recommendation text found on the line(s) beneath that fitting (often prefixed "Failure Points"). For passed rows, set failure_points to an empty string.
 - Convert ALL dates to ISO yyyy-mm-dd format. Source dates appear as dd/mm/yyyy (Australian) — convert 07/11/2022 to 2022-11-07.
+- If a fitting row appears to be split/truncated at the very bottom of the batch boundary (missing its Pass/Fail or location), omit that incomplete row — it will be captured by the next batch.
 
-Also extract the contractor block (company, contact_name, phone, abn, job_number) and the overall inspection_date from the document header.
+${isFirstBatch
+  ? 'ALSO extract the contractor block (company, contact_name, phone, abn, job_number) and the overall inspection_date, building_name and building_address from the document header on this first page.'
+  : 'This is NOT the first batch — do NOT extract the contractor header. Set contractor to null and leave inspection_date, building_name, building_address empty; only return the fittings array for this batch.'}
 
-Be exhaustive: capture every fitting row across all pages and all buildings/levels in the register.
+Be exhaustive within this batch: capture every complete fitting row present in these pages.
 
-REGISTER TEXT BEGINS:
-${text}`;
+BATCH TEXT (pages ${start_page + 1}-${batchEnd} of ${totalPages}) BEGINS:
+${batchText}`;
 
     const extracted: any = await base44.integrations.Core.InvokeLLM({
       prompt,
       response_json_schema: extractionSchema
     });
 
-    return Response.json({ success: true, data: extracted });
+    return Response.json({
+      success: true,
+      data: {
+        fittings: (extracted && extracted.fittings) || [],
+        contractor: isFirstBatch ? (extracted && extracted.contractor) || null : null,
+        inspection_date: isFirstBatch ? (extracted && extracted.inspection_date) || null : null,
+        building_name: isFirstBatch ? (extracted && extracted.building_name) || null : null,
+        building_address: isFirstBatch ? (extracted && extracted.building_address) || null : null
+      },
+      totalPages, batchStart: start_page, batchEnd, done: batchEnd >= totalPages
+    });
   } catch (error) {
     console.error('Emergency lighting register extraction error:', error);
     return Response.json({
