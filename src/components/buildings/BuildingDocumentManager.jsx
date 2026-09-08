@@ -50,6 +50,7 @@ import StrataManagementStatementExtractor from './StrataManagementStatementExtra
 import CleaningScheduleExtractor from './CleaningScheduleExtractor';
 import AIDocumentUploadCard from './AIDocumentUploadCard';
 import PolicyGenerator from '@/components/documents/PolicyGenerator';
+import AssetDocumentBackfillButton from './AssetDocumentBackfillButton';
 import {
   Dialog,
   DialogContent,
@@ -167,6 +168,7 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
   const [currentAIType, setCurrentAIType] = useState(null);
   const [uploadedFileUrl, setUploadedFileUrl] = useState(null);
   const [selectedDocumentId, setSelectedDocumentId] = useState(null);
+  const [fileName, setFileName] = useState(null);
   const [showGeneralUpload, setShowGeneralUpload] = useState(false);
   const [generalUploadData, setGeneralUploadData] = useState({
     title: '', description: '', category: 'other', visibility: 'staff_only', tags: ''
@@ -207,6 +209,8 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
       
       const docType = documentTypes.find(dt => dt.category === variables.category);
       if (docType?.hasAI) {
+        setSelectedDocumentId(data.id);
+        setFileName(variables.file?.name || null);
         setUploadedFileUrl(data.file_url);
         setCurrentAIType(variables.category);
         setAiDialogOpen(true);
@@ -252,6 +256,7 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
     setCurrentAIType(null);
     setUploadedFileUrl(null);
     setSelectedDocumentId(null);
+    setFileName(null);
   };
 
   const handleManualOCR = async (docId) => {
@@ -423,10 +428,16 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
                     <li>Lift registrations: Asset details, expiry tracking, reminders</li>
                     <li>All asset categories: Equipment details, service records</li>
                   </ul>
+                  <p className="text-xs text-slate-500 pt-2">Every importer matches existing assets (no duplicates), links the source document to each asset, and creates compliance records &amp; work orders where applicable.</p>
                 </div>
               </div>
             </CardContent>
           </Card>
+
+          {/* Retroactive document-to-asset linking */}
+          <div className="flex justify-end">
+            <AssetDocumentBackfillButton buildingId={buildingId} />
+          </div>
         </TabsContent>
 
         <TabsContent value="general" className="space-y-6 mt-6">
@@ -831,9 +842,14 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
               buildingId={buildingId}
               buildingName={buildingName}
               fileUrl={uploadedFileUrl}
+              documentId={selectedDocumentId}
+              fileName={fileName}
               onComplete={() => {
                 handleCloseAIDialog();
                 queryClient.invalidateQueries({ queryKey: ['assets'] });
+                queryClient.invalidateQueries({ queryKey: ['buildingDocuments', buildingId] });
+                queryClient.invalidateQueries({ queryKey: ['complianceRecords'] });
+                queryClient.invalidateQueries({ queryKey: ['workOrders'] });
                 queryClient.invalidateQueries({ queryKey: ['maintenanceSchedules'] });
               }}
             />
@@ -843,32 +859,38 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
             currentAIType === 'as_built_mechanical' ||
             currentAIType === 'as_built_plumbing') && uploadedFileUrl && (
             <AsBuiltExtractor
-              buildingId={buildingId}
-              buildingName={buildingName}
-              fileUrl={uploadedFileUrl}
-              assetCategory={
-                currentAIType === 'as_built_electrical' ? 'electrical' :
-                currentAIType === 'as_built_mechanical' ? 'mechanical' :
-                'plumbing'
-              }
-              onComplete={() => {
-                handleCloseAIDialog();
-                queryClient.invalidateQueries({ queryKey: ['assets'] });
-                queryClient.invalidateQueries({ queryKey: ['maintenanceSchedules'] });
-              }}
+             buildingId={buildingId}
+             buildingName={buildingName}
+             fileUrl={uploadedFileUrl}
+             documentId={selectedDocumentId}
+             fileName={fileName}
+             assetCategory={
+               currentAIType === 'as_built_electrical' ? 'electrical' :
+               currentAIType === 'as_built_mechanical' ? 'mechanical' :
+               'plumbing'
+             }
+             onComplete={() => {
+               handleCloseAIDialog();
+               queryClient.invalidateQueries({ queryKey: ['assets'] });
+               queryClient.invalidateQueries({ queryKey: ['buildingDocuments', buildingId] });
+             }}
             />
           )}
 
           {currentAIType === 'lift_plant_registration' && uploadedFileUrl && (
             <LiftRegistrationExtractor
-              buildingId={buildingId}
-              buildingName={buildingName}
-              fileUrl={uploadedFileUrl}
-              documentId={selectedDocumentId}
-              onComplete={() => {
-                handleCloseAIDialog();
-                queryClient.invalidateQueries({ queryKey: ['maintenanceSchedules'] });
-              }}
+             buildingId={buildingId}
+             buildingName={buildingName}
+             fileUrl={uploadedFileUrl}
+             documentId={selectedDocumentId}
+             fileName={fileName}
+             onComplete={() => {
+               handleCloseAIDialog();
+               queryClient.invalidateQueries({ queryKey: ['assets'] });
+               queryClient.invalidateQueries({ queryKey: ['buildingDocuments', buildingId] });
+               queryClient.invalidateQueries({ queryKey: ['maintenanceSchedules'] });
+               queryClient.invalidateQueries({ queryKey: ['complianceRecords'] });
+             }}
             />
           )}
 
@@ -891,15 +913,18 @@ export default function BuildingDocumentManager({ buildingId, buildingName }) {
              'as_built_plumbing', 'lift_plant_registration', 'cleaning_schedule'].includes(currentAIType) && 
            uploadedFileUrl && (
             <GenericAssetExtractor
-              buildingId={buildingId}
-              buildingName={buildingName}
-              fileUrl={uploadedFileUrl}
-              assetCategory={currentAIType}
-              categoryLabel={documentTypes.find(dt => dt.category === currentAIType)?.label || currentAIType}
-              onComplete={() => {
-                handleCloseAIDialog();
-                queryClient.invalidateQueries({ queryKey: ['assets'] });
-              }}
+             buildingId={buildingId}
+             buildingName={buildingName}
+             fileUrl={uploadedFileUrl}
+             documentId={selectedDocumentId}
+             fileName={fileName}
+             assetCategory={currentAIType}
+             categoryLabel={documentTypes.find(dt => dt.category === currentAIType)?.label || currentAIType}
+             onComplete={() => {
+               handleCloseAIDialog();
+               queryClient.invalidateQueries({ queryKey: ['assets'] });
+               queryClient.invalidateQueries({ queryKey: ['buildingDocuments', buildingId] });
+             }}
             />
           )}
 

@@ -32,7 +32,8 @@ export default function AssetCostWarrantyImporter({ buildingId }) {
 
       const res = await base44.functions.invoke('extractAssetCostWarranty', {
         file_url,
-        building_id: buildingId
+        building_id: buildingId,
+        fileName: file.name
       });
       const data = res.data || res;
 
@@ -124,10 +125,14 @@ export default function AssetCostWarrantyImporter({ buildingId }) {
                   </p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-center">
                   <p className="text-xs text-green-700">Assets updated</p>
                   <p className="text-2xl font-bold text-green-700">{results.updated}</p>
+                </div>
+                <div className="rounded-lg border border-violet-200 bg-violet-50 p-3 text-center">
+                  <p className="text-xs text-violet-700">Linked to doc</p>
+                  <p className="text-2xl font-bold text-violet-700">{results.linked ?? results.updated}</p>
                 </div>
                 <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-center">
                   <p className="text-xs text-amber-700">Unmatched rows</p>
