@@ -9,7 +9,8 @@ export const CATEGORY_IMPORT_CONFIG = {
     accent: '#e53e3e',
     iconBg: '#FEE2E2',
     dropLabel: 'AFSS / fire safety register PDF',
-    hint: 'The AI extracts fire safety equipment, matches existing assets, links this document, and creates compliance records + work orders for deficiencies.'
+    hint: 'The AI extracts fire safety equipment, matches existing assets, links this document, and creates compliance records + work orders for deficiencies.',
+    passSubcategory: true
   },
   mechanical_services: {
     fn: 'extractAsBuiltAssets',
@@ -64,6 +65,7 @@ export const INSPECTION_CATEGORIES = ['fire_life_safety', 'electrical_services',
 export function buildImportParams(cfg, { file_url, buildingId, documentId, fileName, mainCategory, subcategory }) {
   const params = { file_url, buildingId, documentId, fileName };
   if (cfg.assetCategoryParam) params.assetCategory = cfg.assetCategoryParam;
+  if (cfg.passSubcategory && subcategory) params.subcategory = subcategory;
   if (cfg.isGeneric) {
     params.assetCategory = mainCategory;
     params.categoryLabel = ASSET_CATEGORIES[mainCategory]?.label || mainCategory;

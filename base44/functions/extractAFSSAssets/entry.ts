@@ -12,7 +12,7 @@ export default async function(req: Request): Promise<Response> {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { file_url, buildingId, documentId, fileName } = await req.json();
+    const { file_url, buildingId, documentId, fileName, subcategory } = await req.json();
     if (!file_url || !buildingId) {
       return Response.json({ success: false, error: 'Missing required parameters: file_url and buildingId' }, { status: 400 });
     }
@@ -93,7 +93,7 @@ Be thorough and extract all assets mentioned in the document.`;
     const assetFields = rawAssets.map((a: any) => ({
       building_id: buildingId,
       asset_main_category: 'fire_life_safety',
-      asset_subcategory: subcatFor(a.asset_type),
+      asset_subcategory: subcatFor(a.asset_type) || subcategory || null,
       asset_type: a.asset_type,
       name: a.name,
       identifier: a.identifier || null,
