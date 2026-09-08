@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Card, CardContent } from "@/components/ui/card";
@@ -35,6 +35,7 @@ import {
   SortDesc
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { queryClientInstance } from '@/lib/query-client';
 
 export default function AssetRegister() {
   const { selectedBuildingId, managedBuildings } = useBuildingContext();
@@ -78,6 +79,16 @@ export default function AssetRegister() {
       ? base44.entities.Location.filter({ building_id: selectedBuildingId })
       : base44.entities.Location.list(),
   });
+
+  // Realtime sync: refresh tile counts whenever any asset is created/updated/deleted,
+  // regardless of which flow made the change (importers, detail edits, manual adds).
+  useEffect(() => {
+    const unsubscribe = base44.entities.Asset.subscribe(() => {
+      queryClientInstance.invalidateQueries({ queryKey: ['assets', selectedBuildingId] });
+      queryClientInstance.invalidateQueries({ queryKey: ['assets'] });
+    });
+    return unsubscribe;
+  }, [selectedBuildingId]);
 
   const filteredAssets = assets.filter(asset => {
     const matchesSearch = 
