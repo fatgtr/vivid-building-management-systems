@@ -20,6 +20,7 @@ import ContractorView from '@/components/assets/ContractorView';
 import CommitteeView from '@/components/assets/CommitteeView';
 import QRScanner from '@/components/qr/QRScanner';
 import ImportExportToolbar from '@/components/import-export/ImportExportToolbar';
+import AssetCostWarrantyImporter from '@/components/assets/AssetCostWarrantyImporter';
 import { 
   Search, 
   Package, 
@@ -197,6 +198,7 @@ export default function AssetRegister() {
       >
         <div className="flex flex-wrap items-center gap-2">
           <ImportExportToolbar dataset="assets" buildingId={selectedBuildingId} />
+          <AssetCostWarrantyImporter buildingId={selectedBuildingId} />
           <QRScanner
             onScan={(code) => {
               const asset = assets.find(a => a.id === code || a.barcode === code || a.identifier === code);

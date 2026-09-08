@@ -101,6 +101,14 @@
       "format": "date",
       "description": "Warranty expiration date"
     },
+    "warranty_period": {
+      "type": "number",
+      "description": "Warranty period in months (e.g., 24 for a 2-year warranty)"
+    },
+    "warranty_terms": {
+      "type": "string",
+      "description": "Warranty coverage details, provider, and terms (free text)"
+    },
     "last_service_date": {
       "type": "string",
       "format": "date",
@@ -259,6 +267,14 @@
       "type": "number",
       "description": "Expected lifecycle in years (e.g., 20 for lifts, 10-15 for hot water)",
       "default": 20
+    },
+    "asset_cost_ex_gst": {
+      "type": "number",
+      "description": "Cost of the asset itself, excluding GST (AUD)"
+    },
+    "labour_cost_ex_gst": {
+      "type": "number",
+      "description": "Installation / labour cost for the asset, excluding GST (AUD)"
     },
     "purchase_value": {
       "type": "number",

@@ -10,6 +10,7 @@ import AssetPhotos from './AssetPhotos';
 import ServiceHistoryLog from './ServiceHistoryLog';
 import ComplianceReportDialog from './ComplianceReportDialog';
 import AssetWarrantyTracker from './AssetWarrantyTracker';
+import AssetCostWarrantyEditor from './AssetCostWarrantyEditor';
 import AssetDocumentManager from './AssetDocumentManager';
 import AssetRelationships from './AssetRelationships';
 import { 
@@ -273,7 +274,7 @@ export default function BuildingManagerView({ assets, getBuildingName, getLocati
             </TabsContent>
 
             <TabsContent value="warranty">
-              <AssetWarrantyTracker asset={selectedAsset} />
+              <AssetCostWarrantyEditor asset={selectedAsset} />
             </TabsContent>
 
             <TabsContent value="documents">
