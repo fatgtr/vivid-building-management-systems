@@ -659,6 +659,11 @@ const assetColumns = [
   { header: 'Health Score' },
   { header: 'Status' },
   { header: 'Notes' },
+  { header: 'Asset Cost (ex GST)' },
+  { header: 'Labour Cost (ex GST)' },
+  { header: 'Warranty Period (months)' },
+  { header: 'Warranty Terms' },
+  { header: 'Warranty Expiry Date' },
 ];
 
 const assets = {
@@ -675,6 +680,8 @@ const assets = {
     ['Sub-Category is exported as its readable label and imported back as the system key where it matches a known sub-category; otherwise the value is kept as written'],
     ['Dates should be DD/MM/YYYY'],
     ['All 17 main categories and their sub-categories are supported on export'],
+    ['Asset Cost (ex GST), Labour Cost (ex GST), Warranty Period (months), Warranty Terms and Warranty Expiry Date are included on export and import'],
+    ['Re-importing an exported sheet updates existing assets matched by Name (or Identifier) within the building instead of creating duplicates'],
   ],
   fieldMap: {
     name: ['Asset Name', 'name', 'asset_name'],
@@ -697,8 +704,15 @@ const assets = {
     health_score: ['Health Score', 'health_score'],
     status: ['Status', 'status'],
     notes: ['Notes', 'notes'],
+    asset_cost_ex_gst: ['Asset Cost (ex GST)', 'asset_cost_ex_gst', 'asset_cost'],
+    labour_cost_ex_gst: ['Labour Cost (ex GST)', 'labour_cost_ex_gst', 'labour_cost'],
+    warranty_period: ['Warranty Period (months)', 'warranty_period', 'warranty_period_months'],
+    warranty_terms: ['Warranty Terms', 'warranty_terms'],
+    warranty_expiry_date: ['Warranty Expiry Date', 'warranty_expiry_date', 'warranty_expiry'],
   },
-  fetchLookups: async (buildingId) => ({ assets: [] }), // no reference resolution needed
+  fetchLookups: async (buildingId) => ({
+    assets: buildingId ? await base44.entities.Asset.filter({ building_id: buildingId }) : await base44.entities.Asset.list(),
+  }),
   fetchForExport: (buildingId) => buildingId
     ? base44.entities.Asset.filter({ building_id: buildingId }, 'asset_main_category')
     : base44.entities.Asset.list(),
@@ -715,15 +729,28 @@ const assets = {
         installIso: parseDdMmYyyy(r.installation_date),
         lastIso: parseDdMmYyyy(r.last_service_date),
         nextIso: parseDdMmYyyy(r.next_service_date),
+        warrantyExpiryIso: parseDdMmYyyy(r.warranty_expiry_date),
       },
     };
   },
   async createRecords(pending, lookups, buildingId) {
-    const records = pending.map((p) => {
+    const existing = lookups.assets || [];
+    const byName = new Map();
+    const byIdent = new Map();
+    existing.forEach((a) => {
+      const n = norm(a.name).toLowerCase();
+      if (n) byName.set(n, a);
+      const id = norm(a.identifier).toLowerCase();
+      if (id) byIdent.set(id, a);
+    });
+
+    const numOrUndef = (v) => (v === '' || v == null ? undefined : Number(v));
+
+    const toCreate = [];
+    const toUpdate = [];
+    pending.forEach((p) => {
       const r = p.row;
-      return {
-        building_id: buildingId,
-        name: r.name,
+      const fields = {
         asset_main_category: p.resolved.main_category,
         asset_subcategory: p.resolved.subcategory || '',
         asset_type: r.asset_type,
@@ -743,14 +770,35 @@ const assets = {
         health_score: r.health_score ? Number(r.health_score) : undefined,
         status: r.status || 'active',
         notes: r.notes || null,
+        asset_cost_ex_gst: numOrUndef(r.asset_cost_ex_gst),
+        labour_cost_ex_gst: numOrUndef(r.labour_cost_ex_gst),
+        warranty_period: numOrUndef(r.warranty_period),
+        warranty_terms: r.warranty_terms || '',
+        warranty_expiry_date: p.extra.warrantyExpiryIso || null,
       };
+
+      const nameKey = norm(r.name).toLowerCase();
+      const idKey = norm(r.identifier).toLowerCase();
+      const match = (nameKey && byName.get(nameKey)) || (idKey && byIdent.get(idKey)) || null;
+
+      if (match) {
+        toUpdate.push({ id: match.id, ...fields });
+      } else {
+        toCreate.push({ building_id: buildingId, name: r.name, ...fields });
+      }
     });
+
     let created = 0;
-    if (records.length) {
-      await base44.entities.Asset.bulkCreate(records);
-      created = records.length;
+    let updated = 0;
+    if (toUpdate.length) {
+      await base44.entities.Asset.bulkUpdate(toUpdate);
+      updated = toUpdate.length;
     }
-    return { created, extras: '', failed: 0, errors: [] };
+    if (toCreate.length) {
+      await base44.entities.Asset.bulkCreate(toCreate);
+      created = toCreate.length;
+    }
+    return { created, updated, extras: updated ? `${updated} updated` : '', failed: 0, errors: [] };
   },
   mapEntityToRow(e) {
     return {
@@ -774,6 +822,11 @@ const assets = {
       'Health Score': e.health_score != null ? String(e.health_score) : '',
       'Status': e.status || '',
       'Notes': e.notes || '',
+      'Asset Cost (ex GST)': e.asset_cost_ex_gst != null ? String(e.asset_cost_ex_gst) : '',
+      'Labour Cost (ex GST)': e.labour_cost_ex_gst != null ? String(e.labour_cost_ex_gst) : '',
+      'Warranty Period (months)': e.warranty_period != null ? String(e.warranty_period) : '',
+      'Warranty Terms': e.warranty_terms || '',
+      'Warranty Expiry Date': toDdMmYyyy(e.warranty_expiry_date),
     };
   },
 };
