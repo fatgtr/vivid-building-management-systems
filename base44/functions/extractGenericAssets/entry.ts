@@ -12,7 +12,7 @@ export default async function(req: Request): Promise<Response> {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { file_url, buildingId, documentId, fileName, assetCategory, categoryLabel, subcategories } = await req.json();
+    const { file_url, buildingId, documentId, fileName, assetCategory, categoryLabel, subcategories, subcategory } = await req.json();
     if (!file_url || !buildingId || !assetCategory) {
       return Response.json({ success: false, error: 'Missing required parameters: file_url, buildingId and assetCategory' }, { status: 400 });
     }
@@ -57,7 +57,7 @@ export default async function(req: Request): Promise<Response> {
 
     const prompt = `Analyze this ${categoryLabel || assetCategory} document and extract all assets, equipment and systems.
 Building: ${buildingId}
-${subList ? `IMPORTANT: assign each asset the most appropriate subcategory from: ${subList}.` : ''}
+${subcategory ? `All assets belong to the "${subcategory}" sub-category — tag each asset_subcategory as "${subcategory}".` : (subList ? `IMPORTANT: assign each asset the most appropriate subcategory from: ${subList}.` : '')}
 Extract name (include equipment type), asset type, subcategory, manufacturer, model, location, floor, identifiers, installation date, service requirements. Be precise.`;
 
     const extractedData: any = await base44.integrations.Core.InvokeLLM({
@@ -70,7 +70,7 @@ Extract name (include equipment type), asset type, subcategory, manufacturer, mo
     const assetFields = rawAssets.map((a: any) => ({
       building_id: buildingId,
       asset_main_category: assetCategory,
-      asset_subcategory: a.asset_subcategory || null,
+      asset_subcategory: subcategory || a.asset_subcategory || null,
       asset_type: a.asset_type,
       name: a.name,
       identifier: a.identifier || null,

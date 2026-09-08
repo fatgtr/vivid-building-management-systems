@@ -21,6 +21,7 @@ import CommitteeView from '@/components/assets/CommitteeView';
 import QRScanner from '@/components/qr/QRScanner';
 import ImportExportToolbar from '@/components/import-export/ImportExportToolbar';
 import AssetCostWarrantyImporter from '@/components/assets/AssetCostWarrantyImporter';
+import CategoryImportPanel from '@/components/assets/CategoryImportPanel';
 import { 
   Search, 
   Package, 
@@ -181,6 +182,12 @@ export default function AssetRegister() {
 
   const mainCategoryCounts = getMainCategoryCounts();
 
+  // Assets belonging to the active category (main, or main + sub), ignoring search/status/compliance
+  // filters so the barometer totals stay stable regardless of the search box.
+  const categoryAssets = selectedMainCategory && !isEmergencyLightingView
+    ? assets.filter((a) => a.asset_main_category === selectedMainCategory && (!selectedSubcategory || a.asset_subcategory === selectedSubcategory))
+    : [];
+
   if (isLoading) {
     return (
       <div className="space-y-8">
@@ -298,6 +305,16 @@ export default function AssetRegister() {
         </div>
       )}
 
+      {/* Universal AI Importer + Compliance Barometer — main category level */}
+      {selectedMainCategory && !selectedSubcategory && !isEmergencyLightingView && (
+        <CategoryImportPanel
+          selectedBuildingId={selectedBuildingId}
+          mainCategory={selectedMainCategory}
+          subcategory={null}
+          assets={categoryAssets}
+        />
+      )}
+
       {/* Sub-Category Cards */}
       {selectedMainCategory && !selectedSubcategory && (
         <>
@@ -338,6 +355,16 @@ export default function AssetRegister() {
           selectedBuildingId={selectedBuildingId}
           buildings={buildings}
           getBuildingName={getBuildingName}
+        />
+      )}
+
+      {/* Universal AI Importer + Compliance Barometer — every non-emergency sub-category */}
+      {selectedSubcategory && !isEmergencyLightingView && (
+        <CategoryImportPanel
+          selectedBuildingId={selectedBuildingId}
+          mainCategory={selectedMainCategory}
+          subcategory={selectedSubcategory}
+          assets={categoryAssets}
         />
       )}
 
