@@ -71,6 +71,10 @@
       "type": "string",
       "description": "Barcode or QR code for mobile scanning"
     },
+    "fitting_number": {
+      "type": "string",
+      "description": "Fitting number from an AS 2293.1 emergency/exit lighting register (e.g., 4.1, FS1)"
+    },
     "location": {
       "type": "string",
       "description": "Physical location in building (free text)"

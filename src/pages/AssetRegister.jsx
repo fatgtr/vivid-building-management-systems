@@ -14,6 +14,7 @@ import { useBuildingContext } from '@/components/BuildingContext';
 import { usePermissions } from '@/components/permissions/PermissionsContext';
 import { ASSET_CATEGORIES, formatSubcategoryLabel } from '@/components/categories/assetCategories';
 import BuildingManagerView from '@/components/assets/BuildingManagerView';
+import EmergencyLightingRegister from '@/components/assets/EmergencyLightingRegister';
 import StrataManagerView from '@/components/assets/StrataManagerView';
 import ContractorView from '@/components/assets/ContractorView';
 import CommitteeView from '@/components/assets/CommitteeView';
@@ -51,6 +52,7 @@ export default function AssetRegister() {
   const isCommitteeMember = hasRole('committee');
   const isStrataManager = hasRole('strata_manager') || isAdmin();
   const isBuildingManager = hasRole('building_manager') || isAdmin();
+  const isEmergencyLightingView = selectedSubcategory === 'emergency_lighting' || selectedSubcategory === 'exit_signage';
 
   const { data: assets = [], isLoading } = useQuery({
     queryKey: ['assets', selectedBuildingId],
@@ -312,8 +314,17 @@ export default function AssetRegister() {
         </>
       )}
 
-      {/* Filters and Sorting - Only show when viewing asset list */}
-      {selectedSubcategory && (
+      {/* Emergency & Exit Lighting dedicated register (AS 2293.1) */}
+      {selectedSubcategory && isEmergencyLightingView && (
+        <EmergencyLightingRegister
+          selectedBuildingId={selectedBuildingId}
+          buildings={buildings}
+          getBuildingName={getBuildingName}
+        />
+      )}
+
+      {/* Filters and Sorting - Only show when viewing asset list (non-emergency) */}
+      {selectedSubcategory && !isEmergencyLightingView && (
         <Card>
           <CardContent className="p-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -385,8 +396,8 @@ export default function AssetRegister() {
         </Card>
       )}
 
-      {/* Asset List - Only show when subcategory is selected */}
-      {selectedSubcategory && (
+      {/* Asset List - Only show when subcategory is selected (non-emergency) */}
+      {selectedSubcategory && !isEmergencyLightingView && (
         <>
           {filteredAssets.length === 0 ? (
             <EmptyState

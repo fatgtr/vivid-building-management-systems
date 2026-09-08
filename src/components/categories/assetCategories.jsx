@@ -80,11 +80,13 @@ export const ASSET_CATEGORIES = {
     ]
   },
   'fire_life_safety': {
-    label: 'Fire & Life Safety',
-    icon: Flame,
-    color: 'text-orange-600 bg-orange-50 border-orange-200',
-    subcategories: [
-      'fire_indicator_panel',
+  label: 'Fire & Life Safety',
+  icon: Flame,
+  color: 'text-orange-600 bg-orange-50 border-orange-200',
+  subcategories: [
+    'emergency_lighting',
+    'exit_signage',
+    'fire_indicator_panel',
       'smoke_detectors',
       'heat_detectors',
       'manual_call_points',
@@ -271,6 +273,22 @@ export const ASSET_CATEGORIES = {
       'manuals'
     ]
   }
+};
+
+// Controlled vocabulary for AS 2293.1 emergency & exit lighting fitting types
+export const EMERGENCY_LIGHTING_FITTING_TYPES = [
+  { code: 'emergency_spitfire_recessed', label: 'Emergency Spitfire (Recessed)', is_exit: false },
+  { code: 'emergency_spitfire_surface', label: 'Emergency Spitfire (Surface)', is_exit: false },
+  { code: 'emergency_4ft_weatherproof', label: 'Emergency 4ft Weatherproof', is_exit: false },
+  { code: 'emergency_2ft_weatherproof', label: 'Emergency 2ft Weatherproof', is_exit: false },
+  { code: 'exit_quickfit', label: 'Exit Quickfit', is_exit: true },
+  { code: 'exit_weatherproof', label: 'Exit Weatherproof', is_exit: true },
+  { code: 'other', label: 'Other Emergency/Exit Fitting', is_exit: false }
+];
+
+export const getFittingTypeLabel = (code) => {
+  const ft = EMERGENCY_LIGHTING_FITTING_TYPES.find(f => f.code === code);
+  return ft ? ft.label : code;
 };
 
 // Helper function to get formatted subcategory label
