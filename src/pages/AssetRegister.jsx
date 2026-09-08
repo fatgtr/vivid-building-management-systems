@@ -149,6 +149,10 @@ export default function AssetRegister() {
       if (asset.asset_main_category) {
         counts[asset.asset_main_category] = (counts[asset.asset_main_category] || 0) + 1;
       }
+      // Surface emergency & exit lighting under Electrical Services too (cross-category)
+      if (asset.asset_subcategory === 'emergency_lighting' || asset.asset_subcategory === 'exit_signage') {
+        counts.electrical_services = (counts.electrical_services || 0) + 1;
+      }
     });
     return counts;
   };
