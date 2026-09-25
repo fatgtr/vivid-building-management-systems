@@ -283,6 +283,10 @@ export default function ResidentProfile() {
               <p className="text-sm font-medium text-slate-900">{resident.hot_water_meter_number || 'Not set'}</p>
             </div>
             <div>
+              <Label className="text-xs text-slate-500">Water</Label>
+              <p className="text-sm font-medium text-slate-900">{resident.water_meter_number || 'Not set'}</p>
+            </div>
+            <div>
               <Label className="text-xs text-slate-500">Electrical</Label>
               <p className="text-sm font-medium text-slate-900">{resident.electrical_meter_number || 'Not set'}</p>
             </div>
@@ -565,12 +569,19 @@ export default function ResidentProfile() {
             )}
 
             {editingSection === 'meters' && (
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Hot Water Meter</Label>
                   <Input
                     value={formData.hot_water_meter_number || ''}
                     onChange={(e) => setFormData({ ...formData, hot_water_meter_number: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Water Meter</Label>
+                  <Input
+                    value={formData.water_meter_number || ''}
+                    onChange={(e) => setFormData({ ...formData, water_meter_number: e.target.value })}
                   />
                 </div>
                 <div>

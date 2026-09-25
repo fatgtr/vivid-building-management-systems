@@ -118,6 +118,9 @@
     "hot_water_meter_number": {
       "type": "string"
     },
+    "water_meter_number": {
+      "type": "string"
+    },
     "electrical_meter_number": {
       "type": "string"
     },
