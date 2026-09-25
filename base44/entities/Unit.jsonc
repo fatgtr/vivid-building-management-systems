@@ -73,6 +73,14 @@
       "type": "string",
       "description": "Owner's address for service of notices"
     },
+    "meter_photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Evidence photos of utility meters (electricity/gas/water) scanned for this unit"
+    },
     "description": {
       "type": "string",
       "maxLength": 1000,

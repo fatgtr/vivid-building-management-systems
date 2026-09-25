@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Zap, Flame, Droplet, Camera, Loader2, CheckCircle2, Copy, ArrowDownToLine } from 'lucide-react';
+import { Zap, Flame, Droplet, Camera, Loader2, CheckCircle2, Copy, ArrowDownToLine, X, ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
 const TYPE_ICON = {
@@ -28,7 +28,7 @@ const TYPE_LABEL = {
 // LLM sometimes returns the literal string "null" for missing fields
 const clean = (v) => (v == null || v === 'null' || v === '') ? '' : String(v);
 
-export default function MeterScanner({ onApplyUnitNumber }) {
+export default function MeterScanner({ onApplyUnitNumber, photos = [], onPhotosChange }) {
   const [imageUrl, setImageUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -44,7 +44,7 @@ export default function MeterScanner({ onApplyUnitNumber }) {
       const res = await base44.functions.invoke('extractMeterDetails', { file_url });
       const data = res?.data?.data || res?.data;
       if (data) {
-        setResult({
+        const parsed = {
           meter_type: clean(data.meter_type) || 'unknown',
           unit_number: clean(data.unit_number),
           nmi_number: clean(data.nmi_number),
@@ -53,7 +53,13 @@ export default function MeterScanner({ onApplyUnitNumber }) {
           meter_reading: data.meter_reading,
           reading_unit: clean(data.reading_unit),
           manufacturer: clean(data.manufacturer),
-        });
+        };
+        setResult(parsed);
+        // Store the photo as evidence
+        if (onPhotosChange) {
+          onPhotosChange([...photos, file_url]);
+          toast.success('Meter photo saved as evidence');
+        }
       } else {
         throw new Error(res?.data?.error || 'No data returned');
       }
@@ -76,6 +82,11 @@ export default function MeterScanner({ onApplyUnitNumber }) {
     if (fileRef.current) fileRef.current.value = '';
   };
 
+  const removePhoto = (url) => {
+    if (!onPhotosChange) return;
+    onPhotosChange(photos.filter((p) => p !== url));
+  };
+
   const Icon = result ? (TYPE_ICON[result.meter_type] || Zap) : Zap;
 
   return (
@@ -85,10 +96,16 @@ export default function MeterScanner({ onApplyUnitNumber }) {
           <div className={`h-9 w-9 rounded-lg bg-gradient-to-br ${result ? TYPE_COLOR[result.meter_type] : TYPE_COLOR.unknown} flex items-center justify-center`}>
             <Icon className="h-5 w-5 text-white" />
           </div>
-          <div>
+          <div className="flex-1">
             <Label className="text-base font-semibold">Scan Meter Photo</Label>
             <p className="text-xs text-slate-600">Photo the meter to read unit, NMI & reading</p>
           </div>
+          {photos.length > 0 && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5 text-xs font-medium">
+              <ImageIcon className="h-3 w-3" />
+              {photos.length} saved
+            </span>
+          )}
         </div>
 
         <input
@@ -175,7 +192,37 @@ export default function MeterScanner({ onApplyUnitNumber }) {
 
             <div className="flex items-center gap-1.5 text-xs text-emerald-600">
               <CheckCircle2 className="h-3.5 w-3.5" />
-              Extracted — values not saved automatically
+              Extracted — photo kept as evidence
+            </div>
+          </div>
+        )}
+
+        {photos.length > 0 && (
+          <div className="border-t pt-3">
+            <p className="text-xs font-semibold text-slate-600 mb-2">Evidence photos ({photos.length})</p>
+            <div className="grid grid-cols-3 gap-2">
+              {photos.map((url, i) => (
+                <div key={i} className="relative group rounded-lg overflow-hidden border border-slate-200 bg-white aspect-square">
+                  <img src={url} alt={`Meter ${i + 1}`} className="w-full h-full object-cover" />
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center"
+                    title="View full image"
+                  />
+                  {onPhotosChange && (
+                    <button
+                      type="button"
+                      onClick={() => removePhoto(url)}
+                      className="absolute top-1 right-1 h-5 w-5 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Remove"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         )}

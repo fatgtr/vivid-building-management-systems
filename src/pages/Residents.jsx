@@ -18,7 +18,7 @@ import MoveChecklistDisplay from '@/components/move/MoveChecklistDisplay';
 import MeterScanner from '@/components/units/MeterScanner';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Users, Search, Pencil, Trash2, Building2, Home, Phone, Mail, MoreVertical, Calendar, Upload, FileText, X, ExternalLink, Send, User, Plus, Bed, Bath, Square, Edit, MapPin, BriefcaseBusiness, UserPlus, ClipboardCheck } from 'lucide-react';
+import { Users, Search, Pencil, Trash2, Building2, Home, Phone, Mail, MoreVertical, Calendar, Upload, FileText, X, ExternalLink, Send, User, Plus, Bed, Bath, Square, Edit, MapPin, BriefcaseBusiness, UserPlus, ClipboardCheck, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   DropdownMenu,
@@ -101,6 +101,7 @@ export default function Residents() {
     owner_name: '',
     owner_email: '',
     owner_phone: '',
+    meter_photos: [],
   });
   const [deleteUnit, setDeleteUnit] = useState(null);
   const [viewUnitsForBuilding, setViewUnitsForBuilding] = useState(null);
@@ -360,6 +361,7 @@ export default function Residents() {
       owner_name: '',
       owner_email: '',
       owner_phone: '',
+      meter_photos: [],
     });
   };
 
@@ -379,6 +381,7 @@ export default function Residents() {
       owner_name: unit.owner_name || '',
       owner_email: unit.owner_email || '',
       owner_phone: unit.owner_phone || '',
+      meter_photos: unit.meter_photos || [],
     });
     setShowUnitDialog(true);
   };
@@ -886,6 +889,18 @@ export default function Residents() {
                           </div>
                         )}
                       </div>
+
+                      {unit.meter_photos?.length > 0 && (
+                        <div className="flex items-center gap-1 mb-2">
+                          <Zap className="h-3.5 w-3.5 text-amber-500" />
+                          <span className="text-xs text-slate-500">{unit.meter_photos.length} meter photo{unit.meter_photos.length !== 1 ? 's' : ''}</span>
+                          <div className="flex gap-1 ml-1">
+                            {unit.meter_photos.slice(0, 3).map((p, i) => (
+                              <img key={i} src={p} alt="" className="h-6 w-6 rounded object-cover border border-slate-200" />
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
                       <div className="mt-3 pt-3 border-t border-slate-100">
                         <StatusBadge status={unit.status} />
@@ -1410,6 +1425,8 @@ export default function Residents() {
             </Card>
 
             <MeterScanner
+              photos={unitFormData.meter_photos}
+              onPhotosChange={(photos) => setUnitFormData({ ...unitFormData, meter_photos: photos })}
               onApplyUnitNumber={(val) => setUnitFormData({ ...unitFormData, unit_number: val })}
             />
 
