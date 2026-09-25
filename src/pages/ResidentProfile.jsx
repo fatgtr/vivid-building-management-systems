@@ -11,11 +11,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import StatusBadge from '@/components/common/StatusBadge';
-import { ArrowLeft, Pencil, Mail, Phone, Home, Building2, Calendar, Car, FileText, User, Users, Briefcase, Upload, X, Send } from 'lucide-react';
+import { ArrowLeft, Pencil, Mail, Phone, Home, Building2, Calendar, Car, FileText, User, Users, Briefcase, Upload, X, Send, Camera } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import MeterScanner from '@/components/units/MeterScanner';
 
 export default function ResidentProfile() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -294,6 +295,27 @@ export default function ResidentProfile() {
               <Label className="text-xs text-slate-500">Gas</Label>
               <p className="text-sm font-medium text-slate-900">{resident.gas_meter_number || 'Not set'}</p>
             </div>
+            {resident.meter_photos && resident.meter_photos.length > 0 && (
+              <div className="pt-2 border-t border-slate-100">
+                <Label className="text-xs text-slate-500 flex items-center gap-1.5">
+                  <Camera className="h-3.5 w-3.5" />
+                  Meter Photos ({resident.meter_photos.length})
+                </Label>
+                <div className="grid grid-cols-4 gap-2 mt-2">
+                  {resident.meter_photos.map((url, i) => (
+                    <a
+                      key={i}
+                      href={url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block rounded-lg overflow-hidden border border-slate-200 bg-slate-50 aspect-square hover:ring-2 hover:ring-blue-300 transition"
+                    >
+                      <img src={url} alt={`Meter ${i + 1}`} className="w-full h-full object-cover" />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -569,35 +591,41 @@ export default function ResidentProfile() {
             )}
 
             {editingSection === 'meters' && (
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Hot Water Meter</Label>
-                  <Input
-                    value={formData.hot_water_meter_number || ''}
-                    onChange={(e) => setFormData({ ...formData, hot_water_meter_number: e.target.value })}
-                  />
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Hot Water Meter</Label>
+                    <Input
+                      value={formData.hot_water_meter_number || ''}
+                      onChange={(e) => setFormData({ ...formData, hot_water_meter_number: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label>Water Meter</Label>
+                    <Input
+                      value={formData.water_meter_number || ''}
+                      onChange={(e) => setFormData({ ...formData, water_meter_number: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label>Electrical Meter</Label>
+                    <Input
+                      value={formData.electrical_meter_number || ''}
+                      onChange={(e) => setFormData({ ...formData, electrical_meter_number: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label>Gas Meter</Label>
+                    <Input
+                      value={formData.gas_meter_number || ''}
+                      onChange={(e) => setFormData({ ...formData, gas_meter_number: e.target.value })}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label>Water Meter</Label>
-                  <Input
-                    value={formData.water_meter_number || ''}
-                    onChange={(e) => setFormData({ ...formData, water_meter_number: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label>Electrical Meter</Label>
-                  <Input
-                    value={formData.electrical_meter_number || ''}
-                    onChange={(e) => setFormData({ ...formData, electrical_meter_number: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label>Gas Meter</Label>
-                  <Input
-                    value={formData.gas_meter_number || ''}
-                    onChange={(e) => setFormData({ ...formData, gas_meter_number: e.target.value })}
-                  />
-                </div>
+                <MeterScanner
+                  photos={formData.meter_photos || []}
+                  onPhotosChange={(photos) => setFormData({ ...formData, meter_photos: photos })}
+                />
               </div>
             )}
 

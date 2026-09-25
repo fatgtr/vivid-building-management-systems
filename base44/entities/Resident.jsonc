@@ -126,6 +126,14 @@
     },
     "gas_meter_number": {
       "type": "string"
+    },
+    "meter_photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Evidence photos of utility meters scanned for this resident"
     }
   },
   "required": [
