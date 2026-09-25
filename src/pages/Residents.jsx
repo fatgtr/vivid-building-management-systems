@@ -15,6 +15,7 @@ import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
 import MoveChecklistDisplay from '@/components/move/MoveChecklistDisplay';
+import MeterScanner from '@/components/units/MeterScanner';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Users, Search, Pencil, Trash2, Building2, Home, Phone, Mail, MoreVertical, Calendar, Upload, FileText, X, ExternalLink, Send, User, Plus, Bed, Bath, Square, Edit, MapPin, BriefcaseBusiness, UserPlus, ClipboardCheck } from 'lucide-react';
@@ -1407,6 +1408,10 @@ export default function Residents() {
                 <p className="text-xs text-slate-600 mt-2">Select which building this unit belongs to</p>
               </CardContent>
             </Card>
+
+            <MeterScanner
+              onApplyUnitNumber={(val) => setUnitFormData({ ...unitFormData, unit_number: val })}
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
