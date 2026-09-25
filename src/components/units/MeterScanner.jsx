@@ -10,18 +10,21 @@ const TYPE_ICON = {
   electricity: Zap,
   gas: Flame,
   water: Droplet,
+  hot_water: Flame,
   unknown: Zap,
 };
 const TYPE_COLOR = {
   electricity: 'from-amber-500 to-orange-500',
   gas: 'from-blue-500 to-cyan-500',
   water: 'from-sky-500 to-blue-600',
+  hot_water: 'from-rose-500 to-red-500',
   unknown: 'from-amber-500 to-orange-500',
 };
 const TYPE_LABEL = {
   electricity: 'Electricity Meter',
   gas: 'Gas Meter',
   water: 'Water Meter',
+  hot_water: 'Hot Water Meter',
   unknown: 'Meter',
 };
 

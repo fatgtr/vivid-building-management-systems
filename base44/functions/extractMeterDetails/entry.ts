@@ -50,7 +50,7 @@ Rules:
             response_json_schema: {
                 type: "object",
                 properties: {
-                    meter_type: { type: "string", enum: ["electricity", "gas", "water", "unknown"] },
+                    meter_type: { type: "string", enum: ["electricity", "gas", "water", "hot_water", "unknown"] },
                     unit_number: { type: "string" },
                     nmi_number: { type: "string" },
                     meter_model: { type: "string" },
