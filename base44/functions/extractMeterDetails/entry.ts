@@ -15,29 +15,49 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'file_url is required' }, { status: 400 });
         }
 
-        // Extract meter details from photo using vision-capable LLM
+        // Extract meter details from photo using vision-capable LLM.
+        // Handles electricity, gas and water meters.
         const extracted = await base44.integrations.Core.InvokeLLM({
-            prompt: `You are an OCR assistant for Australian electricity meters.
-Analyze this photo of an electrical meter installation and extract the following identifiers.
+            prompt: `You are an OCR assistant for Australian utility meters.
+Analyze this photo of a utility meter installation and extract the following details.
 
-Look specifically for:
-1. UNIT NUMBER — Usually printed on a small sticker/label ABOVE the meter, often formatted as "APT <number>" (e.g. "APT 1003"). Return just the number portion (e.g. "1003"). If the label shows a full apartment reference, return it verbatim.
-2. NMI NUMBER — The National Meter Identifier, a 10 or 11-digit number printed on a label marked "NMI" (often on an ActiveStream sticker below the meter, e.g. "4104045429"). Return only the digits.
-3. METER MODEL — The meter model (e.g. "ATLAS Mk7C"), if visible.
-4. METER SERIAL — The serial/barcode number on the meter faceplate, if visible.
+First, identify the METER TYPE: one of "electricity", "gas", or "water".
+
+Then extract every field you can read:
+
+UNIT NUMBER:
+- For electricity meters: usually a small sticker ABOVE the meter, often "APT <number>" (e.g. "APT 1003" → "1003").
+- For gas/water meters: may be handwritten on the mounting bracket/pipe, printed on a tag, or on a sticker. Return just the identifier (e.g. "902").
+- Return digits/identifier only, no label words.
+
+NMI NUMBER (electricity only): the National Meter Identifier, 10-11 digits printed under "NMI" (often on an ActiveStream label). Gas/water meters have no NMI — return null.
+
+METER MODEL: the model name (e.g. "ATLAS Mk7C", "BK-G1.6M").
+
+METER SERIAL: the serial / barcode / S/N number on the meter (e.g. "700587326", "QR130106").
+
+METER READING: the current registered consumption shown on the display/dials, as a number. For gas meters use the main index reading (e.g. "00224.45" → "224.45"). Return the numeric value only.
+
+READING UNIT: the unit of the reading (e.g. "kWh", "m³", "L"). Null if not visible.
+
+MANUFACTURER: the maker if printed (e.g. "EDMI", "Honeywell", "Elster").
 
 Rules:
-- Only return values you can clearly read in the image. If something is not visible or illegible, return null for that field.
-- Do NOT guess or fabricate numbers.
-- Return digits only for NMI and unit number (strip spaces/dashes).`,
+- Only return values you can clearly read. If a field is not visible or illegible, return null.
+- Never guess or fabricate numbers.
+- For numbers, return digits only (strip spaces; keep a single decimal point for readings).`,
             file_urls: [file_url],
             response_json_schema: {
                 type: "object",
                 properties: {
+                    meter_type: { type: "string", enum: ["electricity", "gas", "water", "unknown"] },
                     unit_number: { type: "string" },
                     nmi_number: { type: "string" },
                     meter_model: { type: "string" },
-                    meter_serial: { type: "string" }
+                    meter_serial: { type: "string" },
+                    meter_reading: { type: "number" },
+                    reading_unit: { type: "string" },
+                    manufacturer: { type: "string" }
                 }
             }
         });
