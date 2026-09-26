@@ -14,6 +14,7 @@ import EmptyState from '@/components/common/EmptyState';
 import StatusBadge from '@/components/common/StatusBadge';
 import DocumentUploadDialog from '@/components/documents/DocumentUploadDialog';
 import DocumentVersionDialog from '@/components/documents/DocumentVersionDialog';
+import DocumentViewerDialog from '@/components/documents/DocumentViewerDialog';
 import { FileText, Search, Building2, MoreVertical, Trash2, Download, Upload, Eye, File, FileImage, FileArchive, Folder, ChevronDown, ChevronRight, Scan, History, FileUp, Loader2, CheckCircle2, AlertCircle, Wrench, Tag, Sparkles, FileSearch, ChevronUp, Shield, Mail, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -87,6 +88,7 @@ export default function Documents() {
   const [ocrProcessing, setOcrProcessing] = useState({});
   const [showAsBuiltExtractor, setShowAsBuiltExtractor] = useState(false);
   const [editingDocument, setEditingDocument] = useState(null);
+  const [viewingDocument, setViewingDocument] = useState(null);
   const [expandedSummaries, setExpandedSummaries] = useState({});
   const [generatingSummary, setGeneratingSummary] = useState(null);
   const [user, setUser] = useState(null);
@@ -526,7 +528,11 @@ export default function Documents() {
                           const hasVersions = versions.length > 1;
                           
                           return (
-                            <TableRow key={doc.id} className="hover:bg-slate-50/50">
+                            <TableRow
+                              key={doc.id}
+                              className="hover:bg-slate-50/50 cursor-pointer"
+                              onClick={() => setViewingDocument(doc)}
+                            >
                               <TableCell>
                                 <div className="flex items-center gap-3">
                                   <div className="p-2 bg-blue-50 rounded-lg">
@@ -534,7 +540,12 @@ export default function Documents() {
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
-                                      <p className="font-medium text-slate-900">{doc.title}</p>
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); setViewingDocument(doc); }}
+                                        className="font-medium text-slate-900 hover:text-blue-600 hover:underline text-left"
+                                      >
+                                        {doc.title}
+                                      </button>
                                       {hasVersions && (
                                         <span className="text-xs px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded">
                                           v{doc.version || 1}
@@ -644,15 +655,24 @@ export default function Documents() {
                               <TableCell>
                                 <div className="flex items-center gap-1">
                                   {doc.file_url && (
-                                    <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                                      <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
-                                        <Eye className="h-4 w-4 text-slate-500" />
-                                      </a>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8"
+                                      onClick={(e) => { e.stopPropagation(); setViewingDocument(doc); }}
+                                      title="View document"
+                                    >
+                                      <Eye className="h-4 w-4 text-slate-500" />
                                     </Button>
                                   )}
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
                                         <MoreVertical className="h-4 w-4" />
                                       </Button>
                                     </DropdownMenuTrigger>
@@ -764,6 +784,16 @@ export default function Documents() {
         onOpenChange={setShowUploadDialog}
         buildingId={filterBuilding !== 'all' ? filterBuilding : selectedBuildingId}
         onSuccess={handleDocumentUploaded}
+      />
+
+      {/* Document Viewer Dialog */}
+      <DocumentViewerDialog
+        document={viewingDocument}
+        open={!!viewingDocument}
+        onOpenChange={(open) => !open && setViewingDocument(null)}
+        buildingName={viewingDocument ? getBuildingName(viewingDocument.building_id) : ''}
+        onGenerateSummary={handleGenerateSummary}
+        generatingSummary={generatingSummary}
       />
 
       {/* Version Management Dialog */}

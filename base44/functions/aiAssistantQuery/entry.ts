@@ -21,10 +21,12 @@ Deno.serve(async (req) => {
     // Build context for the AI
     let contextPrompt = buildContextPrompt(query, category, contextData, buildingId);
 
-    // Call the LLM
+    // Call the LLM — use the fast model for this interactive chat assistant
+    // so responses render quickly for users (and automated testing agents).
     const response = await base44.integrations.Core.InvokeLLM({
       prompt: contextPrompt,
-      add_context_from_internet: false
+      add_context_from_internet: false,
+      model: 'gemini_3_flash'
     });
 
     return Response.json({
