@@ -113,18 +113,22 @@ export default function WorkOrders() {
     queryFn: () => base44.entities.Contractor.list(),
   });
 
-  const { data: assets = [] } = useQuery({
-    queryKey: ['assets', formData.building_id, formData.main_category],
+  const { data: buildingAssets = [] } = useQuery({
+    queryKey: ['assets', formData.building_id],
     queryFn: () => {
       if (!formData.building_id) return [];
-      const filters = { building_id: formData.building_id };
-      if (formData.main_category) {
-        filters.asset_main_category = formData.main_category;
-      }
-      return base44.entities.Asset.filter(filters);
+      return base44.entities.Asset.filter({ building_id: formData.building_id });
     },
     enabled: !!formData.building_id,
   });
+  // Filter client-side by category so selecting a main category no longer
+  // triggers a network refetch (which was crashing the page) — and guarantee
+  // `assets` is always an array regardless of what the query returns.
+  const assets = Array.isArray(buildingAssets)
+    ? (formData.main_category
+        ? buildingAssets.filter(a => a.asset_main_category === formData.main_category)
+        : buildingAssets)
+    : [];
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.WorkOrder.create(data),
