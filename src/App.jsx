@@ -5,10 +5,14 @@ import { queryClientInstance } from '@/lib/query-client'
 import VisualEditAgent from '@/lib/VisualEditAgent'
 import NavigationTracker from '@/lib/NavigationTracker'
 import { pagesConfig } from './pages.config'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
-import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import MaintenanceRequest from './pages/MaintenanceRequest';
 import MaintenanceRequestTracker from './pages/MaintenanceRequestTracker';
 import About from './pages/About';
@@ -26,7 +30,7 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   : <>{children}</>;
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings } = useAuth();
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -37,59 +41,56 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Handle authentication errors
-  if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
-      navigateToLogin();
-      return null;
-    }
-  }
-
-  // Render the main app
   return (
     <Routes>
-      <Route path="/" element={
-        <LayoutWrapper currentPageName={mainPageKey}>
-          <MainPage />
-        </LayoutWrapper>
-      } />
-      {Object.entries(Pages).map(([path, Page]) => (
-        <Route
-          key={path}
-          path={`/${path}`}
-          element={
-            <LayoutWrapper currentPageName={path}>
-              <Page />
-            </LayoutWrapper>
-          }
-        />
-      ))}
-      {/* Building Manager Report - layout-wrapped app page */}
-      <Route path="/BuildingManagerReport" element={
-        <LayoutWrapper currentPageName="BuildingManagerReport">
-          <BuildingManagerReport />
-        </LayoutWrapper>
-      } />
-      {/* Work order settings - layout-wrapped app page */}
-      <Route path="/WorkOrderSettings" element={
-        <LayoutWrapper currentPageName="WorkOrderSettings">
-          <WorkOrderSettings />
-        </LayoutWrapper>
-      } />
-      {/* Branding settings - layout-wrapped app page */}
-      <Route path="/BrandingSettings" element={
-        <LayoutWrapper currentPageName="BrandingSettings">
-          <BrandingSettings />
-        </LayoutWrapper>
-      } />
-      {/* Public routes - no layout wrapper */}
-      <Route path="/About" element={<About />} />
-      <Route path="/Contact" element={<Contact />} />
-      <Route path="/MaintenanceRequest" element={<MaintenanceRequest />} />
-      <Route path="/MaintenanceRequestTracker" element={<MaintenanceRequestTracker />} />
+      {/* Auth routes - public */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+
+      {/* Protected app routes - gated by ProtectedRoute */}
+      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+        <Route path="/" element={
+          <LayoutWrapper currentPageName={mainPageKey}>
+            <MainPage />
+          </LayoutWrapper>
+        } />
+        {Object.entries(Pages).map(([path, Page]) => (
+          <Route
+            key={path}
+            path={`/${path}`}
+            element={
+              <LayoutWrapper currentPageName={path}>
+                <Page />
+              </LayoutWrapper>
+            }
+          />
+        ))}
+        {/* Building Manager Report - layout-wrapped app page */}
+        <Route path="/BuildingManagerReport" element={
+          <LayoutWrapper currentPageName="BuildingManagerReport">
+            <BuildingManagerReport />
+          </LayoutWrapper>
+        } />
+        {/* Work order settings - layout-wrapped app page */}
+        <Route path="/WorkOrderSettings" element={
+          <LayoutWrapper currentPageName="WorkOrderSettings">
+            <WorkOrderSettings />
+          </LayoutWrapper>
+        } />
+        {/* Branding settings - layout-wrapped app page */}
+        <Route path="/BrandingSettings" element={
+          <LayoutWrapper currentPageName="BrandingSettings">
+            <BrandingSettings />
+          </LayoutWrapper>
+        } />
+        <Route path="/About" element={<About />} />
+        <Route path="/Contact" element={<Contact />} />
+        <Route path="/MaintenanceRequest" element={<MaintenanceRequest />} />
+        <Route path="/MaintenanceRequestTracker" element={<MaintenanceRequestTracker />} />
+      </Route>
+
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
