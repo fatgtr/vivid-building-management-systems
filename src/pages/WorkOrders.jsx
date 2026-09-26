@@ -23,6 +23,7 @@ import DescriptionAIAssistant from '@/components/workorders/DescriptionAIAssista
 import ResponsibilityLookup from '@/components/workorders/ResponsibilityLookup';
 import MaintenanceSchedulingSuggestions from '@/components/workorders/MaintenanceSchedulingSuggestions';
 import ContractorAssignmentDialog from '@/components/workorders/ContractorAssignmentDialog';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { Wrench, Search, Building2, AlertCircle, Clock, CheckCircle2, XCircle, MoreVertical, Pencil, Trash2, Calendar, User, Eye, Upload, Image as ImageIcon, Video, X, LayoutGrid, List, Star, Repeat, Sparkles, Home, Bot } from 'lucide-react';
 import {
   DropdownMenu,
@@ -766,6 +767,7 @@ export default function WorkOrders() {
               {editingOrder ? 'Edit Work Order' : 'Create Work Order'}
             </DialogTitle>
           </DialogHeader>
+          <ErrorBoundary key={showDialog ? 'open' : 'closed'} onReset={handleCloseDialog} resetLabel="Close">
           <form onSubmit={handleSubmit} className="space-y-6 pt-2">
             {/* Basic Information Card */}
             <Card className="border-2 border-blue-100 shadow-sm">
@@ -1425,6 +1427,7 @@ export default function WorkOrders() {
                 </Button>
               </DialogFooter>
           </form>
+          </ErrorBoundary>
         </DialogContent>
       </Dialog>
 
