@@ -866,14 +866,14 @@ export default function WorkOrders() {
                     <Label htmlFor="asset_id" className="text-sm font-semibold">Linked Asset (optional)</Label>
                     <Select 
                       value={formData.asset_id || ''} 
-                      onValueChange={(v) => setFormData({ ...formData, asset_id: v })} 
+                      onValueChange={(v) => setFormData({ ...formData, asset_id: v === 'none' ? '' : v })} 
                       disabled={!formData.building_id || !formData.main_category || assets.length === 0}
                     >
                       <SelectTrigger className="mt-1.5">
                         <SelectValue placeholder={assets.length === 0 ? "No assets available" : "Select asset"} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value={null}>No linked asset</SelectItem>
+                        <SelectItem value="none">No linked asset</SelectItem>
                         {assets.map(asset => (
                           <SelectItem key={asset.id} value={asset.id}>
                             {asset.name} ({asset.asset_type})
@@ -1075,12 +1075,12 @@ export default function WorkOrders() {
                         </Button>
                       )}
                     </div>
-                    <Select value={formData.assigned_contractor_id} onValueChange={(v) => setFormData({ ...formData, assigned_contractor_id: v })}>
+                    <Select value={formData.assigned_contractor_id || ''} onValueChange={(v) => setFormData({ ...formData, assigned_contractor_id: v === 'none' ? '' : v })}>
                       <SelectTrigger className="mt-1.5">
                         <SelectValue placeholder="Select contractor (optional)" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value={null}>No contractor</SelectItem>
+                        <SelectItem value="none">No contractor</SelectItem>
                         {contractors.map(c => (
                           <SelectItem key={c.id} value={c.id}>
                             <div className="flex flex-col">
