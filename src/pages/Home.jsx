@@ -33,11 +33,13 @@ import {
 } from 'lucide-react';
 import DemoRequestModal from '@/components/marketing/DemoRequestModal';
 import VividLogo from '@/components/marketing/VividLogo';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function Home() {
   const [showDemoModal, setShowDemoModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -778,17 +780,30 @@ export default function Home() {
                 Already a Vivid BMS user? Sign in to manage your properties, track work orders, and connect with your building community.
               </p>
 
-              <Button 
-                size="lg"
-                onClick={async () => {
-                  const { base44 } = await import('@/api/base44Client');
-                  base44.auth.redirectToLogin(createPageUrl('Dashboard'));
-                }}
-                className="bg-[#00529F] hover:bg-[#003d75] text-white text-lg px-12 py-6"
-              >
-                <LogIn className="mr-2 h-5 w-5" />
-                Login to Dashboard
-              </Button>
+              {isAuthenticated ? (
+                <Button
+                  size="lg"
+                  asChild
+                  className="bg-[#00529F] hover:bg-[#003d75] text-white text-lg px-12 py-6"
+                >
+                  <Link to={createPageUrl('Dashboard')}>
+                    <LayoutDashboard className="mr-2 h-5 w-5" />
+                    Go to Dashboard
+                  </Link>
+                </Button>
+              ) : (
+                <Button 
+                  size="lg"
+                  onClick={async () => {
+                    const { base44 } = await import('@/api/base44Client');
+                    base44.auth.redirectToLogin(createPageUrl('Dashboard'));
+                  }}
+                  className="bg-[#00529F] hover:bg-[#003d75] text-white text-lg px-12 py-6"
+                >
+                  <LogIn className="mr-2 h-5 w-5" />
+                  Login to Dashboard
+                </Button>
+              )}
 
               <p className="mt-6 text-sm text-gray-500">
                 Need help? Contact <a href="mailto:support@vividbms.com" className="text-[#00529F] hover:underline">support@vividbms.com</a>
