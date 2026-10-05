@@ -21,16 +21,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import DeleteBuildingDialog from '@/components/buildings/DeleteBuildingDialog';
+import useDeleteBuilding from '@/hooks/useDeleteBuilding';
 
 const initialFormState = {
   name: '',
@@ -124,26 +116,7 @@ export default function Buildings() {
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async (id) => {
-      const result = await base44.functions.invoke('deleteBuildingCascade', { buildingId: id });
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to delete building');
-      }
-      return result;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['buildings'] });
-      queryClient.invalidateQueries({ queryKey: ['units'] });
-      queryClient.invalidateQueries({ queryKey: ['residents'] });
-      setDeleteBuilding(null);
-      toast.success('Building and all associated data deleted successfully');
-    },
-    onError: (error) => {
-      toast.error(error.message || 'Failed to delete building');
-      console.error('Delete error:', error);
-    },
-  });
+  const deleteMutation = useDeleteBuilding(() => setDeleteBuilding(null));
 
   const handleCloseDialog = () => {
     setShowDialog(false);
@@ -751,42 +724,11 @@ export default function Buildings() {
       </Dialog>
 
       {/* Delete Confirmation */}
-      <AlertDialog open={!!deleteBuilding} onOpenChange={() => setDeleteBuilding(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Building & All Data</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
-              <p className="font-semibold text-red-600">
-                Are you sure you want to delete "{deleteBuilding?.name}"?
-              </p>
-              <p className="text-sm">
-                This will permanently delete:
-              </p>
-              <ul className="text-sm list-disc list-inside space-y-1 text-slate-600">
-                <li>All units in this building</li>
-                <li>All resident information</li>
-                <li>All work orders and maintenance schedules</li>
-                <li>All documents and announcements</li>
-                <li>All inspections and visitor logs</li>
-                <li>All amenities and bookings</li>
-              </ul>
-              <p className="text-sm font-semibold text-red-600 mt-2">
-                This action cannot be undone.
-              </p>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => deleteMutation.mutate(deleteBuilding.id)}
-              className="bg-red-600 hover:bg-red-700"
-              disabled={deleteMutation.isPending}
-            >
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteBuildingDialog
+        building={deleteBuilding}
+        mutation={deleteMutation}
+        onCancel={() => setDeleteBuilding(null)}
+      />
     </div>
   );
 }

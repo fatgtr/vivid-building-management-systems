@@ -1,6 +1,6 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 
-Deno.serve(async (req) => {
+export default async function(req) {
     try {
         const base44 = createClientFromRequest(req);
         
@@ -13,9 +13,12 @@ Deno.serve(async (req) => {
         // Parse request body
         const { buildingId } = await req.json();
         
-        if (!buildingId) {
-            return Response.json({ error: 'Building ID is required' }, { status: 400 });
+        if (typeof buildingId !== 'string' || !buildingId.trim()) {
+            return Response.json({ success: false, error: 'Building ID is required' }, { status: 400 });
         }
+
+        // Confirm the building exists and is visible to this user before deleting children.
+        await base44.entities.Building.get(buildingId);
 
         // Use service role for comprehensive deletion.
         // Each deleteMany runs a single bulk delete for all matching records,
@@ -34,22 +37,17 @@ Deno.serve(async (req) => {
             'Inspection',
             'Document',
             'Announcement',
-            'Amenity',
             'AmenityBooking',
+            'Amenity',
             'VisitorLog',
             'SmartDeviceIntegration',
             'ImportantNumber',
             'ComplianceRecord',
         ];
 
+        // Stop on any child-deletion failure; never remove the parent or report success after an incomplete cascade.
         for (const entityName of relatedEntities) {
-            try {
-                await serviceRole.entities[entityName].deleteMany({ building_id: buildingId });
-            } catch (err) {
-                // Non-fatal: a related entity may have no matching records or
-                // may not carry building_id — continue with the rest.
-                console.error(`deleteMany ${entityName} failed:`, err?.message || err);
-            }
+            await serviceRole.entities[entityName].deleteMany({ building_id: buildingId });
         }
 
         // Finally, delete the Building itself.
@@ -62,8 +60,9 @@ Deno.serve(async (req) => {
 
     } catch (error) {
         console.error('Delete building error:', error);
-        return Response.json({ 
+        return Response.json({
+            success: false,
             error: error.message || 'Failed to delete building'
-        }, { status: 500 });
+        }, { status: error.status || 500 });
     }
-});
+}

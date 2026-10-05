@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,8 @@ import MaintenanceReportFilters from '@/components/reports/MaintenanceReportFilt
 import WorkOrderInsightsDashboard from '@/components/analytics/WorkOrderInsightsDashboard';
 import LocationBasedInspectionGenerator from '@/components/inspections/LocationBasedInspectionGenerator';
 import ComplianceTab from '@/components/buildings/ComplianceTab';
+import DeleteBuildingDialog from '@/components/buildings/DeleteBuildingDialog';
+import useDeleteBuilding from '@/hooks/useDeleteBuilding';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,7 +46,8 @@ import {
   Shield,
   MapPinned,
   Factory,
-  Pencil
+  Pencil,
+  Trash2
 } from 'lucide-react';
 
 export default function BuildingProfile() {
@@ -53,6 +56,9 @@ export default function BuildingProfile() {
   const queryClient = useQueryClient();
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editFormData, setEditFormData] = useState({});
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const navigate = useNavigate();
+  const deleteMutation = useDeleteBuilding(() => navigate('/Buildings', { replace: true }));
 
   const { data: building, isLoading: buildingLoading } = useQuery({
     queryKey: ['building', buildingId],
@@ -164,7 +170,7 @@ export default function BuildingProfile() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-4">
         <Link to={createPageUrl('Buildings')}>
           <Button variant="ghost" size="icon">
             <ArrowLeft className="h-5 w-5" />
@@ -182,6 +188,10 @@ export default function BuildingProfile() {
         <Button variant="outline" onClick={handleEditClick}>
           <Pencil className="h-4 w-4 mr-2" />
           Edit Details
+        </Button>
+        <Button variant="destructive" onClick={() => setShowDeleteDialog(true)} disabled={deleteMutation.isPending}>
+          <Trash2 className="h-4 w-4 mr-2" />
+          Delete Building
         </Button>
       </div>
 
@@ -629,6 +639,12 @@ export default function BuildingProfile() {
           </div>
         </TabsContent>
       </Tabs>
+
+      <DeleteBuildingDialog
+        building={showDeleteDialog ? building : null}
+        mutation={deleteMutation}
+        onCancel={() => setShowDeleteDialog(false)}
+      />
 
       {/* Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
