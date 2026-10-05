@@ -126,11 +126,11 @@ export default function Buildings() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id) => {
-      const response = await base44.functions.invoke('deleteBuildingCascade', { buildingId: id });
-      if (!response.data.success) {
-        throw new Error(response.data.error || 'Failed to delete building');
+      const result = await base44.functions.invoke('deleteBuildingCascade', { buildingId: id });
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to delete building');
       }
-      return response.data;
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['buildings'] });
