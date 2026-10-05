@@ -4,10 +4,6 @@ import { createPageUrl } from '../utils';
 import { usePermissions } from '@/components/permissions/PermissionsContext';
 import TestingAccessOverride from '@/components/settings/TestingAccessOverride';
 import { pagesConfig } from '../pages.config';
-
-// Pages that have a registered route. Settings cards pointing to anything
-// else render as a static "Coming soon" tile instead of a 404 link.
-const ROUTED_PAGES = new Set(Object.keys(pagesConfig.Pages));
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -62,6 +58,14 @@ export default function SystemSettings() {
     );
   }
 
+  // Pages that have a registered route. Settings cards pointing to anything
+  // else render as a static "Coming soon" tile instead of a 404 link.
+  const ROUTED_PAGES = new Set([
+    ...Object.keys(pagesConfig.Pages),
+    // Explicit routes registered directly in App.jsx
+    'BrandingSettings', 'WorkOrderSettings', 'BuildingManagerReport',
+  ]);
+
   const generalSettings = [
     { title: 'Logo & Branding', description: 'Customize your application logo and branding', icon: Image, page: 'BrandingSettings' },
     { title: 'Buildings', description: 'Manage building configurations and settings', icon: Building2, page: 'Buildings' },
@@ -105,9 +109,7 @@ export default function SystemSettings() {
   ];
 
   const SettingCard = ({ setting }) => {
-    const isAvailable = ROUTED_PAGES.has(setting.page) ||
-      // Explicit routes registered directly in App.jsx
-      ['BrandingSettings', 'WorkOrderSettings', 'BuildingManagerReport'].includes(setting.page);
+    const isAvailable = ROUTED_PAGES.has(setting.page);
 
     const cardBody = (
       <Card className={`h-full transition-all duration-200 ${isAvailable ? 'hover:shadow-md hover:border-blue-300 cursor-pointer' : 'opacity-70'}`}>

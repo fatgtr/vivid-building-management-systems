@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
+import { usePermissions } from '@/components/permissions/PermissionsContext';
 import PageHeader from '@/components/common/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,11 +19,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PlatformDashboard() {
-  const [user, setUser] = useState(null);
-
-  React.useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
+  const { isAdmin } = usePermissions();
 
   const { data: buildings = [], isLoading: loadingBuildings } = useQuery({
     queryKey: ['buildings'],
@@ -45,7 +42,7 @@ export default function PlatformDashboard() {
   });
 
   // Only show for admins
-  if (user && user.role !== 'admin') {
+  if (!isAdmin()) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
