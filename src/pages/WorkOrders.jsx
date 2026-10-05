@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,7 +18,7 @@ import WorkOrderDetail from '@/components/workorders/WorkOrderDetail';
 import KanbanBoard from '@/components/workorders/KanbanBoard';
 import RatingDialog from '@/components/workorders/RatingDialog';
 import AISchedulingAssistant from '@/components/workorders/AISchedulingAssistant';
-import DescriptionAIAssistant from '@/components/workorders/DescriptionAIAssistant';
+import WorkOrderDetailsCard from '@/components/workorders/WorkOrderDetailsCard';
 import ResponsibilityLookup from '@/components/workorders/ResponsibilityLookup';
 import MaintenanceSchedulingSuggestions from '@/components/workorders/MaintenanceSchedulingSuggestions';
 import ContractorAssignmentDialog from '@/components/workorders/ContractorAssignmentDialog';
@@ -43,7 +42,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { format } from 'date-fns';
 
-import { ASSET_CATEGORIES, formatSubcategoryLabel, getSubcategories } from '@/components/categories/assetCategories';
+import { ASSET_CATEGORIES, formatSubcategoryLabel } from '@/components/categories/assetCategories';
 import ImportExportToolbar from '@/components/import-export/ImportExportToolbar';
 
 const initialFormState = {
@@ -113,23 +112,6 @@ export default function WorkOrders() {
     queryKey: ['contractors'],
     queryFn: () => base44.entities.Contractor.list(),
   });
-
-  const { data: buildingAssets = [] } = useQuery({
-    queryKey: ['assets', formData.building_id],
-    queryFn: () => {
-      if (!formData.building_id) return [];
-      return base44.entities.Asset.filter({ building_id: formData.building_id });
-    },
-    enabled: !!formData.building_id,
-  });
-  // Filter client-side by category so selecting a main category no longer
-  // triggers a network refetch (which was crashing the page) — and guarantee
-  // `assets` is always an array regardless of what the query returns.
-  const assets = Array.isArray(buildingAssets)
-    ? (formData.main_category
-        ? buildingAssets.filter(a => a.asset_main_category === formData.main_category)
-        : buildingAssets)
-    : [];
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.WorkOrder.create(data),
@@ -769,265 +751,15 @@ export default function WorkOrders() {
           </DialogHeader>
           <ErrorBoundary key={showDialog ? 'open' : 'closed'} onReset={handleCloseDialog} resetLabel="Close">
           <form onSubmit={handleSubmit} className="space-y-6 pt-2">
-            {/* Basic Information Card */}
-            <Card className="border-2 border-blue-100 shadow-sm">
-              <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Wrench className="h-5 w-5 text-blue-600" />
-                  Work Order Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-4">
-                <div className="md:col-span-2">
-                  <Label htmlFor="title" className="text-sm font-semibold">Title *</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder="Brief description of the issue"
-                    required
-                    className="mt-1.5"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="building_id" className="text-sm font-semibold">Building *</Label>
-                    <Select value={formData.building_id} onValueChange={(v) => setFormData({ ...formData, building_id: v, unit_id: '', is_common_area: false })}>
-                      <SelectTrigger className="mt-1.5">
-                        <SelectValue placeholder="Select building" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {buildings.map(b => (
-                          <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Checkbox
-                        id="is_common_area"
-                        checked={formData.is_common_area}
-                        onCheckedChange={(checked) => setFormData({ ...formData, is_common_area: checked, unit_id: '' })}
-                        disabled={!formData.building_id}
-                      />
-                      <Label htmlFor="is_common_area" className="cursor-pointer text-sm font-medium">Common Area</Label>
-                    </div>
-                    {!formData.is_common_area && (
-                      <>
-                        <Label htmlFor="unit_id" className="text-sm font-semibold">Unit</Label>
-                        <Select value={formData.unit_id} onValueChange={(v) => setFormData({ ...formData, unit_id: v })} disabled={!formData.building_id}>
-                          <SelectTrigger className="mt-1.5">
-                            <SelectValue placeholder="Select unit (optional)" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {getFilteredUnits().map(u => (
-                              <SelectItem key={u.id} value={u.id}>Unit {u.unit_number}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </>
-                    )}
-                  </div>
-
-                  <div>
-                    <Label htmlFor="main_category" className="text-sm font-semibold">Main Category *</Label>
-                    <Select value={formData.main_category} onValueChange={(v) => setFormData({ ...formData, main_category: v, subcategory: '', asset_id: '' })}>
-                      <SelectTrigger className="mt-1.5">
-                        <SelectValue placeholder="Select main category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(ASSET_CATEGORIES).map(([key, cat]) => (
-                          <SelectItem key={key} value={key}>{cat.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="subcategory" className="text-sm font-semibold">Sub-Category</Label>
-                    <Select 
-                      value={formData.subcategory} 
-                      onValueChange={(v) => setFormData({ ...formData, subcategory: v })}
-                      disabled={!formData.main_category}
-                    >
-                      <SelectTrigger className="mt-1.5">
-                        <SelectValue placeholder={formData.main_category ? "Select sub-category" : "Select main category first"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {formData.main_category && getSubcategories(formData.main_category).map(sub => (
-                          <SelectItem key={sub} value={sub}>{formatSubcategoryLabel(sub)}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="asset_id" className="text-sm font-semibold">Linked Asset (optional)</Label>
-                    <Select 
-                      value={formData.asset_id || ''} 
-                      onValueChange={(v) => setFormData({ ...formData, asset_id: v === 'none' ? '' : v })} 
-                      disabled={!formData.building_id || !formData.main_category || assets.length === 0}
-                    >
-                      <SelectTrigger className="mt-1.5">
-                        <SelectValue placeholder={assets.length === 0 ? "No assets available" : "Select asset"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">No linked asset</SelectItem>
-                        {assets.map(asset => (
-                          <SelectItem key={asset.id} value={asset.id}>
-                            {asset.name} ({asset.asset_type})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="priority" className="text-sm font-semibold">Priority</Label>
-                    <Select value={formData.priority} onValueChange={(v) => setFormData({ ...formData, priority: v })}>
-                      <SelectTrigger className="mt-1.5">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">
-                          <div className="flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full bg-slate-400" />
-                            Low
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="medium">
-                          <div className="flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full bg-blue-500" />
-                            Medium
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="high">
-                          <div className="flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full bg-orange-500" />
-                            High
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="urgent">
-                          <div className="flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full bg-red-500" />
-                            Urgent
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="status" className="text-sm font-semibold">Status</Label>
-                    <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
-                      <SelectTrigger className="mt-1.5">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="open">Open</SelectItem>
-                        <SelectItem value="in_progress">In Progress</SelectItem>
-                        <SelectItem value="on_hold">On Hold</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="due_date" className="text-sm font-semibold">Due Date</Label>
-                    <Input
-                      id="due_date"
-                      type="date"
-                      value={formData.due_date}
-                      onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
-                      className="mt-1.5"
-                    />
-                  </div>
-                </div>
-
-                <div className="pt-2">
-                  <Label htmlFor="description" className="text-sm font-semibold">Description</Label>
-                  <div className="mt-2">
-                    <DescriptionAIAssistant
-                      title={formData.title}
-                      category={formData.category}
-                      selectedPhotos={selectedPhotos}
-                      selectedVideos={selectedVideos}
-                      currentDescription={formData.description}
-                      onDescriptionGenerated={(desc) => setFormData(prev => ({ ...prev, description: desc }))}
-                      onTitleGenerated={(title) => setFormData(prev => ({ ...prev, title: title }))}
-                      onPriorityGenerated={(priority) => setFormData(prev => ({ ...prev, priority: priority }))}
-                      generateTitle={!editingOrder}
-                      suggestPriority={true}
-                    />
-                  </div>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    rows={4}
-                    placeholder="Detailed description of the issue"
-                    className="mt-2"
-                  />
-                </div>
-
-                {/* Permission to Enter */}
-                <div className="pt-2 border-t border-slate-100">
-                  <Label className="text-sm font-semibold mb-3 block">Entry Access</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Permission to Enter Unit</Label>
-                      <div className="flex gap-4">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="radio"
-                            checked={formData.permission_to_enter === true}
-                            onChange={() => setFormData({ ...formData, permission_to_enter: true })}
-                            className="accent-blue-600"
-                          />
-                          <span className="text-sm">Yes</span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="radio"
-                            checked={formData.permission_to_enter === false}
-                            onChange={() => setFormData({ ...formData, permission_to_enter: false })}
-                            className="accent-blue-600"
-                          />
-                          <span className="text-sm">No</span>
-                        </label>
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="entry_instructions" className="text-sm font-semibold">Entry Instructions</Label>
-                      <Textarea
-                        id="entry_instructions"
-                        value={formData.entry_instructions || ''}
-                        onChange={(e) => setFormData({ ...formData, entry_instructions: e.target.value })}
-                        rows={2}
-                        placeholder="e.g., Key under mat, call before entry..."
-                        className="mt-1.5"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="notes" className="text-sm font-semibold">Additional Notes</Label>
-                  <Textarea
-                    id="notes"
-                    value={formData.notes}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    rows={2}
-                    placeholder="Any additional information"
-                    className="mt-1.5"
-                  />
-                </div>
-              </CardContent>
-            </Card>
+            <WorkOrderDetailsCard
+              formData={formData}
+              setFormData={setFormData}
+              buildings={buildings}
+              units={getFilteredUnits()}
+              selectedPhotos={selectedPhotos}
+              selectedVideos={selectedVideos}
+              editingOrder={editingOrder}
+            />
 
             {/* Assignment Card */}
             <Card className="border-2 border-indigo-100 shadow-sm">
