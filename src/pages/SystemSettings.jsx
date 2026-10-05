@@ -3,6 +3,11 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { usePermissions } from '@/components/permissions/PermissionsContext';
 import TestingAccessOverride from '@/components/settings/TestingAccessOverride';
+import { pagesConfig } from '../pages.config';
+
+// Pages that have a registered route. Settings cards pointing to anything
+// else render as a static "Coming soon" tile instead of a 404 link.
+const ROUTED_PAGES = new Set(Object.keys(pagesConfig.Pages));
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -99,23 +104,38 @@ export default function SystemSettings() {
     { title: 'Theme & Appearance', description: 'Customize application theme and colors', icon: Palette, page: 'ThemeSettings' },
   ];
 
-  const SettingCard = ({ setting }) => (
-    <Link to={createPageUrl(setting.page)}>
-      <Card className="h-full hover:shadow-md transition-all duration-200 hover:border-blue-300 cursor-pointer">
+  const SettingCard = ({ setting }) => {
+    const isAvailable = ROUTED_PAGES.has(setting.page) ||
+      // Explicit routes registered directly in App.jsx
+      ['BrandingSettings', 'WorkOrderSettings', 'BuildingManagerReport'].includes(setting.page);
+
+    const cardBody = (
+      <Card className={`h-full transition-all duration-200 ${isAvailable ? 'hover:shadow-md hover:border-blue-300 cursor-pointer' : 'opacity-70'}`}>
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center flex-shrink-0">
-              <setting.icon className="h-5 w-5 text-blue-600" />
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${isAvailable ? 'bg-gradient-to-br from-blue-50 to-blue-100' : 'bg-slate-100'}`}>
+              <setting.icon className={`h-5 w-5 ${isAvailable ? 'text-blue-600' : 'text-slate-400'}`} />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-slate-900 mb-1">{setting.title}</h3>
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className={`font-semibold ${isAvailable ? 'text-slate-900' : 'text-slate-500'}`}>{setting.title}</h3>
+                {!isAvailable && (
+                  <span className="text-[10px] font-medium uppercase tracking-wide bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">Coming soon</span>
+                )}
+              </div>
               <p className="text-sm text-slate-500 line-clamp-2">{setting.description}</p>
             </div>
           </div>
         </CardContent>
       </Card>
-    </Link>
-  );
+    );
+
+    return isAvailable ? (
+      <Link to={createPageUrl(setting.page)}>{cardBody}</Link>
+    ) : (
+      <div title="This settings page is not available yet">{cardBody}</div>
+    );
+  };
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">

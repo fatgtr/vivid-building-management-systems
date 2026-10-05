@@ -415,7 +415,7 @@ export default function StrataAIChat({ buildingId }) {
                             {draft}
                           </div>
                           <div className="mt-2">
-                            <Link to={createPageUrl('Announcements')}>
+                            <Link to={createPageUrl('Communications')}>
                               <Button variant="outline" size="sm" className="w-full text-xs">
                                 <FileDown className="h-3 w-3 mr-1" />
                                 Create Announcement from Draft
